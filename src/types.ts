@@ -79,6 +79,9 @@ export interface Settings {
   defaultLocation: string;
   defaultMaxPlayers: number;
   defaultMatchMinutes: number;
+  pixKey: string;
+  pixName: string;
+  pixCity: string;
 }
 
 export const POSITIONS: { key: Position; label: string }[] = [

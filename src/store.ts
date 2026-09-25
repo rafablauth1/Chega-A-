@@ -50,6 +50,9 @@ export const DEFAULT_SETTINGS: Settings = {
   defaultLocation: '',
   defaultMaxPlayers: 0,
   defaultMatchMinutes: 10,
+  pixKey: '',
+  pixName: '',
+  pixCity: '',
 };
 
 const EMPTY: Data = { players: [], games: [], expenses: [], monthly: {}, settings: DEFAULT_SETTINGS };

@@ -19,6 +19,9 @@ export default function SettingsScreen() {
   const [maxPlayers, setMaxPlayers] = useState(String(settings.defaultMaxPlayers));
   const [minutes, setMinutes] = useState(settings.defaultMatchMinutes);
   const [backup, setBackup] = useState('');
+  const [pixKey, setPixKey] = useState(settings.pixKey);
+  const [pixName, setPixName] = useState(settings.pixName);
+  const [pixCity, setPixCity] = useState(settings.pixCity);
 
   const save = () => {
     updateSettings({
@@ -29,6 +32,9 @@ export default function SettingsScreen() {
       defaultPlayersPerTeam: perTeam,
       defaultMaxPlayers: parseInt(maxPlayers, 10) || 0,
       defaultMatchMinutes: minutes,
+      pixKey: pixKey.trim(),
+      pixName: pixName.trim(),
+      pixCity: pixCity.trim(),
     });
     router.back();
   };
@@ -90,6 +96,17 @@ export default function SettingsScreen() {
           <Chip key={n} label={String(n)} selected={minutes === n} onPress={() => setMinutes(n)} />
         ))}
       </View>
+      <SectionTitle>Pix para receber</SectionTitle>
+      <Input
+        label="Chave Pix"
+        value={pixKey}
+        onChangeText={setPixKey}
+        placeholder="CPF, e-mail, celular ou chave aleatória"
+        autoCapitalize="none"
+      />
+      <Input label="Nome do recebedor" value={pixName} onChangeText={setPixName} placeholder="Como está no banco" />
+      <Input label="Cidade" value={pixCity} onChangeText={setPixCity} placeholder="Ex.: São Paulo" />
+
       <Text style={[text.muted, { marginBottom: 16 }]}>
         O caixa usa a mensalidade atual ({money(parseMoney(monthlyFee))}) para todos os meses já pagos.
       </Text>

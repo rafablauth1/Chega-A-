@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import {
   Avatar,
@@ -24,12 +24,15 @@ import { useStore } from '@/store';
 import { colors, positionColors, teamColors } from '@/theme';
 import type { Game, Player } from '@/types';
 import { confirm, notify } from '@/utils/confirm';
-import { formatGameDate, money, monthKey, parseLocal } from '@/utils/format';
+import { formatGameDate, formatShortDate, money, monthKey, parseLocal } from '@/utils/format';
+import { PixCard } from '@/components/PixCard';
 import { displayName, nextPair, teamName } from '@/utils/names';
 import { buildRatingMap } from '@/utils/rating';
 import { confirmedIds, matchScore, waitlistIds } from '@/utils/stats';
 import { drawTeams, teamAverage, teamSizes } from '@/utils/teams';
 import { Pitch } from '@/components/Pitch';
+import { shareView } from '@/utils/share';
+import { roundSelection, summaryText } from '@/utils/selection';
 
 const styles = StyleSheet.create({
   benchChip: {
@@ -114,7 +117,7 @@ export default function GameDetailScreen() {
       {tab === 'times' && <Teams game={game} attendees={confirmed} byId={byId} rating={rating} />}
       {tab === 'placar' && <Scoreboard game={game} byId={byId} goTeams={() => setTab('times')} />}
       {tab === 'pagar' && <Payments game={game} attendees={confirmed} />}
-      {tab === 'notas' && <RateGame game={game} attendees={confirmed} />}
+      {tab === 'notas' && <RateGame game={game} attendees={confirmed} byId={byId} />}
     </Screen>
   );
 }
@@ -220,6 +223,8 @@ function Teams({
   const setTeams = useStore((s) => s.setTeams);
   const [selected, setSelected] = useState<string | null>(null);
   const [view, setView] = useState<'campo' | 'lista'>('campo');
+  const teamsRef = useRef<View>(null);
+  const groupName = useStore((s) => s.settings.groupName);
   const teams = game.teams ?? null;
   const inTeams = new Set(teams?.flat() ?? []);
   const outside = attendees.filter((p) => !inTeams.has(p.id));
@@ -271,7 +276,10 @@ function Teams({
           t.map((id) => `• ${byId[id] ? displayName(byId[id]) : '?'}${byId[id]?.position === 'GOL' ? ' 🧤' : ''}`).join('\n'),
       )
       .join('\n\n');
-    Share.share({ message: `⚽ Times - ${formatGameDate(game.date)}\n\n${body}` });
+    const message = `⚽ Times - ${formatGameDate(game.date)}\n\n${body}`;
+    // No celular manda a imagem do campinho; na web, o texto
+    setSelected(null);
+    setTimeout(() => shareView(teamsRef, message, 'Enviar times'), 50);
   };
 
   const addTeam = () => setTeams(game.id, [...(teams ?? []), []]);
@@ -343,6 +351,10 @@ function Teams({
 
       {bench}
 
+      <View ref={teamsRef} collapsable={false} style={{ backgroundColor: colors.bg }}>
+      <Text style={{ color: colors.primary, fontWeight: '800', letterSpacing: 1, marginBottom: 8 }}>
+        {groupName.toUpperCase()} · {formatGameDate(game.date)}
+      </Text>
       {teams.map((t, i) => {
         const color = teamColors[i % teamColors.length];
         const members = t.map((id) => byId[id]).filter(Boolean) as Player[];
@@ -379,6 +391,7 @@ function Teams({
           </Card>
         );
       })}
+      </View>
 
       <Button title="Adicionar time" icon="add" variant="ghost" onPress={addTeam} />
     </>
@@ -412,6 +425,7 @@ function PlayerRow({ player, selected, onPress }: { player?: Player; selected: b
 function Scoreboard({ game, byId, goTeams }: { game: Game; byId: Record<string, Player>; goTeams: () => void }) {
   const addMatch = useStore((s) => s.addMatch);
   const minutes = useStore((s) => s.settings.defaultMatchMinutes);
+  const groupName = useStore((s) => s.settings.groupName);
   const teams = game.teams ?? [];
   const suggested = nextPair(game);
   const [a, setA] = useState(suggested[0]);
@@ -518,6 +532,16 @@ function Scoreboard({ game, byId, goTeams }: { game: Game; byId: Record<string, 
           </Card>
         </>
       )}
+
+      {game.matches.length > 0 && (
+        <Button
+          title="Enviar súmula do dia"
+          icon="document-text-outline"
+          variant="secondary"
+          style={{ marginTop: 6 }}
+          onPress={() => Share.share({ message: summaryText(game, byId, groupName) })}
+        />
+      )}
     </>
   );
 }
@@ -573,16 +597,27 @@ function Payments({ game, attendees }: { game: Game; attendees: Player[] }) {
           </Card>
         );
       })}
+
+      {avulsos.length > 0 && (
+        <>
+          <SectionTitle>Pix do jogo</SectionTitle>
+          <PixCard amount={game.pricePerPlayer} message={`Pelada ${formatShortDate(game.date)}`} />
+        </>
+      )}
     </>
   );
 }
 
 /* ---------------------------- Avaliação ---------------------------- */
 
-function RateGame({ game, attendees }: { game: Game; attendees: Player[] }) {
+function RateGame({ game, attendees, byId }: { game: Game; attendees: Player[]; byId: Record<string, Player> }) {
   const ratePlayer = useStore((s) => s.ratePlayer);
   const setMvp = useStore((s) => s.setMvp);
+  const groupName = useStore((s) => s.settings.groupName);
+  const selRef = useRef<View>(null);
   const rated = attendees.filter((p) => game.ratings[p.id]).length;
+  const hasData = rated > 0 || game.matches.some((m) => m.goals.length);
+  const selection = hasData ? roundSelection(game, byId) : [];
 
   if (!attendees.length) {
     return <Empty icon="star-outline" title="Ninguém para avaliar" text="Confirme quem jogou na aba Lista." />;
@@ -590,6 +625,31 @@ function RateGame({ game, attendees }: { game: Game; attendees: Player[] }) {
 
   return (
     <>
+      {selection.length > 0 && (
+        <>
+          <View ref={selRef} collapsable={false} style={{ backgroundColor: colors.bg, paddingBottom: 4 }}>
+            <Text style={{ color: colors.gold, fontWeight: '900', fontSize: 18, textAlign: 'center' }}>⭐ Seleção da rodada</Text>
+            <Text style={[text.muted, { textAlign: 'center', marginBottom: 10 }]}>
+              {groupName} · {formatGameDate(game.date)}
+            </Text>
+            <Pitch players={selection.map((s) => s.player)} color={colors.primaryDark} rating={Object.fromEntries(selection.map((s) => [s.player.id, s.score]))} />
+          </View>
+          <Button
+            title="Compartilhar seleção"
+            icon="share-social"
+            variant="secondary"
+            style={{ marginBottom: 16 }}
+            onPress={() =>
+              shareView(
+                selRef,
+                `⭐ Seleção da rodada · ${formatGameDate(game.date)}\n\n` +
+                  selection.map((s) => `${s.player.position} ${displayName(s.player)}${s.goals ? ` ⚽${s.goals}` : ''}${s.assists ? ` 🅰️${s.assists}` : ''}`).join('\n'),
+                'Seleção da rodada',
+              )
+            }
+          />
+        </>
+      )}
       <Text style={[text.muted, { marginBottom: 12 }]}>
         Dê nota de 1 a 5 para a atuação de cada um e toque no troféu para eleger o craque do jogo. As notas entram na
         média usada nos próximos sorteios. ({rated}/{attendees.length} avaliados)

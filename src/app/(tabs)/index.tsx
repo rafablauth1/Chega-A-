@@ -7,13 +7,35 @@ import { buildDemo } from '@/utils/demo';
 import { confirmedIds, waitlistIds } from '@/utils/stats';
 import { colors } from '@/theme';
 import type { Game, Player } from '@/types';
-import { formatGameDate, money, toLocalIso } from '@/utils/format';
+import { formatGameDate, money, parseLocal, toLocalIso } from '@/utils/format';
+
+/** Mesma hora e dia da semana, na próxima data futura. */
+const nextWeekly = (iso: string) => {
+  const d = parseLocal(iso);
+  const now = new Date();
+  do d.setDate(d.getDate() + 7);
+  while (d < now);
+  return toLocalIso(d);
+};
 
 export default function GamesScreen() {
   const games = useStore((s) => s.games);
   const players = useStore((s) => s.players);
   const groupName = useStore((s) => s.settings.groupName);
   const replaceAll = useStore((s) => s.replaceAll);
+  const addGame = useStore((s) => s.addGame);
+
+  const repeatGame = (g: Game) => {
+    const id = addGame({
+      date: nextWeekly(g.date),
+      location: g.location,
+      pricePerPlayer: g.pricePerPlayer,
+      playersPerTeam: g.playersPerTeam,
+      maxPlayers: g.maxPlayers,
+      notes: g.notes,
+    });
+    router.push(`/game/${id}`);
+  };
 
   const now = toLocalIso(new Date(Date.now() - 3 * 60 * 60 * 1000)); // jogo "em andamento" conta como próximo por 3h
   const upcoming = games.filter((g) => g.date >= now).sort((a, b) => a.date.localeCompare(b.date));
@@ -44,6 +66,16 @@ export default function GamesScreen() {
             variant="secondary"
             onPress={() => replaceAll(buildDemo())}
           />
+        )}
+
+        {upcoming.length === 0 && past.length > 0 && (
+          <Card style={{ borderColor: colors.primary, borderStyle: 'dashed', gap: 10, marginTop: 12 }}>
+            <Text style={text.title}>Nenhum jogo marcado</Text>
+            <Text style={text.muted}>
+              Repetir o último ({past[0].location || 'mesmo local'}) em {formatGameDate(nextWeekly(past[0].date))}?
+            </Text>
+            <Button title="Marcar próximo jogo" icon="calendar" onPress={() => repeatGame(past[0])} />
+          </Card>
         )}
 
         {upcoming.length > 0 && <SectionTitle>Próximos</SectionTitle>}

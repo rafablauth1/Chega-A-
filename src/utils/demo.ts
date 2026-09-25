@@ -82,7 +82,7 @@ function playGame(game: Game, players: Player[], rating: Record<string, number>)
 export function buildDemo(): Data {
   const now = new Date();
   const players: Player[] = PEOPLE.map(([name, nickname, position, type], i) => ({
-    id: uid() + i,
+    id: `demo-p${i}`,
     name,
     nickname,
     phone: '',
@@ -140,6 +140,7 @@ export function buildDemo(): Data {
       { id: uid(), date: at(-6).slice(0, 10), description: 'Coletes', amount: 90 },
     ],
     monthly: { [month]: mensalistas.slice(0, Math.ceil(mensalistas.length * 0.7)) },
-    settings: { ...DEFAULT_SETTINGS, groupName: 'Pelada de Quinta', defaultLocation: base.location, defaultMaxPlayers: 18, defaultPrice: 25 },
+    settings: { ...DEFAULT_SETTINGS, groupName: 'Pelada de Quinta', defaultLocation: base.location, defaultMaxPlayers: 18, defaultPrice: 25,
+      pixKey: 'pelada@exemplo.com', pixName: 'Organizador Exemplo', pixCity: 'Sao Paulo' },
   };
 }

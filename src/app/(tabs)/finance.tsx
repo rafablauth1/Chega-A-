@@ -2,7 +2,9 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Share, Text, View } from 'react-native';
+import { PixCard } from '@/components/PixCard';
 import { Button, Card, Check, Empty, Input, Screen, SectionTitle, Stat, Tag, text } from '@/components/ui';
+import { pixPayload } from '@/utils/pix';
 import { useStore } from '@/store';
 import { colors } from '@/theme';
 import type { Player } from '@/types';
@@ -16,7 +18,8 @@ export default function FinanceScreen() {
   const games = useStore((s) => s.games);
   const expenses = useStore((s) => s.expenses);
   const monthly = useStore((s) => s.monthly);
-  const fee = useStore((s) => s.settings.monthlyFee);
+  const settings = useStore((s) => s.settings);
+  const fee = settings.monthlyFee;
   const { toggleMonthly, togglePaid, addExpense, removeExpense } = useStore.getState();
 
   const current = monthKey(new Date());
@@ -67,7 +70,10 @@ export default function FinanceScreen() {
       ...debts.map((d) => `• ${displayName(d.player)} - jogo ${formatShortDate(d.game.date)} (${money(d.game.pricePerPlayer)})`),
     ];
     if (!lines.length) return notify('Ninguém devendo! 🎉');
-    Share.share({ message: `💰 Pendências da pelada\n\n${lines.join('\n')}` });
+    const pix = settings.pixKey
+      ? `\n\n💠 Pix copia e cola:\n${pixPayload({ key: settings.pixKey, name: settings.pixName, city: settings.pixCity })}`
+      : '';
+    Share.share({ message: `💰 Pendências da pelada\n\n${lines.join('\n')}${pix}` });
   };
 
   return (
@@ -94,7 +100,8 @@ export default function FinanceScreen() {
         <Stat label="Saídas" value={money(monthOut)} color={colors.danger} />
       </View>
 
-      <Button title="Cobrar pendentes" icon="logo-whatsapp" variant="secondary" onPress={charge} />
+      <Button title="Cobrar pendentes" icon="logo-whatsapp" variant="secondary" onPress={charge} style={{ marginBottom: 10 }} />
+      <PixCard />
 
       {/* Mensalidades */}
       <SectionTitle right={<Text style={text.muted}>{paidMonthly.length}/{mensalistas.length} · {money(fee)}</Text>}>

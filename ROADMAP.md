@@ -31,10 +31,10 @@ Legenda de tamanho: 🟢 pequeno (horas) · 🟡 médio (1–2 dias) · 🔴 gra
 
 - [x] 🟡 **Aba Ranking**: artilharia, assistências, presença (%), nota média, craques, vitórias; filtro por mês/ano/geral
 - [x] 🟢 **Perfil do jogador com estatísticas**: jogos, gols, assistências, V/E/D, craques, últimas notas
-- [ ] 🟡 **Card do jogador estilo FIFA** (overall + atributos) para compartilhar
-- [ ] 🟡 **Compartilhar imagem do campinho** no WhatsApp (print dos times, não só texto)
+- [x] 🟡 **Card do jogador estilo FIFA** (overall + atributos) para compartilhar
+- [x] 🟡 **Compartilhar imagem do campinho** no WhatsApp (print dos times, não só texto)
 - [ ] 🟢 Seletor de data/hora nativo (calendário), no lugar de digitar
-- [ ] 🟢 Jogo recorrente: "repetir toda quinta" cria o próximo automaticamente
+- [x] 🟢 Jogo recorrente: botão "Marcar próximo jogo" repete o último na semana seguinte
 - [ ] 🟢 Vibração/feedback tátil nos toques importantes
 - [ ] 🟢 Ícone, splash e nome definitivos do app ⚠️ *(qual nome: "Vaia Aí" ou "Chega Aí"?)*
 - [ ] 🟢 Tema claro opcional
@@ -64,7 +64,7 @@ Legenda de tamanho: 🟢 pequeno (horas) · 🟡 médio (1–2 dias) · 🔴 gra
 
 ## Fase 4: Financeiro avançado
 
-- [ ] 🟢 **Pix copia-e-cola / QR Code** com a chave do organizador (estático, sem taxa)
+- [x] 🟢 **Pix copia-e-cola / QR Code** com a chave do organizador (estático, sem taxa)
 - [ ] 🟡 Jogador envia **comprovante** (foto) e o admin aprova
 - [ ] 🔴 Pagamento automático (Pix dinâmico/cartão via Mercado Pago ou Asaas) ⚠️ *(taxa por transação, precisa de CNPJ/CPF cadastrado)*
 - [ ] 🟡 Relatório mensal em PDF (entradas, saídas, quem deve)
@@ -74,11 +74,11 @@ Legenda de tamanho: 🟢 pequeno (horas) · 🟡 médio (1–2 dias) · 🔴 gra
 ## Fase 5: Estatísticas e gamificação
 
 - [ ] 🟡 **Temporadas** (ranking zera a cada semestre/ano, com campeão)
-- [ ] 🟡 **Conquistas/badges** (hat-trick, 10 jogos seguidos, garçom, muralha...)
-- [ ] 🟡 Seleção da rodada no campinho (melhores de cada posição)
+- [x] 🟡 **Conquistas/badges** (hat-trick, 10 jogos seguidos, garçom, muralha...)
+- [x] 🟡 Seleção da rodada no campinho (melhores de cada posição)
 - [ ] 🟡 Gráfico da evolução da nota do jogador
 - [ ] 🟢 Duplas que mais ganham juntas / confronto direto
-- [ ] 🟡 Súmula do dia para compartilhar (placares, artilheiro, craque)
+- [x] 🟡 Súmula do dia para compartilhar (placares, artilheiro, craque)
 
 ## Fase 6: Extras
 
