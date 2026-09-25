@@ -29,8 +29,8 @@ Legenda de tamanho: 🟢 pequeno (horas) · 🟡 médio (1–2 dias) · 🔴 gra
 
 ## Fase 1: Polimento do que já existe (sem custo, sem conta externa)
 
-- [ ] 🟡 **Aba Ranking**: artilharia, assistências, presença (%), nota média, craques, vitórias; filtro por mês/ano/geral
-- [ ] 🟢 **Perfil do jogador com estatísticas**: jogos, gols, assistências, V/E/D, craques, últimas notas
+- [x] 🟡 **Aba Ranking**: artilharia, assistências, presença (%), nota média, craques, vitórias; filtro por mês/ano/geral
+- [x] 🟢 **Perfil do jogador com estatísticas**: jogos, gols, assistências, V/E/D, craques, últimas notas
 - [ ] 🟡 **Card do jogador estilo FIFA** (overall + atributos) para compartilhar
 - [ ] 🟡 **Compartilhar imagem do campinho** no WhatsApp (print dos times, não só texto)
 - [ ] 🟢 Seletor de data/hora nativo (calendário), no lugar de digitar

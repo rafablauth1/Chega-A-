@@ -1,12 +1,13 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Switch, Text, View } from 'react-native';
-import { Button, Card, Chip, Input, Label, RatingBadge, Screen, SectionTitle, Stars, text } from '@/components/ui';
+import { Button, Card, Chip, Input, Label, RatingBadge, Screen, SectionTitle, Stars, Stat, text } from '@/components/ui';
+import { computeStats } from '@/utils/stats';
 import { useStore } from '@/store';
 import { colors, positionColors } from '@/theme';
 import { POSITIONS, SKILLS, type PlayerType, type Position, type Skills } from '@/types';
 import { confirm, notify } from '@/utils/confirm';
-import { formatShortDate } from '@/utils/format';
+import { formatShortDate, toLocalIso } from '@/utils/format';
 import { gameRatingAverage, overallRating } from '@/utils/rating';
 
 const DEFAULT_SKILLS: Skills = { tecnica: 3, fisico: 3, passe: 3, finalizacao: 3, defesa: 3 };
@@ -37,6 +38,7 @@ export default function PlayerFormScreen() {
   const draft = { name: name.trim(), nickname: nickname.trim(), phone: phone.trim(), position, type, skills, active };
   const perf = existing ? gameRatingAverage(existing.id, games) : null;
   const overall = overallRating({ ...draft, id: existing?.id ?? '', createdAt: '' }, games);
+  const stats = existing ? computeStats(games, toLocalIso(new Date()))[existing.id] ?? null : null;
   const history = existing
     ? games
         .filter((g) => g.attendees.includes(existing.id))
@@ -82,6 +84,21 @@ export default function PlayerFormScreen() {
         <Chip label="Avulso (paga por jogo)" selected={type === 'avulso'} onPress={() => setType('avulso')} />
         <Chip label="Mensalista" selected={type === 'mensalista'} onPress={() => setType('mensalista')} />
       </View>
+
+      {stats && (
+        <>
+          <SectionTitle>Estatísticas</SectionTitle>
+          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+            <Stat label="Jogos" value={String(stats.games)} />
+            <Stat label="Gols" value={String(stats.goals)} color={colors.primary} />
+            <Stat label="Assist." value={String(stats.assists)} color={colors.primary} />
+          </View>
+          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+            <Stat label="Craque" value={`🏆 ${stats.mvps}`} color={colors.gold} />
+            <Stat label="V / E / D" value={`${stats.wins}/${stats.draws}/${stats.losses}`} />
+          </View>
+        </>
+      )}
 
       <SectionTitle right={<RatingBadge value={overall} />}>Avaliação</SectionTitle>
       <Card>
