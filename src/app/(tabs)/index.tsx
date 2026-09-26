@@ -2,6 +2,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { Text, View } from 'react-native';
 import { Button, Card, Empty, Fab, Screen, SectionTitle, Tag, text, type IconName } from '@/components/ui';
+import { useCanManage } from '@/auth';
+import { isCloudEnabled } from '@/lib/supabase';
 import { useStore } from '@/store';
 import { buildDemo } from '@/utils/demo';
 import { confirmedIds, waitlistIds } from '@/utils/stats';
@@ -24,6 +26,7 @@ export default function GamesScreen() {
   const groupName = useStore((s) => s.settings.groupName);
   const replaceAll = useStore((s) => s.replaceAll);
   const addGame = useStore((s) => s.addGame);
+  const canManage = useCanManage();
 
   const repeatGame = (g: Game) => {
     const id = addGame({
@@ -53,13 +56,15 @@ export default function GamesScreen() {
             icon="football-outline"
             title="Nenhum jogo marcado"
             text={
-              players.length === 0
-                ? 'Comece cadastrando a galera na aba Jogadores, depois marque o primeiro jogo no botão +.'
-                : 'Toque no + para marcar o próximo jogo.'
+              !canManage
+                ? 'Quando o organizador marcar o próximo jogo, ele aparece aqui para você confirmar presença.'
+                : players.length === 0
+                  ? 'Comece cadastrando a galera na aba Jogadores, depois marque o primeiro jogo no botão +.'
+                  : 'Toque no + para marcar o próximo jogo.'
             }
           />
         )}
-        {players.length === 0 && (
+        {players.length === 0 && !isCloudEnabled && (
           <Button
             title="Ver com 20 jogadores de exemplo"
             icon="flask-outline"
@@ -68,7 +73,7 @@ export default function GamesScreen() {
           />
         )}
 
-        {upcoming.length === 0 && past.length > 0 && (
+        {canManage && upcoming.length === 0 && past.length > 0 && (
           <Card style={{ borderColor: colors.primary, borderStyle: 'dashed', gap: 10, marginTop: 12 }}>
             <Text style={text.title}>Nenhum jogo marcado</Text>
             <Text style={text.muted}>
@@ -88,7 +93,7 @@ export default function GamesScreen() {
           <GameCard key={g.id} game={g} players={players} />
         ))}
       </Screen>
-      <Fab onPress={() => router.push('/game-form/new')} />
+      {canManage && <Fab onPress={() => router.push('/game-form/new')} />}
     </View>
   );
 }

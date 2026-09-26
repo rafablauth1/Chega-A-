@@ -26,7 +26,7 @@ const ROLE_ORDER: Record<Role, number> = { owner: 0, admin: 1, player: 2 };
 
 export default function GroupScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { session, refresh } = useAuth();
+  const { session, refresh, activeGroup, setActiveGroup } = useAuth();
   const [group, setGroup] = useState<Group | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
@@ -100,6 +100,18 @@ export default function GroupScreen() {
   return (
     <Screen>
       <Stack.Screen options={{ title: group.name }} />
+
+      {activeGroup?.id !== group.id && (
+        <Button
+          title="Abrir jogos deste grupo"
+          icon="football"
+          style={{ marginBottom: 12 }}
+          onPress={() => {
+            setActiveGroup(group.id);
+            router.dismissTo('/');
+          }}
+        />
+      )}
 
       <Card style={{ alignItems: 'center' }}>
         <Text style={text.muted}>Código de convite</Text>

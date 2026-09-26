@@ -9,7 +9,7 @@ import { notify } from '@/utils/confirm';
 type Mode = 'join' | 'create';
 
 export default function GroupJoinScreen() {
-  const { refresh } = useAuth();
+  const { refresh, setActiveGroup } = useAuth();
   const [mode, setMode] = useState<Mode>('join');
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
@@ -39,6 +39,7 @@ export default function GroupJoinScreen() {
     setBusy(false);
     if (error || !groupId) return notify('Não deu certo', authErrorMessage(error?.message ?? ''));
     await refresh();
+    setActiveGroup(groupId);
     router.replace({ pathname: '/group/[id]', params: { id: groupId } });
   };
 

@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Share, Text, View } from 'react-native';
 import { Button, Card, Chip, Input, Label, Screen, SectionTitle, text } from '@/components/ui';
+import { isCloudEnabled } from '@/lib/supabase';
 import { exportData, normalize, useStore } from '@/store';
 import { confirm, notify } from '@/utils/confirm';
 import { buildDemo } from '@/utils/demo';
@@ -112,6 +113,8 @@ export default function SettingsScreen() {
       </Text>
       <Button title="Salvar" icon="checkmark" onPress={save} />
 
+      {!isCloudEnabled && (
+        <>
       <SectionTitle>Dados</SectionTitle>
       <Card style={{ gap: 10 }}>
         <Button title="Carregar exemplo (20 jogadores)" icon="flask-outline" variant="secondary" onPress={loadDemo} />
@@ -127,6 +130,8 @@ export default function SettingsScreen() {
         <Button title="Importar" icon="cloud-download-outline" variant="secondary" onPress={doImport} disabled={!backup.trim()} />
         <Button title="Apagar tudo" icon="trash-outline" variant="danger" onPress={wipe} />
       </Card>
+        </>
+      )}
     </Screen>
   );
 }

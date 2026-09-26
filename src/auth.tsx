@@ -1,5 +1,7 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Session } from '@supabase/supabase-js';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { openGroup } from './cloud';
 import { isCloudEnabled, supabase } from './lib/supabase';
 import type { Position, Skills } from './types';
 
@@ -27,6 +29,9 @@ interface AuthState {
   session: Session | null;
   profile: Profile | null;
   groups: GroupSummary[];
+  /** Grupo cujos jogos, jogadores e caixa aparecem nas abas */
+  activeGroup: GroupSummary | null;
+  setActiveGroup: (id: string) => void;
   refresh: () => Promise<void>;
 }
 
@@ -35,10 +40,20 @@ const AuthContext = createContext<AuthState>({
   session: null,
   profile: null,
   groups: [],
+  activeGroup: null,
+  setActiveGroup: () => {},
   refresh: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
+
+/** Pode organizar (criar jogo, sortear, placar, caixa)? No modo local, sempre. */
+export function useCanManage() {
+  const { activeGroup } = useAuth();
+  return !isCloudEnabled || activeGroup?.role === 'owner' || activeGroup?.role === 'admin';
+}
+
+const ACTIVE_KEY = 'vaia-ai-active-group';
 
 export const ROLE_LABEL: Record<Role, string> = { owner: 'Dono', admin: 'Admin', player: 'Jogador' };
 
@@ -58,11 +73,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [groups, setGroups] = useState<GroupSummary[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   const load = useCallback(async (s: Session | null) => {
     if (!s) {
       setProfile(null);
       setGroups([]);
+      setActiveId(null);
       return;
     }
     const [p, g] = await Promise.all([
@@ -70,11 +87,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       supabase.from('group_members').select('role, groups(id, name, invite_code)').eq('user_id', s.user.id),
     ]);
     if (p.data) setProfile(p.data as Profile);
-    setGroups(
-      (g.data ?? []).flatMap((row: any) =>
-        row.groups ? [{ ...row.groups, role: row.role as Role }] : [],
-      ),
+    const saved = await AsyncStorage.getItem(ACTIVE_KEY).catch(() => null);
+    // Sem resposta (ex.: sem internet): fica no último grupo usado, com o cache do celular
+    if (g.error) {
+      setActiveId((cur) => cur ?? saved);
+      return;
+    }
+    const list: GroupSummary[] = (g.data ?? []).flatMap((row: any) =>
+      row.groups ? [{ ...row.groups, role: row.role as Role }] : [],
     );
+    list.sort((a, b) => a.name.localeCompare(b.name));
+    setGroups(list);
+    setActiveId((cur) => {
+      const want = cur ?? saved;
+      return list.some((x) => x.id === want) ? want : (list[0]?.id ?? null);
+    });
   }, []);
 
   useEffect(() => {
@@ -94,7 +121,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(() => load(session), [load, session]);
 
+  const activeGroup = groups.find((g) => g.id === activeId) ?? null;
+
+  // Liga o store ao grupo ativo (ou limpa ao sair da conta)
+  useEffect(() => {
+    if (!isCloudEnabled || !ready) return;
+    openGroup(activeId);
+    if (activeId) AsyncStorage.setItem(ACTIVE_KEY, activeId).catch(() => {});
+  }, [activeId, ready]);
+
   return (
-    <AuthContext.Provider value={{ ready, session, profile, groups, refresh }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ ready, session, profile, groups, activeGroup, setActiveGroup: setActiveId, refresh }}>
+      {children}
+    </AuthContext.Provider>
   );
 }

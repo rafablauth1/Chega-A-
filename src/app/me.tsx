@@ -12,7 +12,7 @@ import { confirm, notify } from '@/utils/confirm';
 const DEFAULT_SKILLS: Skills = { tecnica: 3, fisico: 3, passe: 3, finalizacao: 3, defesa: 3 };
 
 export default function MeScreen() {
-  const { session, profile, groups, refresh } = useAuth();
+  const { session, profile, groups, activeGroup, refresh } = useAuth();
   const [name, setName] = useState('');
   const [nickname, setNickname] = useState('');
   const [phone, setPhone] = useState('');
@@ -81,6 +81,7 @@ export default function MeScreen() {
           <Card key={g.id} onPress={() => router.push({ pathname: '/group/[id]', params: { id: g.id } })} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <Ionicons name="football" size={22} color={colors.primary} />
             <Text style={[text.title, { flex: 1 }]}>{g.name}</Text>
+            {g.id === activeGroup?.id && <Tag label="ABERTO" color={colors.primary} />}
             <Tag label={ROLE_LABEL[g.role]} color={g.role === 'player' ? colors.muted : colors.gold} />
             <Ionicons name="chevron-forward" size={18} color={colors.muted} />
           </Card>

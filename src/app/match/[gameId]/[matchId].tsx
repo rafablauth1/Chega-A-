@@ -3,6 +3,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, Vibration, View } from 'react-native';
 import { Button, Card, Empty, Screen, SectionTitle, text } from '@/components/ui';
+import { useCanManage } from '@/auth';
 import { useStore } from '@/store';
 import { colors, teamColors } from '@/theme';
 import type { Player } from '@/types';
@@ -27,6 +28,7 @@ export default function MatchScreen() {
   const players = useStore((s) => s.players);
   const { addGoal, removeGoal, finishMatch, removeMatch } = useStore.getState();
   const match = game?.matches.find((m) => m.id === matchId);
+  const canManage = useCanManage();
 
   const clock = (clocks[matchId] ??= { base: 0, startedAt: null });
   const [, tick] = useState(0);
@@ -139,7 +141,7 @@ export default function MatchScreen() {
       </Card>
 
       {/* Registrar gol */}
-      {!match.finished && !step && (
+      {canManage && !match.finished && !step && (
         <View style={{ flexDirection: 'row', gap: 10, marginBottom: 6 }}>
           <Button title={`Gol ${teamName(match.teamA)}`} icon="football" onPress={() => setStep({ team: match.teamA, stage: 'scorer' })} style={{ flex: 1, backgroundColor: colorA, borderColor: colorA }} />
           <Button title={`Gol ${teamName(match.teamB)}`} icon="football" onPress={() => setStep({ team: match.teamB, stage: 'scorer' })} style={{ flex: 1, backgroundColor: colorB, borderColor: colorB }} />
@@ -203,14 +205,17 @@ export default function MatchScreen() {
                 </Text>
                 {assist && <Text style={text.muted}>Assistência: {displayName(assist)}</Text>}
               </View>
-              <Pressable hitSlop={10} onPress={() => confirm('Apagar gol', 'Remover este gol do placar?', () => removeGoal(game.id, match.id, g.id), 'Apagar')}>
-                <Ionicons name="trash-outline" size={18} color={colors.muted} />
-              </Pressable>
+              {canManage && (
+                <Pressable hitSlop={10} onPress={() => confirm('Apagar gol', 'Remover este gol do placar?', () => removeGoal(game.id, match.id, g.id), 'Apagar')}>
+                  <Ionicons name="trash-outline" size={18} color={colors.muted} />
+                </Pressable>
+              )}
             </View>
           </Card>
         );
       })}
 
+      {canManage && (
       <View style={{ marginTop: 16, gap: 12 }}>
         {match.finished ? (
           <Button title="Reabrir partida" icon="lock-open-outline" variant="secondary" onPress={() => finishMatch(game.id, match.id, false)} />
@@ -219,6 +224,7 @@ export default function MatchScreen() {
         )}
         <Button title="Excluir partida" icon="trash-outline" variant="danger" onPress={remove} />
       </View>
+      )}
     </Screen>
   );
 }

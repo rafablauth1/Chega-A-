@@ -19,6 +19,8 @@ export interface Player {
   skills: Skills;
   active: boolean;
   createdAt: string;
+  /** Tem conta no app (membro do grupo); sem isso é um convidado cadastrado pelo admin */
+  account?: boolean;
 }
 
 export interface Goal {

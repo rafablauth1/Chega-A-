@@ -20,6 +20,7 @@ import {
   Tag,
   text,
 } from '@/components/ui';
+import { useAuth, useCanManage } from '@/auth';
 import { useStore } from '@/store';
 import { colors, positionColors, teamColors } from '@/theme';
 import type { Game, Player } from '@/types';
@@ -73,6 +74,7 @@ export default function GameDetailScreen() {
   const players = useStore((s) => s.players);
   const games = useStore((s) => s.games);
   const [tab, setTab] = useState<Tab>(TABS.some((t) => t.key === initialTab) ? initialTab! : 'lista');
+  const canManage = useCanManage();
 
   const rating = useMemo(() => buildRatingMap(players, games), [players, games]);
   const byId = useMemo(() => Object.fromEntries(players.map((p) => [p.id, p])), [players]);
@@ -92,11 +94,13 @@ export default function GameDetailScreen() {
       <Stack.Screen
         options={{
           title: formatGameDate(game.date),
-          headerRight: () => (
-            <Pressable onPress={() => router.push(`/game-form/${game.id}`)} hitSlop={10} style={{ marginRight: 8 }}>
-              <Ionicons name="create-outline" size={22} color={colors.text} />
-            </Pressable>
-          ),
+          headerRight: canManage
+            ? () => (
+                <Pressable onPress={() => router.push(`/game-form/${game.id}`)} hitSlop={10} style={{ marginRight: 8 }}>
+                  <Ionicons name="create-outline" size={22} color={colors.text} />
+                </Pressable>
+              )
+            : undefined,
         }}
       />
       {(!!game.location || !!game.notes) && (
@@ -126,11 +130,13 @@ export default function GameDetailScreen() {
 
 function Attendance({ game, players, rating }: { game: Game; players: Player[]; rating: Record<string, number> }) {
   const toggleAttendee = useStore((s) => s.toggleAttendee);
+  const canManage = useCanManage();
+  const myId = useAuth().session?.user.id;
   const byId = Object.fromEntries(players.map((p) => [p.id, p]));
   const inList = confirmedIds(game);
   const waiting = waitlistIds(game);
   const list = players
-    .filter((p) => p.active || game.attendees.includes(p.id))
+    .filter((p) => (canManage && p.active) || game.attendees.includes(p.id))
     .sort((a, b) => displayName(a).localeCompare(displayName(b)));
 
   const keepers = inList.filter((id) => byId[id]?.position === 'GOL').length;
@@ -174,12 +180,13 @@ function Attendance({ game, players, rating }: { game: Game; players: Player[]; 
         <Stat label="Espera" value={String(waiting.length)} color={waiting.length ? colors.warning : colors.muted} />
         <Stat label="Goleiros" value={String(keepers)} color={positionColors.GOL} />
       </View>
+      {myId && byId[myId] && <MyPresence game={game} myId={myId} />}
       <View style={{ flexDirection: 'row', gap: 10, marginBottom: 6 }}>
-        <Button title="Mensalistas" icon="people" variant="secondary" onPress={addAllMonthly} style={{ flex: 1 }} />
+        {canManage && <Button title="Mensalistas" icon="people" variant="secondary" onPress={addAllMonthly} style={{ flex: 1 }} />}
         <Button title="Enviar lista" icon="share-social" variant="secondary" onPress={share} style={{ flex: 1 }} />
       </View>
 
-      <SectionTitle>Toque para confirmar / desconfirmar</SectionTitle>
+      <SectionTitle>{canManage ? 'Toque para confirmar / desconfirmar' : 'Quem vai'}</SectionTitle>
       {list.map((p) => {
         const pos = inList.indexOf(p.id);
         const wait = waiting.indexOf(p.id);
@@ -187,7 +194,7 @@ function Attendance({ game, players, rating }: { game: Game; players: Player[]; 
         return (
           <Card
             key={p.id}
-            onPress={() => toggleAttendee(game.id, p.id)}
+            onPress={canManage ? () => toggleAttendee(game.id, p.id) : undefined}
             style={pos >= 0 ? { borderColor: colors.primary } : wait >= 0 ? { borderColor: colors.warning } : undefined}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -207,6 +214,38 @@ function Attendance({ game, players, rating }: { game: Game; players: Player[]; 
   );
 }
 
+function MyPresence({ game, myId }: { game: Game; myId: string }) {
+  const toggleAttendee = () =>
+    useStore.setState((s) => ({
+      games: s.games.map((g) =>
+        g.id === game.id
+          ? { ...g, attendees: g.attendees.includes(myId) ? g.attendees.filter((x) => x !== myId) : [...g.attendees, myId] }
+          : g,
+      ),
+    }));
+  const confirmed = confirmedIds(game);
+  const inList = confirmed.indexOf(myId);
+  const waiting = waitlistIds(game).indexOf(myId);
+  const going = game.attendees.includes(myId);
+  const full = !!game.maxPlayers && confirmed.length >= game.maxPlayers;
+  const status =
+    inList >= 0
+      ? `Você está confirmado (#${inList + 1})`
+      : waiting >= 0
+        ? `Você está na lista de espera (${waiting + 1}º)`
+        : 'Você ainda não confirmou';
+  return (
+    <Card style={{ borderColor: going ? (waiting >= 0 ? colors.warning : colors.primary) : colors.border, gap: 10 }}>
+      <Text style={text.title}>{status}</Text>
+      {going ? (
+        <Button title="Não vou mais" icon="close-circle" variant="danger" onPress={toggleAttendee} />
+      ) : (
+        <Button title={full ? 'Entrar na lista de espera' : 'Vou!'} icon="checkmark-circle" onPress={toggleAttendee} />
+      )}
+    </Card>
+  );
+}
+
 /* ------------------------------ Times ------------------------------ */
 
 function Teams({
@@ -221,6 +260,7 @@ function Teams({
   rating: Record<string, number>;
 }) {
   const setTeams = useStore((s) => s.setTeams);
+  const canManage = useCanManage();
   const [selected, setSelected] = useState<string | null>(null);
   const [view, setView] = useState<'campo' | 'lista'>('campo');
   const teamsRef = useRef<View>(null);
@@ -250,7 +290,7 @@ function Teams({
   };
 
   const tapPlayer = (pid: string) => {
-    if (!teams) return;
+    if (!teams || !canManage) return;
     if (!selected || selected === pid) return setSelected(selected === pid ? null : pid);
     // Dois do banco: só troca a seleção
     if (!inTeams.has(selected) && !inTeams.has(pid)) return setSelected(pid);
@@ -286,6 +326,10 @@ function Teams({
   const removeTeam = (i: number) =>
     confirm(`Remover ${teamName(i)}?`, 'Os jogadores dele voltam para o banco.', () =>
       setTeams(game.id, (teams ?? []).filter((_, k) => k !== i)), 'Remover');
+
+  if (!teams?.length && !canManage) {
+    return <Empty icon="shirt-outline" title="Times ainda não saíram" text="Quando o organizador montar os times, eles aparecem aqui." />;
+  }
 
   if (!teams?.length) {
     return (
@@ -335,8 +379,12 @@ function Teams({
   return (
     <>
       <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
-        <Button title="Sortear" icon="shuffle" variant="secondary" onPress={draw} style={{ flex: 1, paddingHorizontal: 8 }} />
-        <Button title="Escalar" icon="hand-left-outline" variant="secondary" onPress={manual} style={{ flex: 1, paddingHorizontal: 8 }} />
+        {canManage && (
+          <>
+            <Button title="Sortear" icon="shuffle" variant="secondary" onPress={draw} style={{ flex: 1, paddingHorizontal: 8 }} />
+            <Button title="Escalar" icon="hand-left-outline" variant="secondary" onPress={manual} style={{ flex: 1, paddingHorizontal: 8 }} />
+          </>
+        )}
         <Button title="Enviar" icon="share-social" onPress={share} style={{ flex: 1, paddingHorizontal: 8 }} />
       </View>
       <Segmented
@@ -347,7 +395,7 @@ function Teams({
         value={view}
         onChange={setView}
       />
-      <Text style={[text.muted, { marginBottom: 10 }]}>{hint}</Text>
+      {canManage && <Text style={[text.muted, { marginBottom: 10 }]}>{hint}</Text>}
 
       {bench}
 
@@ -371,7 +419,7 @@ function Teams({
             ) : (
               <>
                 <RatingBadge value={teamAverage(t, rating)} />
-                {t.length === 0 && teams.length > 2 && (
+                {canManage && t.length === 0 && teams.length > 2 && (
                   <Pressable onPress={() => removeTeam(i)} hitSlop={8}>
                     <Ionicons name="close-circle-outline" size={20} color={colors.muted} />
                   </Pressable>
@@ -393,7 +441,7 @@ function Teams({
       })}
       </View>
 
-      <Button title="Adicionar time" icon="add" variant="ghost" onPress={addTeam} />
+      {canManage && <Button title="Adicionar time" icon="add" variant="ghost" onPress={addTeam} />}
     </>
   );
 }
@@ -424,6 +472,7 @@ function PlayerRow({ player, selected, onPress }: { player?: Player; selected: b
 
 function Scoreboard({ game, byId, goTeams }: { game: Game; byId: Record<string, Player>; goTeams: () => void }) {
   const addMatch = useStore((s) => s.addMatch);
+  const canManage = useCanManage();
   const minutes = useStore((s) => s.settings.defaultMatchMinutes);
   const groupName = useStore((s) => s.settings.groupName);
   const teams = game.teams ?? [];
@@ -434,8 +483,12 @@ function Scoreboard({ game, byId, goTeams }: { game: Game; byId: Record<string, 
   if (teams.length < 2) {
     return (
       <>
-        <Empty icon="timer-outline" title="Sorteie os times primeiro" text="O placar usa os times sorteados para registrar gols e assistências." />
-        <Button title="Ir para Times" icon="shuffle" variant="secondary" onPress={goTeams} />
+        <Empty
+          icon="timer-outline"
+          title={canManage ? 'Sorteie os times primeiro' : 'Nenhuma partida ainda'}
+          text="O placar usa os times sorteados para registrar gols e assistências."
+        />
+        {canManage && <Button title="Ir para Times" icon="shuffle" variant="secondary" onPress={goTeams} />}
       </>
     );
   }
@@ -464,6 +517,7 @@ function Scoreboard({ game, byId, goTeams }: { game: Game; byId: Record<string, 
 
   return (
     <>
+      {canManage && (
       <Card>
         <Label>Nova partida</Label>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
@@ -479,6 +533,7 @@ function Scoreboard({ game, byId, goTeams }: { game: Game; byId: Record<string, 
         </View>
         <Button title={`Começar (${minutes} min)`} icon="play" onPress={start} />
       </Card>
+      )}
 
       {game.matches.length > 0 && <SectionTitle>Partidas</SectionTitle>}
       {game.matches.map((m, idx) => {
@@ -550,6 +605,7 @@ function Scoreboard({ game, byId, goTeams }: { game: Game; byId: Record<string, 
 
 function Payments({ game, attendees }: { game: Game; attendees: Player[] }) {
   const togglePaid = useStore((s) => s.togglePaid);
+  const canManage = useCanManage();
   const toggleMonthly = useStore((s) => s.toggleMonthly);
   const month = monthKey(parseLocal(game.date));
   const monthlyPaid = useStore((s) => s.monthly[month]) ?? [];
@@ -574,7 +630,7 @@ function Payments({ game, attendees }: { game: Game; attendees: Player[] }) {
       {avulsos.map((p) => {
         const paid = game.paid.includes(p.id);
         return (
-          <Card key={p.id} onPress={() => togglePaid(game.id, p.id)}>
+          <Card key={p.id} onPress={canManage ? () => togglePaid(game.id, p.id) : undefined}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
               <Check checked={paid} />
               <Text style={[text.title, { flex: 1 }]}>{displayName(p)}</Text>
@@ -588,7 +644,7 @@ function Payments({ game, attendees }: { game: Game; attendees: Player[] }) {
       {mensalistas.map((p) => {
         const paid = monthlyPaid.includes(p.id);
         return (
-          <Card key={p.id} onPress={() => toggleMonthly(month, p.id)}>
+          <Card key={p.id} onPress={canManage ? () => toggleMonthly(month, p.id) : undefined}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
               <Check checked={paid} />
               <Text style={[text.title, { flex: 1 }]}>{displayName(p)}</Text>
@@ -612,6 +668,7 @@ function Payments({ game, attendees }: { game: Game; attendees: Player[] }) {
 
 function RateGame({ game, attendees, byId }: { game: Game; attendees: Player[]; byId: Record<string, Player> }) {
   const ratePlayer = useStore((s) => s.ratePlayer);
+  const canManage = useCanManage();
   const setMvp = useStore((s) => s.setMvp);
   const groupName = useStore((s) => s.settings.groupName);
   const selRef = useRef<View>(null);
@@ -659,13 +716,13 @@ function RateGame({ game, attendees, byId }: { game: Game; attendees: Player[]; 
         return (
           <Card key={p.id} style={isMvp && { borderColor: colors.gold }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Pressable onPress={() => setMvp(game.id, isMvp ? null : p.id)} hitSlop={8}>
+              <Pressable onPress={() => setMvp(game.id, isMvp ? null : p.id)} hitSlop={8} disabled={!canManage}>
                 <Ionicons name={isMvp ? 'trophy' : 'trophy-outline'} size={22} color={isMvp ? colors.gold : colors.border} />
               </Pressable>
               <Text style={[text.title, { flex: 1 }]} numberOfLines={1}>
                 {displayName(p)}
               </Text>
-              <Stars value={game.ratings[p.id] ?? 0} onChange={(v) => ratePlayer(game.id, p.id, v)} size={24} />
+              <Stars value={game.ratings[p.id] ?? 0} onChange={canManage ? (v) => ratePlayer(game.id, p.id, v) : undefined} size={24} />
             </View>
           </Card>
         );

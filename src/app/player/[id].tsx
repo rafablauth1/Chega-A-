@@ -7,6 +7,7 @@ import { achievementsFor } from '@/utils/achievements';
 import { displayName } from '@/utils/names';
 import { shareView } from '@/utils/share';
 import { computeStats } from '@/utils/stats';
+import { useCanManage } from '@/auth';
 import { useStore } from '@/store';
 import { colors, positionColors } from '@/theme';
 import { POSITIONS, SKILLS, type PlayerType, type Position, type Skills } from '@/types';
@@ -32,6 +33,9 @@ export default function PlayerFormScreen() {
   const [active, setActive] = useState(existing?.active ?? true);
   const groupName = useStore((s) => s.settings.groupName);
   const cardRef = useRef<View>(null);
+  const canManage = useCanManage();
+  // Quem tem conta edita nome, apelido, WhatsApp e posição no próprio perfil
+  const fromProfile = !!existing?.account;
 
   if (!isNew && !existing) {
     return (
@@ -151,10 +155,18 @@ export default function PlayerFormScreen() {
             ))}
           </View>
 
-          <SectionTitle>Dados</SectionTitle>
+          {canManage && <SectionTitle>Dados</SectionTitle>}
         </>
       )}
 
+      {canManage && fromProfile && (
+        <Text style={[text.muted, { marginBottom: 14 }]}>
+          Nome, apelido, WhatsApp e posição vêm do perfil do atleta. Só ele pode mudar, pelo próprio app.
+        </Text>
+      )}
+
+      {canManage && !fromProfile && (
+        <>
       <Input label="Nome *" value={name} onChangeText={setName} placeholder="Ex.: Carlos Eduardo" autoFocus={isNew} />
       <Input label="Apelido" value={nickname} onChangeText={setNickname} placeholder="Ex.: Cadu" />
       <Input label="WhatsApp" value={phone} onChangeText={setPhone} placeholder="(11) 99999-9999" keyboardType="phone-pad" />
@@ -171,6 +183,11 @@ export default function PlayerFormScreen() {
           />
         ))}
       </View>
+        </>
+      )}
+
+      {canManage && (
+        <>
 
       <Label>Tipo</Label>
       <View style={{ flexDirection: 'row', gap: 8, marginBottom: 6 }}>
@@ -212,6 +229,8 @@ export default function PlayerFormScreen() {
       )}
 
       <Button title="Salvar" icon="checkmark" onPress={save} style={{ marginTop: 8 }} />
+        </>
+      )}
 
       {history.length > 0 && (
         <>
@@ -231,7 +250,15 @@ export default function PlayerFormScreen() {
         </>
       )}
 
-      {!isNew && <Button title="Excluir jogador" icon="trash-outline" variant="danger" onPress={remove} style={{ marginTop: 16 }} />}
+      {canManage && !isNew && (
+        <Button
+          title={fromProfile ? 'Remover do grupo' : 'Excluir jogador'}
+          icon="trash-outline"
+          variant="danger"
+          onPress={remove}
+          style={{ marginTop: 16 }}
+        />
+      )}
     </Screen>
   );
 }

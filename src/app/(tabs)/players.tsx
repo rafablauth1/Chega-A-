@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 import { Avatar, Card, Chip, Empty, Fab, Input, PositionTag, RatingBadge, Screen, Tag, text } from '@/components/ui';
+import { useCanManage } from '@/auth';
 import { useStore } from '@/store';
 import { colors, positionColors } from '@/theme';
 import { POSITIONS, type Position } from '@/types';
@@ -15,6 +16,7 @@ export default function PlayersScreen() {
   const [query, setQuery] = useState('');
   const [pos, setPos] = useState<Position | null>(null);
   const [sort, setSort] = useState<Sort>('nome');
+  const canManage = useCanManage();
 
   const rating = useMemo(() => buildRatingMap(players, games), [players, games]);
 
@@ -90,7 +92,7 @@ export default function PlayersScreen() {
           </Card>
         ))}
       </Screen>
-      <Fab icon="person-add" onPress={() => router.push('/player/new')} />
+      {canManage && <Fab icon="person-add" onPress={() => router.push('/player/new')} />}
     </View>
   );
 }

@@ -42,7 +42,7 @@ function App() {
 
   // Atalho de desenvolvimento na web: abrir com ?demo=1 carrega o grupo de exemplo
   useEffect(() => {
-    if (!__DEV__ || Platform.OS !== 'web' || !hydrated) return;
+    if (!__DEV__ || isCloudEnabled || Platform.OS !== 'web' || !hydrated) return;
     if (new URLSearchParams(window.location.search).has('demo') && useStore.getState().players.length === 0) {
       useStore.getState().replaceAll(buildDemo());
     }
