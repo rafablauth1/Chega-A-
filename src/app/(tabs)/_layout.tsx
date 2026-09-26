@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link } from 'expo-router';
 import Tabs from 'expo-router/js-tabs';
-import { Pressable } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { colors } from '@/theme';
 
 export default function TabsLayout() {
@@ -18,11 +18,18 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: colors.muted,
         tabBarLabelStyle: { fontWeight: '700' },
         headerRight: () => (
-          <Link href="/settings" asChild>
-            <Pressable hitSlop={10} style={{ marginRight: 16 }}>
-              <Ionicons name="settings-outline" size={22} color={colors.text} />
-            </Pressable>
-          </Link>
+          <View style={{ flexDirection: 'row', gap: 18, marginRight: 16 }}>
+            <Link href="/me" asChild>
+              <Pressable hitSlop={10}>
+                <Ionicons name="person-circle-outline" size={24} color={colors.text} />
+              </Pressable>
+            </Link>
+            <Link href="/settings" asChild>
+              <Pressable hitSlop={10}>
+                <Ionicons name="settings-outline" size={22} color={colors.text} />
+              </Pressable>
+            </Link>
+          </View>
         ),
       }}
     >

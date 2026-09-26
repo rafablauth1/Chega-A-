@@ -2,6 +2,8 @@ import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, View } from 'react-native';
+import { AuthProvider, useAuth } from '@/auth';
+import { isCloudEnabled } from '@/lib/supabase';
 import { useStore } from '@/store';
 import { buildDemo } from '@/utils/demo';
 import { colors } from '@/theme';
@@ -19,6 +21,17 @@ const theme = {
 };
 
 export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  );
+}
+
+function App() {
+  const { ready, session } = useAuth();
+  // Sem Supabase configurado o app funciona como antes, sem login
+  const signedIn = !isCloudEnabled || !!session;
   const [hydrated, setHydrated] = useState(useStore.persist.hasHydrated());
 
   useEffect(() => {
@@ -35,7 +48,7 @@ export default function RootLayout() {
     }
   }, [hydrated]);
 
-  if (!hydrated) {
+  if (!hydrated || !ready) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator color={colors.primary} />
@@ -56,12 +69,20 @@ export default function RootLayout() {
           headerBackTitle: 'Voltar',
         }}
       >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="player/[id]" options={{ title: 'Jogador' }} />
-        <Stack.Screen name="game/[id]" options={{ title: 'Jogo' }} />
-        <Stack.Screen name="game-form/[id]" options={{ title: 'Jogo' }} />
-        <Stack.Screen name="match/[gameId]/[matchId]" options={{ title: 'Partida' }} />
-        <Stack.Screen name="settings" options={{ title: 'Ajustes do grupo' }} />
+        <Stack.Protected guard={signedIn}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="player/[id]" options={{ title: 'Jogador' }} />
+          <Stack.Screen name="game/[id]" options={{ title: 'Jogo' }} />
+          <Stack.Screen name="game-form/[id]" options={{ title: 'Jogo' }} />
+          <Stack.Screen name="match/[gameId]/[matchId]" options={{ title: 'Partida' }} />
+          <Stack.Screen name="settings" options={{ title: 'Ajustes do grupo' }} />
+          <Stack.Screen name="me" options={{ title: 'Meu perfil' }} />
+          <Stack.Screen name="group-join" options={{ title: 'Grupos' }} />
+          <Stack.Screen name="group/[id]" options={{ title: 'Grupo' }} />
+        </Stack.Protected>
+        <Stack.Protected guard={!signedIn}>
+          <Stack.Screen name="login" options={{ headerShown: false }} />
+        </Stack.Protected>
       </Stack>
     </ThemeProvider>
   );
