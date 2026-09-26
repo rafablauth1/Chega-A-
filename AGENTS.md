@@ -39,3 +39,32 @@ Docs: https://docs.expo.dev/eas/index.md
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+
+## Contexto do projeto (Vaia Aí)
+
+App de pelada. O roteiro do que fazer e do que já foi feito está em `ROADMAP.md`: o dono marca `[x]` no que autoriza.
+Converse com o dono em português, de forma simples (não é programador).
+
+### Nuvem (Supabase)
+- Projeto: `https://ycgaprsgshtfveajjkby.supabase.co`. As variáveis `EXPO_PUBLIC_SUPABASE_URL` e `EXPO_PUBLIC_SUPABASE_KEY`
+  (chave *publishable*, pública por natureza: quem protege os dados é o RLS) ficam no `.env` e no `env` dos perfis do `eas.json`.
+  Sem elas o app roda no modo antigo, só local, sem login.
+- Banco: `supabase/schema.sql` + `supabase/migrations/NNN_*.sql`. **Não há CLI ligada ao projeto**: toda migração nova
+  vira um arquivo numerado aqui e o dono roda no painel (SQL Editor > New query > colar > Run). Peça para ele avisar quando rodar.
+- Segurança é por RLS: membros leem os dados do grupo; dono/admin escrevem; jogador só marca a própria presença.
+  Toda tabela nova precisa de RLS e, se for do grupo, entrar na publicação `supabase_realtime`.
+- Auth: e-mail e senha, com "Confirm email" desligado por enquanto (limite de e-mails do plano grátis).
+
+### Como o app usa a nuvem
+- As telas continuam usando o store zustand (`src/store.ts`). `src/cloud.ts` liga o store ao **grupo ativo**:
+  carrega tudo do grupo, compara cada mudança local com a anterior (`diff`) e grava em lote no Supabase;
+  mudanças de outros celulares chegam por tempo real e recarregam o grupo. Ao criar uma ação nova no store,
+  confira se o `diff` sabe gravá-la.
+- `src/auth.tsx`: sessão, perfil, grupos, grupo ativo e `useCanManage()` (dono/admin, ou sempre no modo local).
+- Jogadores com conta têm `account: true` e id = id do usuário; convidados (sem conta) ficam na tabela `guests`.
+- Notas pós-jogo são de 0 a 10; a força interna do sorteio (habilidades em estrelas) é de 1 a 5 e aparece ×2 (`toTen`).
+
+### Gerar o APK
+- No PC do dono existe build local (Android SDK em `~/tools`), mas em sessão remota use o **EAS Build**:
+  `npx eas-cli@latest build -p android --profile preview` (gera APK e devolve um link). Precisa estar logado na conta
+  Expo do dono (`EXPO_TOKEN`); se não houver, peça para ele gerar o token em expo.dev > Account settings > Access tokens.

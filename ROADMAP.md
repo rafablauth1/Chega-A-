@@ -5,102 +5,114 @@ Itens marcados com ⚠️ exigem uma **decisão sua** (custo, conta externa ou e
 
 Legenda de tamanho: 🟢 pequeno (horas) · 🟡 médio (1–2 dias) · 🔴 grande (vários dias)
 
----
-
-## ✅ Fase 0: Já feito
-
-- [x] App Android + iOS (Expo / React Native, TypeScript), rodando também no navegador para testes
-- [x] Cadastro de jogadores: nome, apelido, WhatsApp, posição, mensalista/avulso, ativo/inativo
-- [x] Avaliação por estrelas em 5 habilidades (técnica, físico, passe, finalização, defesa)
-- [x] Nota pós-jogo por jogador; nota geral = 60% habilidades + 40% partidas
-- [x] Jogos: data, local, valor, jogadores por time, limite de vagas, observações
-- [x] Lista de presença com **lista de espera automática** (sobe sozinho quando alguém sai)
-- [x] Botão "confirmar todos os mensalistas" e envio da lista pelo WhatsApp
-- [x] **Sorteio equilibrado** (nota + posições + um goleiro por time)
-- [x] **Escalar na mão**: banco de reservas, colocar/trocar jogadores entre times, adicionar/remover time
-- [x] **Campinho visual estilo Cartola** (com alternância para lista)
-- [x] **Placar ao vivo** com cronômetro, vibração no fim, gol, assistência e gol contra
-- [x] Sugestão de confronto "quem ganha fica", classificação e artilharia do dia
-- [x] Craque do jogo (troféu)
-- [x] Financeiro: mensalidades por mês, avulsos devendo, despesas, saldo do caixa, cobrança via WhatsApp
-- [x] Ajustes do grupo, dados de exemplo (20 jogadores), backup exportar/importar, apagar tudo
+A ordem das fases é a sugestão para chegar no nível dos apps de pelada que estão na Play Store:
+primeiro o que é **obrigatório para publicar**, depois o que **faz a galera abrir o app toda semana**,
+depois o que **facilita a vida do organizador**, e por fim o que **diferencia e dá dinheiro**.
 
 ---
 
-## Fase 1: Polimento do que já existe (sem custo, sem conta externa)
+## ✅ Já feito
 
-- [x] 🟡 **Aba Ranking**: artilharia, assistências, presença (%), nota média, craques, vitórias; filtro por mês/ano/geral
-- [x] 🟢 **Perfil do jogador com estatísticas**: jogos, gols, assistências, V/E/D, craques, últimas notas
-- [x] 🟡 **Card do jogador estilo FIFA** (overall + atributos) para compartilhar
-- [x] 🟡 **Compartilhar imagem do campinho** no WhatsApp (print dos times, não só texto)
-- [ ] 🟢 Seletor de data/hora nativo (calendário), no lugar de digitar
-- [x] 🟢 Jogo recorrente: botão "Marcar próximo jogo" repete o último na semana seguinte
-- [ ] 🟢 Vibração/feedback tátil nos toques importantes
-- [ ] 🟢 Ícone, splash e nome definitivos do app ⚠️ *(qual nome: "Vaia Aí" ou "Chega Aí"?)*
+**Pelada no celular**
+- [x] Cadastro de jogadores com posição, mensalista/avulso e avaliação por habilidades
+- [x] Jogos com lista de presença e **lista de espera automática**
+- [x] **Sorteio equilibrado** (nota + posição + goleiro) e **escalação na mão** no campinho estilo Cartola
+- [x] **Placar ao vivo** com cronômetro, gols, assistências, gol contra; "quem ganha fica"
+- [x] Nota pós-jogo **de 1 a 10**, craque do jogo, seleção da rodada, súmula
+- [x] Ranking (artilharia, assistências, presença, nota, craque, vitórias) por mês/ano/geral
+- [x] Card estilo FIFA, conquistas, compartilhar imagem dos times
+- [x] Financeiro: mensalidades, avulsos, despesas, saldo, **Pix copia-e-cola / QR**
+
+**Contas e nuvem**
+- [x] Login por e-mail e senha (Supabase)
+- [x] **Perfil de atleta** com carreira somando todos os grupos (jogos, gols, nota média, conquistas)
+- [x] **Grupos** com papéis dono / admin / jogador e **convite por código**
+- [x] Vários grupos por pessoa
+- [x] Tudo sincronizado **em tempo real** entre os celulares
+- [x] Jogador **confirma a própria presença** ("Vou!" / "Não vou mais")
+- [x] Convidados sem conta + **vincular convidado à conta** quando ele entra no app
+- [x] Enviar para a nuvem os dados que estavam só no celular
+
+---
+
+## Fase 1: Obrigatório para publicar na Play Store
+
+Sem isso a loja recusa o app ou a experiência fica abaixo do mínimo esperado.
+
+- [ ] 🟢 **Excluir minha conta** dentro do app e por uma página web *(exigência do Google Play para apps com login)*
+- [ ] 🟡 **Política de privacidade e termos de uso** (LGPD), com link no app e na loja
+- [ ] 🟢 Trocar senha / "esqueci minha senha" com tela própria de nova senha
+- [ ] 🟡 **E-mail próprio para o login** (confirmação e recuperação de senha) ⚠️ *(o e-mail grátis do Supabase manda ~2 por hora; Resend tem plano grátis de 3 mil/mês, precisa de um domínio)*
+- [ ] 🟢 Religar a **confirmação de e-mail** depois do item acima
+- [ ] 🟢 **Nome, ícone e splash definitivos** ⚠️ *(qual nome: "Vaia Aí" ou "Chega Aí"?)*
+- [ ] 🟡 Conta **Google Play** e build pela nuvem (EAS) assinado para a loja ⚠️ *(US$ 25, pagamento único)*
+- [ ] 🟡 **Atualização sem reinstalar** (EAS Update): corrigir e melhorar o app sem mandar APK novo para todo mundo
+- [ ] 🟡 **Monitor de erros** (Sentry, grátis no início): saber quando o app trava no celular de alguém
+- [ ] 🟡 Teste fechado com a galera pela Play Store (trilha de teste interno)
+
+## Fase 2: O que faz a galera abrir o app toda semana
+
+É o que os apps populares da categoria têm em comum: lembrar, engajar e gerar resenha.
+
+- [ ] 🔴 **Notificações push**: lista aberta, lembrete no dia, vaga liberada na espera, cobrança, times sorteados
+- [ ] 🟡 **Foto de perfil** (câmera ou galeria) no card, na lista e no campinho
+- [ ] 🟡 **Convite por link**: o link abre o app direto no grupo (e manda para a loja se não tiver o app) + QR code
+- [ ] 🟡 **Avaliação entre amigos** após o jogo: cada um dá nota aos outros, a média vira a nota (anônimo)
+- [ ] 🟢 **Votação do craque e da bola murcha** pelos jogadores
+- [ ] 🟢 **Placar ao vivo para quem não foi**: acompanhar o jogo pelo celular em tempo real (a base já existe)
+- [ ] 🟡 **Mural do grupo**: avisos, comentários no jogo, reações
+- [ ] 🟡 **Temporadas** com campeão (ranking zera a cada semestre/ano, com troféu no perfil)
+- [ ] 🟡 Gráfico de **evolução da nota** e da artilharia no perfil
+- [ ] 🟢 **Card para story do Instagram** (formato vertical) com a atuação do dia
+- [ ] 🟢 Duplas que mais ganham juntas / confronto direto / "freguês"
+- [ ] 🟢 Mais conquistas (sequência de jogos, sequência de vitórias, 100 gols, fiel da pelada...)
+
+## Fase 3: Vida do organizador mais fácil
+
+- [ ] 🟡 **Jogo recorrente automático**: "toda quinta 20h" cria o jogo e abre a lista sozinho
+- [ ] 🟡 **Prazo para confirmar** e **prioridade para mensalistas**: depois do prazo abre para avulsos/espera
+- [ ] 🟢 Seletor de data e hora nativo (calendário)
+- [ ] 🟡 **Regras de sorteio**: separar quem sempre joga junto, fixar goleiros, times por colete/cor
+- [ ] 🟢 **Modalidades**: futsal, society, campo (jogadores por time, tempo e formação no campinho)
+- [ ] 🟢 Cartões amarelo/vermelho, falta sem avisar ("pipoqueiro"), atraso
+- [ ] 🟡 Jogador envia **comprovante do Pix** (foto) e o admin aprova
+- [ ] 🟢 **Cobrança automática** pelo WhatsApp/push de quem está devendo
+- [ ] 🟡 Histórico de mensalidade com o valor de cada mês + **rateio de despesa** extra (churrasco, quadra)
+- [ ] 🟡 **Relatório do mês em PDF** para mandar no grupo
+- [ ] 🟢 Rodízio de tarefas: quem leva a bola, quem lava o colete
+- [ ] 🟡 **Funcionar sem internet** de verdade (fila de mudanças guardada até voltar a conexão)
+
+## Fase 4: Diferencial e dinheiro
+
+- [ ] 🔴 Login com **Google** e **Apple** ⚠️ *(Apple exige conta de desenvolvedor, US$ 99/ano)*
+- [ ] 🔴 **Versão iPhone** na App Store / TestFlight ⚠️ *(mesma conta Apple acima)*
+- [ ] 🔴 **Pagamento dentro do app** (Pix dinâmico/cartão com baixa automática, via Mercado Pago ou Asaas) ⚠️ *(taxa por transação, precisa de CPF/CNPJ cadastrado)*
+- [ ] 🔴 **Achar jogador/goleiro avulso** na região para completar o time (perfil de atleta público)
+- [ ] 🔴 **Grupos abertos**: achar pelada perto de você e pedir para entrar
+- [ ] 🔴 Mapa de quadras e **reserva de horário** ⚠️ *(depende de parceria com as arenas)*
+- [ ] 🟡 **Plano premium do organizador** ⚠️ *(ex.: financeiro completo, relatórios, vários grupos; decidir preço e o que fica grátis)*
+- [ ] 🟢 Check-in por GPS no local (presença e atraso)
+
+## Técnico (vai junto com as fases, sem aparecer para o usuário)
+
+- [ ] 🟡 Transformar os testes que fiz contra o Supabase em **testes automáticos** do projeto (rodam a cada mudança)
+- [ ] 🟢 Lint configurado e rodando antes de cada commit
+- [ ] 🟢 Backup automático do banco (plano pago do Supabase) ou exportação periódica ⚠️
 - [ ] 🟢 Tema claro opcional
-- [ ] 🟡 Histórico de mensalidade guardando o valor pago em cada mês (hoje usa o valor atual)
-- [ ] 🟢 Cartões amarelo/vermelho e "pipoqueiro" (faltou sem avisar)
-- [ ] 🟡 Testes automatizados do sorteio e do financeiro
-
-## Fase 2: Contas e nuvem (vira app de verdade para o grupo todo)
-
-- [ ] 🔴 Backend na nuvem ⚠️ *(recomendo **Supabase**: grátis no início, Postgres, login pronto. Alternativa: Firebase)*
-- [ ] 🔴 Login: celular (SMS), Google e Apple ⚠️ *(SMS tem custo por mensagem; Google/Apple são grátis)*
-- [ ] 🔴 Grupos com vários usuários e papéis: **dono, admin, jogador**
-- [ ] 🟡 Convite por link/QR code para entrar no grupo
-- [ ] 🟡 Sincronização entre celulares + funcionamento offline
-- [ ] 🟢 Migrar os dados locais atuais para a conta na nuvem
-- [ ] 🟡 Participar de **vários grupos** (pelada de quinta, futevôlei de sábado...)
-
-## Fase 3: O jogador participa pelo próprio celular
-
-- [ ] 🟡 Cada um **confirma presença** sozinho ("Vou" / "Não vou" / "Talvez")
-- [ ] 🟡 **Avaliação entre amigos** anônima após o jogo (média de todos vira a nota)
-- [ ] 🟢 **Votação do craque do jogo** e bola murcha (o pior)
-- [ ] 🔴 **Notificações push**: lista aberta, lembrete no dia, vaga liberada na espera, cobrança ⚠️ *(Apple exige conta de desenvolvedor)*
-- [ ] 🟡 Prazo para confirmar; depois dele, abre para avulsos/lista de espera
-- [ ] 🟡 Mural/avisos do grupo e comentários no jogo
-- [ ] 🟢 Regras do grupo (texto fixo)
-
-## Fase 4: Financeiro avançado
-
-- [x] 🟢 **Pix copia-e-cola / QR Code** com a chave do organizador (estático, sem taxa)
-- [ ] 🟡 Jogador envia **comprovante** (foto) e o admin aprova
-- [ ] 🔴 Pagamento automático (Pix dinâmico/cartão via Mercado Pago ou Asaas) ⚠️ *(taxa por transação, precisa de CNPJ/CPF cadastrado)*
-- [ ] 🟡 Relatório mensal em PDF (entradas, saídas, quem deve)
-- [ ] 🟢 Multa por falta sem aviso / taxa de goleiro de aluguel
-- [ ] 🟢 Rateio de despesa extra entre os presentes (ex.: churrasco)
-
-## Fase 5: Estatísticas e gamificação
-
-- [ ] 🟡 **Temporadas** (ranking zera a cada semestre/ano, com campeão)
-- [x] 🟡 **Conquistas/badges** (hat-trick, 10 jogos seguidos, garçom, muralha...)
-- [x] 🟡 Seleção da rodada no campinho (melhores de cada posição)
-- [ ] 🟡 Gráfico da evolução da nota do jogador
-- [ ] 🟢 Duplas que mais ganham juntas / confronto direto
-- [x] 🟡 Súmula do dia para compartilhar (placares, artilheiro, craque)
-
-## Fase 6: Extras
-
-- [ ] 🟡 Check-in no local (GPS) para marcar presença/atraso
-- [ ] 🟢 Controle de colete/bola (quem leva, quem lava)
-- [ ] 🟡 Encontrar jogadores avulsos/goleiros para completar o time
-- [ ] 🔴 Reserva de quadra integrada ⚠️ *(depende de parceria com as arenas)*
-
-## Fase 7: Publicação nas lojas
-
-- [ ] 🟢 Build de teste instalável (APK para Android) via EAS
-- [ ] 🟡 Conta **Google Play** ⚠️ *(US$ 25, pagamento único)*
-- [ ] 🟡 Conta **Apple Developer** ⚠️ *(US$ 99/ano; necessária para iPhone fora do Expo Go)*
-- [ ] 🟡 Política de privacidade e termos (LGPD)
-- [ ] 🟡 Teste fechado com a galera (Play interno / TestFlight)
-- [ ] 🟡 Publicação oficial nas lojas
 
 ---
 
 ### Decisões que só você pode tomar
 1. **Nome do app**: "Vaia Aí" ou "Chega Aí"?
-2. **Backend** (Fase 2): Supabase (recomendado) ou Firebase?
-3. **Login**: vale pagar SMS ou começamos só com Google/Apple?
-4. **Lojas**: quando criar as contas Google Play / Apple?
+2. **Domínio** (ex.: vaiaai.com.br): necessário para e-mail próprio, link de convite e página de privacidade. Custa ~R$ 40/ano.
+3. **Google Play**: quando criar a conta (US$ 25)?
+4. **Apple**: vale pagar US$ 99/ano para ter iPhone e login Apple, ou começamos só com Android?
 5. **Pagamentos**: Pix estático (grátis) basta, ou quer cobrança automática com taxa?
+6. **Modelo de negócio**: grátis com premium para o organizador, anúncio, ou taxa nos pagamentos?
+
+### Minha sugestão para os próximos 5
+1. Excluir conta + política de privacidade (libera a publicação)
+2. Foto de perfil (muda muito a cara do app)
+3. Convite por link
+4. Notificações push (o que mais traz a galera de volta)
+5. Jogo recorrente automático + prazo de confirmação
