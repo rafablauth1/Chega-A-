@@ -27,7 +27,15 @@
     },
     "plugins": [
       "expo-router",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O Vaia Aí usa suas fotos para o seu perfil de atleta.",
+          "cameraPermission": "O Vaia Aí usa a câmera para tirar a foto do seu perfil de atleta.",
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

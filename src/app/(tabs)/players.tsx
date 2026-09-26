@@ -73,7 +73,7 @@ export default function PlayersScreen() {
         {list.map((p) => (
           <Card key={p.id} onPress={() => router.push(`/player/${p.id}`)} style={!p.active && { opacity: 0.5 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <Avatar name={p.name} color={positionColors[p.position]} />
+              <Avatar name={p.name} photo={p.photo} color={positionColors[p.position]} />
               <View style={{ flex: 1, gap: 4 }}>
                 <Text style={text.title} numberOfLines={1}>
                   {p.nickname || p.name}

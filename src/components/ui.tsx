@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { ComponentProps, ReactNode } from 'react';
 import {
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -181,7 +182,25 @@ export function ScorePicker({ value, onChange }: { value: number; onChange?: (v:
   );
 }
 
-export function Avatar({ name, color = colors.primary, size = 40 }: { name: string; color?: string; size?: number }) {
+export function Avatar({
+  name,
+  color = colors.primary,
+  size = 40,
+  photo,
+}: {
+  name: string;
+  color?: string;
+  size?: number;
+  photo?: string | null;
+}) {
+  if (photo) {
+    return (
+      <Image
+        source={{ uri: photo }}
+        style={{ width: size, height: size, borderRadius: size / 2, borderWidth: 2, borderColor: color, backgroundColor: color + '33' }}
+      />
+    );
+  }
   return (
     <View
       style={{

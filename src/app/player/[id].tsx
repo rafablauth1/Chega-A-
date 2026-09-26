@@ -91,6 +91,15 @@ export default function PlayerFormScreen() {
 
       {existing && (
         <>
+          {fromProfile && (
+            <Button
+              title="Ver perfil de atleta"
+              icon="person-circle-outline"
+              variant="secondary"
+              style={{ marginBottom: 10 }}
+              onPress={() => router.push({ pathname: '/athlete/[id]', params: { id: existing.id } })}
+            />
+          )}
           <PlayerCard
             ref={cardRef}
             player={{ ...existing, ...draft }}

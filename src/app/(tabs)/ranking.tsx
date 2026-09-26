@@ -97,7 +97,7 @@ export default function RankingScreen() {
             const h = [110, 84, 64][i];
             return (
               <View key={r.p.id} style={{ alignItems: 'center', flex: 1 }}>
-                <Avatar name={r.p.name} color={positionColors[r.p.position]} size={i === 0 ? 56 : 46} />
+                <Avatar name={r.p.name} photo={r.p.photo} color={positionColors[r.p.position]} size={i === 0 ? 56 : 46} />
                 <Text style={[text.title, { fontSize: 14, marginTop: 4 }]} numberOfLines={1}>
                   {displayName(r.p)}
                 </Text>
@@ -128,7 +128,7 @@ export default function RankingScreen() {
             <Text style={{ width: 28, textAlign: 'center', fontSize: i < 3 ? 20 : 15, color: colors.muted, fontWeight: '800' }}>
               {i < 3 ? MEDALS[i] : `${i + 1}º`}
             </Text>
-            <Avatar name={r.p.name} size={36} color={positionColors[r.p.position]} />
+            <Avatar name={r.p.name} photo={r.p.photo} size={36} color={positionColors[r.p.position]} />
             <View style={{ flex: 1 }}>
               <Text style={text.title} numberOfLines={1}>
                 {displayName(r.p)}

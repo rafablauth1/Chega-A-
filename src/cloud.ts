@@ -102,6 +102,7 @@ async function fetchGroup(gid: string): Promise<Data> {
         active: m.active,
         createdAt: m.joined_at,
         account: true,
+        photo: p.photos?.[0],
       } as Player;
     }),
     ...(guests.data ?? []).map(

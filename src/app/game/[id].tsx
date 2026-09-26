@@ -461,7 +461,7 @@ function PlayerRow({ player, selected, onPress }: { player?: Player; selected: b
         backgroundColor: selected ? colors.primary + '33' : 'transparent',
       }}
     >
-      <Avatar name={player.name} size={30} color={positionColors[player.position]} />
+      <Avatar name={player.name} photo={player.photo} size={30} color={positionColors[player.position]} />
       <Text style={[text.body, { flex: 1 }]}>{displayName(player)}</Text>
       <PositionTag position={player.position} />
     </Pressable>

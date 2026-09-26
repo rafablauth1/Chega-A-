@@ -21,7 +21,17 @@ export interface Player {
   createdAt: string;
   /** Tem conta no app (membro do grupo); sem isso é um convidado cadastrado pelo admin */
   account?: boolean;
+  /** URL da foto principal (só quem tem conta) */
+  photo?: string;
 }
+
+export type Foot = 'D' | 'E' | 'A';
+
+export const FEET: { key: Foot; label: string }[] = [
+  { key: 'D', label: 'Destro' },
+  { key: 'E', label: 'Canhoto' },
+  { key: 'A', label: 'Ambidestro' },
+];
 
 export interface Goal {
   id: string;

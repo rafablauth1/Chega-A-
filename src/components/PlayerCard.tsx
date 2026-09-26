@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { POSITIONS, SKILLS, type Player } from '../types';
 import { initials } from '../utils/format';
 import { displayName } from '../utils/names';
@@ -44,7 +44,11 @@ export const PlayerCard = forwardRef<View, Props>(function PlayerCard({ player, 
             <Text style={[styles.tier, { color: tier.dark }]}>{tier.label}</Text>
           </View>
           <View style={[styles.photo, { borderColor: tier.edge, backgroundColor: tier.dark + '22' }]}>
-            <Text style={[styles.photoText, { color: tier.dark }]}>{initials(player.name)}</Text>
+            {player.photo ? (
+              <Image source={{ uri: player.photo }} style={styles.photoImg} />
+            ) : (
+              <Text style={[styles.photoText, { color: tier.dark }]}>{initials(player.name)}</Text>
+            )}
           </View>
         </View>
 
@@ -126,7 +130,9 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
+  photoImg: { width: '100%', height: '100%' },
   photoText: { fontSize: 48, fontWeight: '900' },
   name: { fontSize: 24, fontWeight: '900', textAlign: 'center', marginTop: 12, letterSpacing: 1 },
   sub: { fontSize: 12, fontWeight: '700', textAlign: 'center', opacity: 0.75 },

@@ -3,7 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { openGroup } from './cloud';
 import { isCloudEnabled, supabase } from './lib/supabase';
-import type { Position, Skills } from './types';
+import type { Foot, Position, Skills } from './types';
 
 export type Role = 'owner' | 'admin' | 'player';
 
@@ -14,6 +14,28 @@ export interface Profile {
   phone: string | null;
   position: Position;
   skills: Skills;
+  /** URLs públicas; a primeira é a principal */
+  photos: string[];
+  birth_date: string | null;
+  city: string | null;
+  bio: string | null;
+  foot: Foot | null;
+  height_cm: number | null;
+  weight_kg: number | null;
+  second_position: Position | null;
+  shirt_number: number | null;
+  favorite_team: string | null;
+  instagram: string | null;
+}
+
+/** Idade a partir da data de nascimento (YYYY-MM-DD). */
+export function ageOf(birth: string | null | undefined) {
+  if (!birth) return null;
+  const [y, m, d] = birth.split('-').map(Number);
+  const now = new Date();
+  let age = now.getFullYear() - y;
+  if (now.getMonth() + 1 < m || (now.getMonth() + 1 === m && now.getDate() < d)) age--;
+  return age >= 0 && age < 120 ? age : null;
 }
 
 export interface GroupSummary {

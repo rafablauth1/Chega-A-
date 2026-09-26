@@ -136,7 +136,9 @@ export default function GroupScreen() {
         return (
           <Card key={m.user_id}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <Avatar name={name} color={positionColors[m.profile?.position ?? 'MEI']} />
+              <Pressable onPress={() => router.push({ pathname: '/athlete/[id]', params: { id: m.user_id } })}>
+                <Avatar name={name} photo={m.profile?.photos?.[0]} color={positionColors[m.profile?.position ?? 'MEI']} />
+              </Pressable>
               <View style={{ flex: 1 }}>
                 <Text style={text.title}>
                   {name}

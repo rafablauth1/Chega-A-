@@ -3,30 +3,23 @@ import { router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
 import { Achievements } from '@/components/Achievements';
+import { profileCompletion } from '@/components/Athlete';
 import { PlayerCard, toOvr } from '@/components/PlayerCard';
-import { Button, Card, Chip, Empty, Input, Label, Screen, SectionTitle, Stars, Stat, Tag, text } from '@/components/ui';
-import { authErrorMessage, ROLE_LABEL, useAuth } from '@/auth';
+import { Avatar, Button, Card, Empty, Screen, SectionTitle, Stat, Tag, text } from '@/components/ui';
+import { ageOf, ROLE_LABEL, useAuth } from '@/auth';
 import { fetchGamesOf } from '@/cloud';
 import { isCloudEnabled, supabase } from '@/lib/supabase';
 import { colors, positionColors } from '@/theme';
-import { POSITIONS, SKILLS, type Game, type Player, type Position, type Skills } from '@/types';
+import type { Game, Player } from '@/types';
 import { achievementsFor } from '@/utils/achievements';
-import { confirm, notify } from '@/utils/confirm';
+import { confirm } from '@/utils/confirm';
 import { toLocalIso } from '@/utils/format';
 import { gameRatingAverage, overallRating, scoreColor } from '@/utils/rating';
 import { shareView } from '@/utils/share';
 import { computeStats, confirmedIds } from '@/utils/stats';
 
-const DEFAULT_SKILLS: Skills = { tecnica: 3, fisico: 3, passe: 3, finalizacao: 3, defesa: 3 };
-
 export default function MeScreen() {
-  const { session, profile, groups, activeGroup, refresh } = useAuth();
-  const [name, setName] = useState('');
-  const [nickname, setNickname] = useState('');
-  const [phone, setPhone] = useState('');
-  const [position, setPosition] = useState<Position>('MEI');
-  const [skills, setSkills] = useState<Skills>(DEFAULT_SKILLS);
-  const [busy, setBusy] = useState(false);
+  const { session, profile, groups, activeGroup } = useAuth();
   const [games, setGames] = useState<(Game & { groupId: string })[]>([]);
   const cardRef = useRef<View>(null);
 
@@ -52,15 +45,6 @@ export default function MeScreen() {
     };
   }, [games, groups, myId]);
 
-  useEffect(() => {
-    if (!profile) return;
-    setName(profile.name);
-    setNickname(profile.nickname ?? '');
-    setPhone(profile.phone ?? '');
-    setPosition(profile.position);
-    setSkills({ ...DEFAULT_SKILLS, ...profile.skills });
-  }, [profile]);
-
   if (!isCloudEnabled) {
     return (
       <Screen>
@@ -74,36 +58,59 @@ export default function MeScreen() {
   }
   if (!session || !profile) return <Screen>{null}</Screen>;
 
-  const save = async () => {
-    if (!name.trim()) return notify('Informe seu nome');
-    setBusy(true);
-    const { error } = await supabase
-      .from('profiles')
-      .update({ name: name.trim(), nickname: nickname.trim() || null, phone: phone.trim() || null, position, skills })
-      .eq('id', profile.id);
-    setBusy(false);
-    if (error) return notify('Não deu certo', authErrorMessage(error.message));
-    await refresh();
-    notify('Perfil salvo!');
-  };
-
   const signOut = () => confirm('Sair da conta', 'Você vai precisar entrar de novo com e-mail e senha.', () => supabase.auth.signOut(), 'Sair');
 
   const me: Player = {
     id: myId,
-    name: name || profile.name,
-    nickname: nickname || undefined,
-    position,
-    skills,
+    name: profile.name,
+    nickname: profile.nickname ?? undefined,
+    position: profile.position,
+    skills: profile.skills,
     type: 'avulso',
     active: true,
     createdAt: '',
+    photo: profile.photos?.[0],
   };
   const overall = overallRating(me, career.played);
   const { stats, perf } = career;
+  const done = profileCompletion(profile);
+  const age = ageOf(profile.birth_date);
 
   return (
     <Screen>
+      <View style={{ alignItems: 'center', gap: 6, marginBottom: 12 }}>
+        <Avatar name={profile.name || '?'} photo={profile.photos?.[0]} size={96} color={positionColors[profile.position]} />
+        <Text style={{ color: colors.text, fontSize: 22, fontWeight: '800' }}>
+          {profile.nickname || profile.name}
+          {age !== null ? `, ${age}` : ''}
+        </Text>
+        <Text style={text.muted}>{session.user.email}</Text>
+      </View>
+
+      {done < 1 && (
+        <Card onPress={() => router.push('/profile-edit')} style={{ gap: 8, borderColor: colors.primary }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Text style={text.title}>Perfil {Math.round(done * 100)}% completo</Text>
+            <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+          </View>
+          <View style={{ height: 6, backgroundColor: colors.border, borderRadius: 3 }}>
+            <View style={{ height: 6, width: `${done * 100}%`, backgroundColor: colors.primary, borderRadius: 3 }} />
+          </View>
+          <Text style={text.muted}>Coloque fotos e seus dados para a galera te conhecer.</Text>
+        </Card>
+      )}
+
+      <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+        <Button title="Editar perfil" icon="create-outline" onPress={() => router.push('/profile-edit')} style={{ flex: 1 }} />
+        <Button
+          title="Ver perfil"
+          icon="eye-outline"
+          variant="secondary"
+          onPress={() => router.push({ pathname: '/athlete/[id]', params: { id: myId } })}
+          style={{ flex: 1 }}
+        />
+      </View>
+
       <PlayerCard
         ref={cardRef}
         player={me}
@@ -111,7 +118,6 @@ export default function MeScreen() {
         groupName="Perfil de atleta"
         extra={stats ? { games: stats.games, goals: stats.goals, mvps: stats.mvps } : undefined}
       />
-      <Text style={[text.muted, { textAlign: 'center', marginTop: 6 }]}>{session.user.email}</Text>
       <Button
         title="Compartilhar meu card"
         icon="share-social"
@@ -120,7 +126,7 @@ export default function MeScreen() {
         onPress={() =>
           shareView(
             cardRef,
-            `⚽ ${nickname || name} · ${toOvr(overall)} OVR (${position})\n` +
+            `⚽ ${me.nickname || me.name} · ${toOvr(overall)} OVR (${me.position})\n` +
               (stats ? `${stats.games} jogos · ${stats.goals} gols · ${stats.assists} assist. · ${stats.mvps}x craque` : ''),
             'Meu card',
           )
@@ -151,9 +157,7 @@ export default function MeScreen() {
 
       <Achievements list={career.achievements} />
 
-      <SectionTitle
-        right={<Button title="Novo" icon="add" variant="ghost" onPress={() => router.push('/group-join')} />}
-      >
+      <SectionTitle right={<Button title="Novo" icon="add" variant="ghost" onPress={() => router.push('/group-join')} />}>
         Meus grupos
       </SectionTitle>
       {groups.length === 0 ? (
@@ -164,7 +168,11 @@ export default function MeScreen() {
         </Card>
       ) : (
         groups.map((g) => (
-          <Card key={g.id} onPress={() => router.push({ pathname: '/group/[id]', params: { id: g.id } })} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <Card
+            key={g.id}
+            onPress={() => router.push({ pathname: '/group/[id]', params: { id: g.id } })}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}
+          >
             <Ionicons name="football" size={22} color={colors.primary} />
             <Text style={[text.title, { flex: 1 }]}>{g.name}</Text>
             {g.id === activeGroup?.id && <Tag label="ABERTO" color={colors.primary} />}
@@ -174,29 +182,6 @@ export default function MeScreen() {
         ))
       )}
 
-      <SectionTitle>Dados do atleta</SectionTitle>
-      <Input label="Nome" value={name} onChangeText={setName} />
-      <Input label="Apelido" value={nickname} onChangeText={setNickname} placeholder="Opcional" />
-      <Input label="WhatsApp" value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="(11) 99999-9999" />
-
-      <Label>Posição</Label>
-      <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
-        {POSITIONS.map((p) => (
-          <Chip key={p.key} label={p.label} selected={position === p.key} color={positionColors[p.key]} onPress={() => setPosition(p.key)} />
-        ))}
-      </View>
-
-      <Label>Como você se avalia</Label>
-      <Card>
-        {SKILLS.map((s) => (
-          <View key={s.key} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 6 }}>
-            <Text style={text.body}>{s.label}</Text>
-            <Stars value={skills[s.key]} onChange={(v) => setSkills({ ...skills, [s.key]: v })} />
-          </View>
-        ))}
-      </Card>
-
-      <Button title={busy ? 'Salvando...' : 'Salvar perfil'} icon="checkmark" onPress={save} disabled={busy} />
       <Button title="Sair da conta" icon="log-out" variant="danger" onPress={signOut} style={{ marginTop: 24 }} />
     </Screen>
   );
