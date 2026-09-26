@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Share, Text, View } from 'react-native';
 import { Button, Card, Chip, Input, Label, Screen, SectionTitle, text } from '@/components/ui';
+import { getLocalBackup, importLocalBackup } from '@/cloud';
 import { isCloudEnabled } from '@/lib/supabase';
-import { exportData, normalize, useStore } from '@/store';
+import { exportData, normalize, useStore, type Data } from '@/store';
 import { confirm, notify } from '@/utils/confirm';
 import { buildDemo } from '@/utils/demo';
 import { money, parseMoney } from '@/utils/format';
@@ -23,6 +24,32 @@ export default function SettingsScreen() {
   const [pixKey, setPixKey] = useState(settings.pixKey);
   const [pixName, setPixName] = useState(settings.pixName);
   const [pixCity, setPixCity] = useState(settings.pixCity);
+  const [oldData, setOldData] = useState<Data | null>(null);
+  const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    if (isCloudEnabled) getLocalBackup().then(setOldData).catch(() => {});
+  }, []);
+
+  const sendOldData = () => {
+    if (!oldData) return;
+    confirm(
+      'Enviar dados antigos',
+      `Enviar para "${settings.groupName}" ${oldData.players.length} jogadores, ${oldData.games.length} jogos e o caixa que estavam só neste celular? ` +
+        'Os jogadores entram como convidados; depois você pode vincular cada um à conta do amigo. Os ajustes (mensalidade, Pix) também vêm junto.',
+      async () => {
+        setSending(true);
+        const ok = await importLocalBackup(oldData);
+        setSending(false);
+        if (ok) {
+          setOldData(null);
+          notify('Pronto!', 'Os dados antigos agora estão no grupo.');
+          router.dismissTo('/');
+        }
+      },
+      'Enviar',
+    );
+  };
 
   const save = () => {
     updateSettings({
@@ -112,6 +139,23 @@ export default function SettingsScreen() {
         O caixa usa a mensalidade atual ({money(parseMoney(monthlyFee))}) para todos os meses já pagos.
       </Text>
       <Button title="Salvar" icon="checkmark" onPress={save} />
+
+      {isCloudEnabled && oldData && (
+        <>
+          <SectionTitle>Dados antigos deste celular</SectionTitle>
+          <Card style={{ gap: 10 }}>
+            <Text style={text.body}>
+              {oldData.players.length} jogadores e {oldData.games.length} jogos de antes das contas estão guardados só neste celular.
+            </Text>
+            <Button
+              title={sending ? 'Enviando...' : `Enviar para ${settings.groupName}`}
+              icon="cloud-upload-outline"
+              onPress={sendOldData}
+              disabled={sending}
+            />
+          </Card>
+        </>
+      )}
 
       {!isCloudEnabled && (
         <>

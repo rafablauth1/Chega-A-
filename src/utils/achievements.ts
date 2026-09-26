@@ -38,7 +38,7 @@ export function achievementsFor(playerId: string, games: Game[], nowIso: string)
       if (g.teams[m.teamB]?.includes(playerId) && a === 0) cleanSheets++;
     }
     bestDay = Math.max(bestDay, day);
-    if (g.ratings[playerId] === 5) fives++;
+    if (g.ratings[playerId] >= 10) fives++;
   }
 
   const list: Omit<Achievement, 'unlocked'>[] = [
@@ -51,7 +51,7 @@ export function achievementsFor(playerId: string, games: Game[], nowIso: string)
     { key: 'craque', icon: '🏆', title: 'Craque', description: 'Eleito craque do jogo 3 vezes', current: s.mvps, target: 3 },
     { key: 'vencedor', icon: '💪', title: 'Vencedor', description: '10 partidas vencidas', current: s.wins, target: 10 },
     { key: 'muralha', icon: '🧱', title: 'Muralha', description: '5 partidas sem sofrer gol', current: cleanSheets, target: 5 },
-    { key: 'show', icon: '⭐', title: 'Show de bola', description: 'Recebeu nota 5 em um jogo', current: fives, target: 1 },
+    { key: 'show', icon: '⭐', title: 'Show de bola', description: 'Recebeu nota 10 em um jogo', current: fives, target: 1 },
   ];
 
   return list.map((a) => ({ ...a, current: Math.min(a.current, a.target), unlocked: a.current >= a.target }));

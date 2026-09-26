@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { colors, positionColors } from '../theme';
 import { initials } from '../utils/format';
+import { scoreColor, toTen } from '../utils/rating';
 
 export type IconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -152,7 +153,30 @@ export function RatingBadge({ value }: { value: number }) {
   return (
     <View style={styles.rating}>
       <Ionicons name="star" size={12} color={colors.gold} />
-      <Text style={styles.ratingText}>{value.toFixed(1)}</Text>
+      <Text style={styles.ratingText}>{toTen(value).toFixed(1)}</Text>
+    </View>
+  );
+}
+
+/** Nota de 1 a 10 (pós-jogo). Sem onChange, só mostra. */
+export function ScorePicker({ value, onChange }: { value: number; onChange?: (v: number) => void }) {
+  const color = scoreColor(value);
+  return (
+    <View style={{ flexDirection: 'row', gap: 4 }}>
+      {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
+        const on = value >= n;
+        return (
+          <Pressable
+            key={n}
+            disabled={!onChange}
+            hitSlop={3}
+            onPress={() => onChange?.(value === n ? 0 : n)}
+            style={[styles.score, on && { backgroundColor: color, borderColor: color }]}
+          >
+            <Text style={[styles.scoreText, on && { color: '#04210F' }]}>{n}</Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
@@ -253,6 +277,17 @@ export const text = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
+  score: {
+    flex: 1,
+    aspectRatio: 1,
+    maxWidth: 34,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scoreText: { color: colors.muted, fontWeight: '800', fontSize: 13 },
   screen: { flex: 1, backgroundColor: colors.bg },
   screenPad: { padding: 16 },
   card: {

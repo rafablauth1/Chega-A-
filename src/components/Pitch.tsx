@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme';
 import type { Player, Position } from '../types';
+import { toTen } from '../utils/rating';
 import { initials } from '../utils/format';
 import { displayName } from '../utils/names';
 
@@ -109,7 +110,7 @@ function Marker({
         <Text style={[styles.initials, { fontSize: size * 0.34 }]}>{initials(player.name)}</Text>
         {rating !== undefined && (
           <View style={styles.rating}>
-            <Text style={styles.ratingText}>{rating.toFixed(1)}</Text>
+            <Text style={styles.ratingText}>{toTen(rating).toFixed(1)}</Text>
           </View>
         )}
         {selected && (

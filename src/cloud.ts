@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
-import { DEFAULT_SETTINGS, exportData, useStore, type Data } from './store';
+import { DEFAULT_SETTINGS, exportData, normalize, scaleOldRatings, useStore, type Data } from './store';
 import type { Game, Player } from './types';
 import { notify } from './utils/confirm';
 
@@ -22,6 +22,8 @@ let channel: RealtimeChannel | null = null;
 let reloadTimer: ReturnType<typeof setTimeout> | null = null;
 /** Escritas em fila, na ordem em que aconteceram (ex.: criar o jogo antes da presença) */
 let queue: Promise<unknown> = Promise.resolve();
+/** Resultado do último lote de escritas (true = tudo salvo na nuvem) */
+let lastPush: Promise<boolean> = Promise.resolve(true);
 
 const apply = (data: Data) => {
   applying = true;
@@ -33,6 +35,41 @@ const apply = (data: Data) => {
 };
 
 /* ------------------------------ Leitura ------------------------------ */
+
+const toGame = (g: any, attendees: string[]): Game => ({
+  id: g.id,
+  date: g.date,
+  location: g.location,
+  pricePerPlayer: Number(g.price_per_player),
+  playersPerTeam: g.players_per_team,
+  maxPlayers: g.max_players,
+  attendees,
+  matches: g.matches ?? [],
+  mvp: g.mvp,
+  paid: g.paid ?? [],
+  teams: g.teams,
+  ratings: g.ratings ?? {},
+  notes: g.notes ?? undefined,
+});
+
+const attendeesByGame = (rows: { game_id: string; player_id: string }[] | null) => {
+  const map: Record<string, string[]> = {};
+  for (const a of rows ?? []) (map[a.game_id] ??= []).push(a.player_id);
+  return map;
+};
+
+/** Jogos de todos os grupos do usuário, para as estatísticas do perfil de atleta. */
+export async function fetchGamesOf(groupIds: string[]): Promise<(Game & { groupId: string })[]> {
+  if (!groupIds.length) return [];
+  const [games, attendance] = await Promise.all([
+    supabase.from('games').select('*').in('group_id', groupIds),
+    supabase.from('attendance').select('game_id, player_id').in('group_id', groupIds).order('created_at'),
+  ]);
+  if (games.error) throw games.error;
+  if (attendance.error) throw attendance.error;
+  const byGame = attendeesByGame(attendance.data);
+  return (games.data ?? []).map((g) => ({ ...toGame(g, byGame[g.id] ?? []), groupId: g.group_id }));
+}
 
 async function fetchGroup(gid: string): Promise<Data> {
   const [group, members, guests, games, attendance, expenses, monthly] = await Promise.all([
@@ -82,31 +119,14 @@ async function fetchGroup(gid: string): Promise<Data> {
     ),
   ];
 
-  const byGame: Record<string, string[]> = {};
-  for (const a of attendance.data ?? []) (byGame[a.game_id] ??= []).push(a.player_id);
+  const byGame = attendeesByGame(attendance.data);
 
   const monthlyMap: Record<string, string[]> = {};
   for (const m of monthly.data ?? []) (monthlyMap[m.month] ??= []).push(m.player_id);
 
   return {
     players,
-    games: (games.data ?? []).map(
-      (g): Game => ({
-        id: g.id,
-        date: g.date,
-        location: g.location,
-        pricePerPlayer: Number(g.price_per_player),
-        playersPerTeam: g.players_per_team,
-        maxPlayers: g.max_players,
-        attendees: byGame[g.id] ?? [],
-        matches: g.matches ?? [],
-        mvp: g.mvp,
-        paid: g.paid ?? [],
-        teams: g.teams,
-        ratings: g.ratings ?? {},
-        notes: g.notes ?? undefined,
-      }),
-    ),
+    games: (games.data ?? []).map((g) => toGame(g, byGame[g.id] ?? [])),
     expenses: (expenses.data ?? []).map((e) => ({ ...e, amount: Number(e.amount) })),
     monthly: monthlyMap,
     settings: { ...DEFAULT_SETTINGS, ...(group.data?.settings ?? {}), groupName: group.data?.name ?? '' },
@@ -168,16 +188,22 @@ function push(ops: (() => Op)[]) {
     notify('Não foi possível salvar', denied ? 'Só os admins do grupo podem mudar isso.' : 'Verifique sua internet e tente de novo.');
     scheduleReload(); // volta a tela para o que está na nuvem
   };
-  queue = queue.then(async () => {
+  lastPush = queue.then(async () => {
     try {
       for (const op of ops) {
         const { error } = await op();
-        if (error) return fail(/row-level security|permission/i.test(error.message));
+        if (error) {
+          fail(/row-level security|permission/i.test(error.message));
+          return false;
+        }
       }
+      return true;
     } catch {
       fail(false); // sem conexão; a fila segue funcionando para as próximas mudanças
+      return false;
     }
   });
+  queue = lastPush;
 }
 
 const byId = <T extends { id: string }>(list: T[]) => new Map(list.map((x) => [x.id, x]));
@@ -186,6 +212,8 @@ const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
 function diff(s: Data, prev: Data) {
   const gid = groupId!;
   const ops: (() => Op)[] = [];
+  // Exclusões vão por último (ex.: apagar o jogo leva a presença junto)
+  const removals: (() => Op)[] = [];
 
   // Configurações do grupo
   if (s.settings !== prev.settings) {
@@ -197,6 +225,7 @@ function diff(s: Data, prev: Data) {
   if (s.players !== prev.players) {
     const before = byId(prev.players);
     const after = byId(s.players);
+    const guests: ReturnType<typeof guestRow>[] = [];
     for (const p of s.players) {
       const old = before.get(p.id);
       if (old === p) continue;
@@ -205,17 +234,16 @@ function diff(s: Data, prev: Data) {
         const patch = { type: p.type, active: p.active, ...(old && same(old.skills, p.skills) ? {} : { skills: p.skills }) };
         ops.push(() => supabase.from('group_members').update(patch).eq('group_id', gid).eq('user_id', p.id));
       } else {
-        const row = guestRow(p, gid);
-        ops.push(() => supabase.from('guests').upsert(row));
+        guests.push(guestRow(p, gid));
       }
     }
-    for (const p of prev.players) {
-      if (after.has(p.id)) continue;
-      ops.push(() =>
-        p.account
-          ? supabase.from('group_members').delete().eq('group_id', gid).eq('user_id', p.id)
-          : supabase.from('guests').delete().eq('id', p.id),
-      );
+    if (guests.length) ops.push(() => supabase.from('guests').upsert(guests));
+
+    const gone = prev.players.filter((p) => !after.has(p.id));
+    const goneGuests = gone.filter((p) => !p.account).map((p) => p.id);
+    if (goneGuests.length) removals.push(() => supabase.from('guests').delete().in('id', goneGuests));
+    for (const p of gone.filter((x) => x.account)) {
+      removals.push(() => supabase.from('group_members').delete().eq('group_id', gid).eq('user_id', p.id));
     }
   }
 
@@ -223,63 +251,57 @@ function diff(s: Data, prev: Data) {
   if (s.games !== prev.games) {
     const before = byId(prev.games);
     const after = byId(s.games);
+    const rows: ReturnType<typeof gameRow>[] = [];
+    const joins: { game_id: string; group_id: string; player_id: string; created_at?: string }[] = [];
     for (const g of s.games) {
       const old = before.get(g.id);
       if (old === g) continue;
       // Jogador comum só mexe na presença; só grava o jogo se algo além dela mudou
       const row = gameRow(g, gid);
-      if (!old || !same(gameRow(old, gid), row)) ops.push(() => supabase.from('games').upsert(row));
+      if (!old || !same(gameRow(old, gid), row)) rows.push(row);
       const had = new Set(old?.attendees ?? []);
       const has = new Set(g.attendees);
-      for (const pid of g.attendees) {
-        if (!had.has(pid)) {
-          ops.push(() =>
-            supabase
-              .from('attendance')
-              .upsert({ game_id: g.id, group_id: gid, player_id: pid }, { onConflict: 'game_id,player_id', ignoreDuplicates: true }),
-          );
-        }
-      }
-      for (const pid of had) {
-        if (!has.has(pid)) ops.push(() => supabase.from('attendance').delete().eq('game_id', g.id).eq('player_id', pid));
-      }
+      for (const pid of g.attendees) if (!had.has(pid)) joins.push({ game_id: g.id, group_id: gid, player_id: pid });
+      const left = [...had].filter((pid) => !has.has(pid));
+      if (left.length) ops.push(() => supabase.from('attendance').delete().eq('game_id', g.id).in('player_id', left));
     }
-    for (const g of prev.games) {
-      if (!after.has(g.id)) ops.push(() => supabase.from('games').delete().eq('id', g.id));
+    // Várias presenças de uma vez: a hora marca a ordem de chegada (senão todas teriam o mesmo horário)
+    if (joins.length > 1) {
+      const t = Date.now();
+      joins.forEach((j, i) => (j.created_at = new Date(t + i).toISOString()));
     }
+    if (rows.length) ops.push(() => supabase.from('games').upsert(rows));
+    if (joins.length) {
+      ops.push(() => supabase.from('attendance').upsert(joins, { onConflict: 'game_id,player_id', ignoreDuplicates: true }));
+    }
+    const goneGames = prev.games.filter((g) => !after.has(g.id)).map((g) => g.id);
+    if (goneGames.length) removals.push(() => supabase.from('games').delete().in('id', goneGames));
   }
 
   // Caixa
   if (s.expenses !== prev.expenses) {
     const before = byId(prev.expenses);
     const after = byId(s.expenses);
-    for (const e of s.expenses) {
-      if (!before.has(e.id)) ops.push(() => supabase.from('expenses').insert({ ...e, group_id: gid }));
-    }
-    for (const e of prev.expenses) {
-      if (!after.has(e.id)) ops.push(() => supabase.from('expenses').delete().eq('id', e.id));
-    }
+    const added = s.expenses.filter((e) => !before.has(e.id)).map((e) => ({ ...e, group_id: gid }));
+    if (added.length) ops.push(() => supabase.from('expenses').insert(added));
+    const gone = prev.expenses.filter((e) => !after.has(e.id)).map((e) => e.id);
+    if (gone.length) removals.push(() => supabase.from('expenses').delete().in('id', gone));
   }
   if (s.monthly !== prev.monthly) {
+    const paid: { group_id: string; month: string; player_id: string }[] = [];
     for (const month of new Set([...Object.keys(s.monthly), ...Object.keys(prev.monthly)])) {
       const had = new Set(prev.monthly[month] ?? []);
       const has = new Set(s.monthly[month] ?? []);
-      for (const pid of has) {
-        if (!had.has(pid)) {
-          ops.push(() =>
-            supabase.from('monthly_payments').upsert({ group_id: gid, month, player_id: pid }, { ignoreDuplicates: true }),
-          );
-        }
-      }
-      for (const pid of had) {
-        if (!has.has(pid)) {
-          ops.push(() => supabase.from('monthly_payments').delete().eq('group_id', gid).eq('month', month).eq('player_id', pid));
-        }
+      for (const pid of has) if (!had.has(pid)) paid.push({ group_id: gid, month, player_id: pid });
+      const undone = [...had].filter((pid) => !has.has(pid));
+      if (undone.length) {
+        removals.push(() => supabase.from('monthly_payments').delete().eq('group_id', gid).eq('month', month).in('player_id', undone));
       }
     }
+    if (paid.length) ops.push(() => supabase.from('monthly_payments').upsert(paid, { ignoreDuplicates: true }));
   }
 
-  push(ops);
+  push([...ops, ...removals]);
 }
 
 useStore.subscribe((s, prev) => {
@@ -293,12 +315,42 @@ useStore.subscribe((s, prev) => {
 async function backupLocalData() {
   if (await AsyncStorage.getItem(LOCAL_BACKUP_KEY)) return;
   const data = exportData();
-  if (data.players.length || data.games.length) await AsyncStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(data));
+  if (data.players.length || data.games.length) {
+    await AsyncStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify({ ...data, ratingScale: 10 }));
+  }
 }
 
 export async function getLocalBackup(): Promise<Data | null> {
-  const raw = await AsyncStorage.getItem(LOCAL_BACKUP_KEY);
-  return raw ? JSON.parse(raw) : null;
+  const raw = await AsyncStorage.getItem(LOCAL_BACKUP_KEY).catch(() => null);
+  if (!raw) return null;
+  const data = JSON.parse(raw);
+  // Backups feitos antes da nota 0–10 guardam as notas de 1 a 5
+  return normalize(data.ratingScale === 10 ? data : scaleOldRatings(data));
+}
+
+/**
+ * Junta no grupo ativo os dados que existiam só neste celular. Os jogadores entram como convidados
+ * (depois o admin pode vincular cada um à conta do amigo). A sincronização normal envia tudo.
+ */
+export async function importLocalBackup(backup: Data) {
+  const s = useStore.getState();
+  const known = (list: { id: string }[]) => new Set(list.map((x) => x.id));
+  const players = known(s.players);
+  const games = known(s.games);
+  const expenses = known(s.expenses);
+  const monthly = { ...s.monthly };
+  for (const [month, ids] of Object.entries(backup.monthly)) monthly[month] = [...new Set([...(monthly[month] ?? []), ...ids])];
+  useStore.setState({
+    players: [...s.players, ...backup.players.filter((p) => !players.has(p.id)).map((p) => ({ ...p, account: false }))],
+    games: [...s.games, ...backup.games.filter((g) => !games.has(g.id))],
+    expenses: [...s.expenses, ...backup.expenses.filter((e) => !expenses.has(e.id))],
+    monthly,
+    settings: { ...s.settings, ...backup.settings, groupName: s.settings.groupName },
+  });
+  // Só apaga o backup do celular se tudo chegou na nuvem
+  const ok = await lastPush;
+  if (ok) await AsyncStorage.removeItem(LOCAL_BACKUP_KEY);
+  return ok;
 }
 
 /** Troca o grupo sincronizado (null = nenhum grupo, tela vazia). */

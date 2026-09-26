@@ -72,7 +72,7 @@ function playGame(game: Game, players: Player[], rating: Record<string, number>)
       [a, b] = [Math.min(a, b), Math.max(a, b)];
     }
   }
-  const ratings = Object.fromEntries(game.attendees.map((id) => [id, Math.max(1, Math.min(5, Math.round(rating[id]) + rnd(-1, 1)))]));
+  const ratings = Object.fromEntries(game.attendees.map((id) => [id, Math.max(1, Math.min(10, Math.round(rating[id] * 2) + rnd(-2, 2)))]));
   const mvp = Object.entries(ratings).sort((x, y) => y[1] - x[1])[0]?.[0] ?? null;
   const paid = game.attendees.filter((id) => byId[id].type === 'avulso' && Math.random() < 0.75);
   return { ...game, teams, matches, ratings, mvp, paid };

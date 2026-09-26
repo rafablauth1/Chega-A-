@@ -24,7 +24,7 @@ export function roundScores(game: Game, byId: Record<string, Player>): RoundScor
           if (g.assistId === player.id) assists++;
         }
       }
-      const rating = game.ratings[player.id] ?? 3;
+      const rating = (game.ratings[player.id] ?? 6) / 2;
       const score = rating + goals * 0.6 + assists * 0.35 + (game.mvp === player.id ? 1 : 0);
       return { player, score, goals, assists };
     })

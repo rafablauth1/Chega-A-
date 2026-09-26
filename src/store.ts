@@ -17,6 +17,8 @@ interface State extends Data {
   addPlayer: (p: Omit<Player, 'id' | 'createdAt'>) => string;
   updatePlayer: (id: string, p: Partial<Player>) => void;
   removePlayer: (id: string) => void;
+  /** Junta o histórico de um jogador no de outro (ex.: convidado que criou conta) e remove o primeiro */
+  mergePlayer: (fromId: string, toId: string) => void;
 
   addGame: (g: Omit<Game, 'id' | 'attendees' | 'paid' | 'teams' | 'ratings' | 'matches'>) => string;
   updateGame: (id: string, g: Partial<Game>) => void;
@@ -59,6 +61,15 @@ const EMPTY: Data = { players: [], games: [], expenses: [], monthly: {}, setting
 
 const toggle = (list: string[], id: string) =>
   list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
+
+/** Até a versão 2 as notas pós-jogo eram de 1 a 5; agora são de 0 a 10. */
+export const scaleOldRatings = (d: Partial<Data>): Partial<Data> => ({
+  ...d,
+  games: d.games?.map((g) => ({
+    ...g,
+    ratings: Object.fromEntries(Object.entries(g.ratings ?? {}).map(([id, n]) => [id, n * 2])),
+  })),
+});
 
 /** Garante que dados antigos ou importados tenham todos os campos atuais. */
 export const normalize = (d: Partial<Data>): Data => ({
@@ -105,6 +116,32 @@ export const useStore = create<State>()(
               teams: g.teams?.map((t) => t.filter((a) => a !== id)) ?? null,
             })),
           })),
+
+        mergePlayer: (from, to) => {
+          const swap = (id: string) => (id === from ? to : id);
+          const swapList = (list: string[]) => [...new Set(list.map(swap))];
+          const swapOpt = (id: string | null | undefined) => (id ? swap(id) : id);
+          set((s) => ({
+            players: s.players.filter((p) => p.id !== from),
+            games: s.games.map((g) => {
+              if (!JSON.stringify(g).includes(`"${from}"`)) return g; // jogo sem esse jogador: não regrava
+              const { [from]: fromRating, ...ratings } = g.ratings;
+              return {
+                ...g,
+                attendees: swapList(g.attendees),
+                paid: swapList(g.paid),
+                teams: g.teams?.map(swapList) ?? null,
+                mvp: swapOpt(g.mvp) ?? null,
+                ratings: fromRating !== undefined && ratings[to] === undefined ? { ...ratings, [to]: fromRating } : ratings,
+                matches: g.matches.map((m) => ({
+                  ...m,
+                  goals: m.goals.map((x) => ({ ...x, playerId: swapOpt(x.playerId) ?? null, assistId: swapOpt(x.assistId) })),
+                })),
+              };
+            }),
+            monthly: Object.fromEntries(Object.entries(s.monthly).map(([m, ids]) => [m, swapList(ids)])),
+          }));
+        },
 
         addGame: (g) => {
           const id = uid();
@@ -159,9 +196,12 @@ export const useStore = create<State>()(
     },
     {
       name: 'vaia-ai-store',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => AsyncStorage),
-      migrate: (persisted) => normalize(persisted as Partial<Data>),
+      migrate: (persisted, version) => {
+        const d = persisted as Partial<Data>;
+        return normalize(version < 3 ? scaleOldRatings(d) : d);
+      },
     },
   ),
 );
