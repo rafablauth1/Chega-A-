@@ -68,3 +68,13 @@ Converse com o dono em português, de forma simples (não é programador).
 - No PC do dono existe build local (Android SDK em `~/tools`), mas em sessão remota use o **EAS Build**:
   `npx eas-cli@latest build -p android --profile preview` (gera APK e devolve um link). Precisa estar logado na conta
   Expo do dono (`EXPO_TOKEN`); se não houver, peça para ele gerar o token em expo.dev > Account settings > Access tokens.
+
+### Segurança (leia `SEGURANCA.md` antes de mexer em dados)
+- Toda tabela nova: **RLS ligado** + políticas. Tabela de grupo entra na publicação `supabase_realtime`.
+- Perfil de **outra pessoa**: sempre por `fetchPeople()`/`fetchPerson()` (`src/people.ts` → função `people()`).
+  Nunca `select('*')` em `profiles`. O próprio perfil vem de `fetchMyProfile()` (`my_profile()`).
+- Colunas privadas de `profiles` (telefone, Instagram, nascimento, peso, posição) não têm SELECT direto (migração 009).
+- Funções `security definer`: sempre `set search_path = public` e `revoke ... from public, anon`.
+- Antes de entregar migração: `npm run check:sql`. Antes de commitar: o hook roda `npm run check:secrets`
+  (repositório público: nada de `service_role`, `sb_secret_`, chaves de pagamento ou tokens).
+- Pagamentos: seguir a seção 9 do `SEGURANCA.md` (chave do PSP só em Edge Function; app nunca grava pagamento).

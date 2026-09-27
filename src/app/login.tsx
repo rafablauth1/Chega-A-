@@ -20,6 +20,8 @@ export default function LoginScreen() {
     const mail = email.trim().toLowerCase();
     if (!mail || !password) return notify('Preencha e-mail e senha');
     if (mode === 'signup' && !name.trim()) return notify('Informe seu nome');
+    if (mode === 'signup' && (password.length < 8 || !/[A-Za-z]/.test(password) || !/d/.test(password)))
+      return notify('Senha fraca', 'Use pelo menos 8 caracteres, com letras e números.');
     setBusy(true);
     const { data, error } =
       mode === 'signin'
@@ -77,7 +79,7 @@ export default function LoginScreen() {
           label="Senha"
           value={password}
           onChangeText={setPassword}
-          placeholder={mode === 'signup' ? 'Mínimo 6 caracteres' : 'Sua senha'}
+          placeholder={mode === 'signup' ? 'Mínimo 8, com letras e números' : 'Sua senha'}
           secureTextEntry
           autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
           onSubmitEditing={submit}

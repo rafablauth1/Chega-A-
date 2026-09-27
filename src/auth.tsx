@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Session } from '@supabase/supabase-js';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { openGroup } from './cloud';
+import { fetchMyProfile } from './people';
 import { isCloudEnabled, supabase } from './lib/supabase';
 import type { Foot, Position, Skills } from './types';
 
@@ -90,9 +91,10 @@ export const ROLE_LABEL: Record<Role, string> = { owner: 'Dono', admin: 'Admin',
 
 /** Traduz os erros mais comuns do Supabase para o usuário. */
 export function authErrorMessage(message: string): string {
+  if (/rate limit/i.test(message)) return 'Muitas ações seguidas. Espere um pouco e tente de novo.';
   if (/invalid login credentials/i.test(message)) return 'E-mail ou senha incorretos.';
   if (/already registered/i.test(message)) return 'Este e-mail já tem conta. Tente entrar.';
-  if (/password should be at least/i.test(message)) return 'A senha precisa ter pelo menos 6 caracteres.';
+  if (/password should be at least|weak password/i.test(message)) return 'Senha fraca: use pelo menos 8 caracteres, com letras e números.';
   if (/email not confirmed/i.test(message)) return 'Confirme seu e-mail pelo link que enviamos antes de entrar.';
   if (/invalid code/i.test(message)) return 'Código de convite não encontrado.';
   if (/network|fetch/i.test(message)) return 'Sem conexão com o servidor. Verifique sua internet.';
@@ -114,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     const [p, g] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', s.user.id).single(),
+      fetchMyProfile(s.user.id).then((data) => ({ data })).catch(() => ({ data: null })),
       supabase.from('group_members').select('role, groups(id, name, invite_code)').eq('user_id', s.user.id),
     ]);
     if (p.data) setProfile(p.data as Profile);

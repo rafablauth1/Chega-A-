@@ -19,6 +19,7 @@ Sem isso, excluir conta, comunidades, região e "Bora jogar?" dão erro no app.
    - [ ] `supabase/migrations/006_region.sql`: bairro e posição aproximada
    - [ ] `supabase/migrations/007_discovery.sql`: "Bora jogar?", match, "Falta gente!", bloquear e denunciar
    - [ ] `supabase/migrations/008_chat.sql`: chat dentro do app
+   - [ ] `supabase/migrations/009_security.sql`: **segurança** (telefone e dados pessoais só para quem pode, limites anti-spam, baixar meus dados)
 5. Se alguma der erro, **pare** e me mande a mensagem de erro (print serve).
 
 > Eu confiro a escrita de todos os arquivos com o verificador do próprio Postgres (`npm run check:sql`), mas só rodando no seu Supabase dá para ter certeza de que funcionam.
@@ -51,6 +52,16 @@ O Google Play exige um link público para a política de privacidade e para a ex
    - [ ] https://rafablauth1.github.io/Chega-A-/termos.html
 
 > O repositório é **público** (conferido), então o Pages grátis funciona. Lembre que isso deixa o código visível para qualquer um; as senhas e dados dos usuários ficam no Supabase, não no código.
+
+---
+
+## 🔴 Segurança das suas contas (faça uma vez, leva 20 min)
+Detalhes e o porquê em `SEGURANCA.md`. **Quem invadir uma dessas contas controla o app inteiro.**
+- [ ] **Verificação em duas etapas (2FA)** no **GitHub**, **Supabase**, **Google** (a da Play Store) e **Expo**.
+- [ ] Supabase → **Authentication → Providers → Email**: senha mínima **8** e exigir **letras e números** (o app já pede isso).
+- [ ] Supabase → **Authentication → Attack Protection**: ligar **CAPTCHA** com Cloudflare Turnstile (grátis) e me avisar, que eu ligo no app.
+- [ ] Supabase → **Advisors → Security Advisor**: rodar depois das migrações e me mandar um print do que aparecer.
+- [ ] Nunca mande para ninguém (nem para mim no chat) a chave **service_role / secret** do Supabase. A que eu uso é a *publishable*, que é pública.
 
 ---
 

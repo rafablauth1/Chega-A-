@@ -155,6 +155,7 @@ export async function joinTeam(groupId: string) {
 
 /** Mensagens de erro em português para as ações de comunidade. */
 export function communityError(message: string) {
+  if (/rate limit/i.test(message)) return 'Muitas ações seguidas. Espere um pouco e tente de novo.';
   if (/invalid code/i.test(message)) return 'Código de comunidade não encontrado.';
   if (/not a community member/i.test(message)) return 'Você precisa entrar na comunidade primeiro.';
   if (/relation .*communit.* does not exist|function .*communit.* does not exist|Could not find the function/i.test(message))

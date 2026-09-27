@@ -1,0 +1,3 @@
+#!/bin/sh
+# Bloqueia o commit se aparecer alguma chave secreta (o repositório é público)
+node scripts/check-secrets.mjs || exit 1

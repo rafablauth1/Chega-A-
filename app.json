@@ -50,7 +50,8 @@
         {
           "locationWhenInUsePermission": "O Vaia Aí usa sua localização para descobrir seu bairro e mostrar jogadores e jogos perto de você."
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true

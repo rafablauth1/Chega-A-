@@ -185,6 +185,7 @@ export function whatsappLink(phone: string, text?: string) {
 }
 
 export function discoveryError(message: string) {
+  if (/rate limit/i.test(message)) return 'Muitas ações seguidas. Espere um pouco e tente de novo.';
   if (/adults only/i.test(message)) return 'Só para maiores de 18 anos. Confira sua data de nascimento no perfil.';
   if (/blocked/i.test(message)) return 'Não é possível interagir com esse jogador.';
   if (/Could not find the function|does not exist|schema cache/i.test(message))

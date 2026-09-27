@@ -4,6 +4,7 @@ import { supabase } from './lib/supabase';
 import { DEFAULT_SETTINGS, exportData, normalize, scaleOldRatings, useStore, type Data } from './store';
 import type { Game, Player } from './types';
 import { notify } from './utils/confirm';
+import { fetchGuestPhones, fetchPeople } from './people';
 
 /**
  * Sincroniza o store local com o grupo ativo no Supabase.
@@ -75,7 +76,7 @@ async function fetchGroup(gid: string): Promise<Data> {
   const [group, members, guests, games, attendance, expenses, monthly] = await Promise.all([
     supabase.from('groups').select('name, settings').eq('id', gid).single(),
     supabase.from('group_members').select('user_id, type, active, skills, joined_at').eq('group_id', gid),
-    supabase.from('guests').select('*').eq('group_id', gid),
+    supabase.from('guests').select('id, name, nickname, position, type, skills, active, created_at').eq('group_id', gid),
     supabase.from('games').select('*').eq('group_id', gid),
     supabase.from('attendance').select('game_id, player_id').eq('group_id', gid).order('created_at'),
     supabase.from('expenses').select('id, date, description, amount').eq('group_id', gid),
@@ -85,8 +86,8 @@ async function fetchGroup(gid: string): Promise<Data> {
   if (failed?.error) throw failed.error;
 
   const ids = (members.data ?? []).map((m) => m.user_id);
-  const { data: profiles } = await supabase.from('profiles').select('*').in('id', ids);
-  const profileOf = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]));
+  const [profiles, guestPhones] = await Promise.all([fetchPeople(ids).catch(() => []), fetchGuestPhones(gid)]);
+  const profileOf: Record<string, any> = Object.fromEntries(profiles.map((p) => [p.id, p]));
 
   const players: Player[] = [
     ...(members.data ?? []).map((m) => {
@@ -110,7 +111,7 @@ async function fetchGroup(gid: string): Promise<Data> {
         id: g.id,
         name: g.name,
         nickname: g.nickname ?? undefined,
-        phone: g.phone ?? undefined,
+        phone: guestPhones[g.id],
         position: g.position,
         type: g.type,
         skills: g.skills,

@@ -16,7 +16,7 @@ export function PhotoCarousel({ profile }: { profile: Profile }) {
   const height = width * 1.25;
   const [index, setIndex] = useState(0);
   const photos = profile.photos ?? [];
-  const age = ageOf(profile.birth_date);
+  const age = (profile as Profile & { age?: number | null }).age ?? ageOf(profile.birth_date);
   const color = positionColors[profile.position];
 
   return (

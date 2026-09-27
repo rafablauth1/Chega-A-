@@ -77,7 +77,7 @@ export const PRIVACY: LegalDoc = {
         'Membros das comunidades de que você participa (empresa, escola etc.) veem seu perfil de atleta, os times da comunidade e a artilharia geral, com os gols de cada jogador.',
         'Suas fotos ficam num endereço público: quem tiver o link da foto consegue abri-la. Não use fotos que você não quer que circulem.',
         'Se você ligar "Aparecer para jogadores perto", pessoas da sua região que procuram jogo podem ver seu perfil de atleta e o seu bairro (nunca o endereço nem a posição exata). Fica desligado até você escolher, e dá para desligar a qualquer momento.',
-        'Seu WhatsApp e Instagram só aparecem para quem deu match com você ou para o dono de uma vaga que você topou, e só se você ligar "Mostrar meu WhatsApp para quem der match".',
+        'Seu telefone e Instagram aparecem só para o organizador (dono ou admin) dos grupos em que você joga e, se você ligar "Mostrar meu WhatsApp para quem der match", para quem conversa com você pelo app. Sua data de nascimento, peso e posição aproximada não aparecem para ninguém (os outros veem só sua idade e seu bairro).',
         'As conversas do chat ficam visíveis só para as duas pessoas. Nossa equipe não lê conversas; quando você denuncia alguém, as últimas mensagens dessa pessoa vão junto com a denúncia para a análise.',
         'Denúncias são vistas só pela nossa equipe, para analisar e, se preciso, suspender contas. Quem foi denunciado não sabe quem denunciou.',
         'Fora isso, quem não está em nenhum grupo ou comunidade com você não vê seu perfil pelo app.',
@@ -105,7 +105,7 @@ export const PRIVACY: LegalDoc = {
         'Confirmar se tratamos seus dados e acessá-los.',
         'Corrigir dados incompletos ou errados, direto em "Editar perfil".',
         'Pedir a anonimização, o bloqueio ou a eliminação de dados desnecessários.',
-        'Pedir a portabilidade dos seus dados.',
+        'Baixar uma cópia dos seus dados, em Meu perfil > Baixar meus dados.',
         'Revogar o consentimento e apagar os dados opcionais.',
         'Excluir sua conta a qualquer momento, pelo próprio app, em Meu perfil > Excluir minha conta.',
       ],
@@ -113,7 +113,7 @@ export const PRIVACY: LegalDoc = {
     {
       heading: 'Segurança',
       paragraphs: [
-        'Os dados trafegam criptografados (HTTPS). No banco, regras de acesso garantem que cada pessoa só lê os dados dos grupos de que participa e que só organizadores alteram jogos e financeiro. Nenhum sistema é 100% seguro; se acontecer um incidente relevante, avisaremos os afetados e a ANPD como manda a lei.',
+        'Senhas são guardadas só em forma cifrada (hash) pelo nosso provedor de login. A sessão fica cifrada no seu celular. Os dados trafegam criptografados (HTTPS). No banco, regras de acesso garantem que cada pessoa só lê os dados dos grupos de que participa e que só organizadores alteram jogos e financeiro. Nenhum sistema é 100% seguro; se acontecer um incidente relevante, avisaremos os afetados e a ANPD como manda a lei.',
       ],
     },
     {

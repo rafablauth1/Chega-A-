@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Text, View } from 'react-native';
+import { Share, Text, View } from 'react-native';
 import { Achievements } from '@/components/Achievements';
 import { profileCompletion } from '@/components/Athlete';
 import { PlayerCard, toOvr } from '@/components/PlayerCard';
@@ -12,6 +12,7 @@ import { isCloudEnabled, supabase } from '@/lib/supabase';
 import { colors, fonts, positionColors } from '@/theme';
 import type { Game, Player } from '@/types';
 import { achievementsFor } from '@/utils/achievements';
+import { exportMyData } from '@/people';
 import { deleteMyAccount } from '@/utils/account';
 import { confirm, notify } from '@/utils/confirm';
 import { toLocalIso } from '@/utils/format';
@@ -61,6 +62,15 @@ export default function MeScreen() {
   if (!session || !profile) return <Screen>{null}</Screen>;
 
   const signOut = () => confirm('Sair da conta', 'Você vai precisar entrar de novo com e-mail e senha.', () => supabase.auth.signOut(), 'Sair');
+
+  const downloadData = async () => {
+    try {
+      const data = await exportMyData();
+      await Share.share({ title: 'Meus dados do Vaia Aí', message: JSON.stringify(data, null, 2) });
+    } catch (e: any) {
+      notify('Não deu para gerar', /Could not find|does not exist/i.test(e?.message ?? '') ? 'O servidor ainda não tem essa função (migração 009).' : 'Verifique sua internet e tente de novo.');
+    }
+  };
 
   const askDelete = () =>
     confirm(
@@ -227,6 +237,14 @@ export default function MeScreen() {
       <Card onPress={() => router.push('/legal/termos')} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <Ionicons name="document-text-outline" size={20} color={colors.muted} />
         <Text style={[text.body, { flex: 1 }]}>Termos de Uso</Text>
+        <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+      </Card>
+      <Card onPress={downloadData} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Ionicons name="download-outline" size={20} color={colors.muted} />
+        <View style={{ flex: 1 }}>
+          <Text style={text.body}>Baixar meus dados</Text>
+          <Text style={text.muted}>Tudo que o app guarda sobre você, em um arquivo</Text>
+        </View>
         <Ionicons name="chevron-forward" size={18} color={colors.muted} />
       </Card>
       <Button

@@ -6,7 +6,7 @@ import { AthleteInfo, PhotoCarousel } from '@/components/Athlete';
 import { Empty, Screen, SectionTitle, Stat, text } from '@/components/ui';
 import { useAuth, type Profile } from '@/auth';
 import { fetchGamesOf } from '@/cloud';
-import { supabase } from '@/lib/supabase';
+import { fetchPerson } from '@/people';
 import { colors } from '@/theme';
 import type { Game } from '@/types';
 import { achievementsFor } from '@/utils/achievements';
@@ -22,12 +22,9 @@ export default function AthleteScreen() {
   const [games, setGames] = useState<Game[]>([]);
 
   useEffect(() => {
-    supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle()
-      .then(({ data }) => setProfile((data as Profile) ?? null));
+    fetchPerson(id)
+      .then((p) => setProfile(p))
+      .catch(() => setProfile(null));
     fetchGamesOf(groups.map((g) => g.id)).then(setGames).catch(() => {});
   }, [id, groups]);
 

@@ -73,6 +73,7 @@ export function subscribeInbox(me: string, onMessage: (m: Message) => void, onRe
 }
 
 export function chatError(message: string) {
+  if (/rate limit/i.test(message)) return 'Muitas ações seguidas. Espere um pouco e tente de novo.';
   if (/row-level security|violates|permission/i.test(message)) return 'Vocês não podem mais conversar (o match foi desfeito ou houve bloqueio).';
   if (/Could not find|does not exist|schema cache/i.test(message)) return 'O servidor ainda não tem o chat. Rode a migração 008 no Supabase.';
   if (/network|fetch/i.test(message)) return 'Sem conexão. A mensagem não foi enviada.';

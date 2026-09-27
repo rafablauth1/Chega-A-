@@ -6,6 +6,7 @@ import { Pressable, Share, Text, View } from 'react-native';
 import { Avatar, Button, Card, Screen, SectionTitle, Tag, text, type IconName } from '@/components/ui';
 import { authErrorMessage, ROLE_LABEL, useAuth, type Profile, type Role } from '@/auth';
 import { supabase } from '@/lib/supabase';
+import { fetchPeople } from '@/people';
 import { colors, fonts, positionColors } from '@/theme';
 import { confirm, notify } from '@/utils/confirm';
 
@@ -37,7 +38,7 @@ export default function GroupScreen() {
       supabase.from('group_members').select('user_id, role, type').eq('group_id', id),
     ]);
     const rows = (m.data ?? []) as Member[];
-    const { data: profiles } = await supabase.from('profiles').select('*').in('id', rows.map((r) => r.user_id));
+    const profiles = await fetchPeople(rows.map((r) => r.user_id)).catch(() => []);
     setGroup(g.data);
     setMembers(
       rows
