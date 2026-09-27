@@ -52,10 +52,10 @@ export function PhotoCarousel({ profile }: { profile: Profile }) {
           {age !== null && <Text style={{ fontFamily: fonts.body }}>, {age}</Text>}
         </Text>
         {!!profile.nickname && <Text style={styles.sub}>{profile.name}</Text>}
-        {!!profile.city && (
+        {!!(profile.neighborhood || profile.city) && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
             <Ionicons name="location" size={14} color="#fff" />
-            <Text style={styles.sub}>{profile.city}</Text>
+            <Text style={styles.sub}>{[profile.neighborhood, profile.city].filter(Boolean).join(', ')}</Text>
           </View>
         )}
       </View>

@@ -57,7 +57,7 @@ Ordem sugerida, do que dá base para o que vem depois:
 
 - [x] 🔴 **Comunidades** *(falta rodar a migração 005 no Supabase)*: empresa, escola, faculdade, condomínio ou bairro, com **vários times dentro** (ex.: "Empresa X" com o time de cada setor). Ranking entre os times, artilharia da comunidade e convite por código
 - [ ] 🟡 **Torneio interno** da comunidade: tabela, chaveamento e placar usando os times que já existem
-- [ ] 🟡 **Perfil de atleta público** (a pessoa escolhe aparecer) com **região aproximada** (cidade/bairro, nunca o endereço) ⚠️ *(muda a política de privacidade: localização)*
+- [x] 🟡 **Região pelo GPS** (bairro e posição de ~1 km, "Aparecer para jogadores perto") *(falta rodar a migração 006)* · [ ] **Perfil de atleta público** (a pessoa escolhe aparecer) com **região aproximada** (cidade/bairro, nunca o endereço) ⚠️ *(muda a política de privacidade: localização)*
 - [ ] 🟡 **"Falta gente!"**: o organizador publica a vaga (posição, dia, hora, local, valor) e quem está perto e disponível fica sabendo
 - [ ] 🔴 **"Bora jogar?" estilo Tinder**: cartas com jogadores da região (posição, nota, jogos, fotos). Deslizou para a direita = quer jogar junto; se os dois quiserem, dá **match** e vocês podem se chamar
 - [ ] 🟡 **Chat** depois do match e convite direto para um jogo do seu grupo

@@ -18,6 +18,12 @@ export interface Profile {
   photos: string[];
   birth_date: string | null;
   city: string | null;
+  /** Região (migração 006); ausentes em bancos antigos */
+  neighborhood?: string | null;
+  state?: string | null;
+  lat_approx?: number | null;
+  lng_approx?: number | null;
+  discoverable?: boolean;
   bio: string | null;
   foot: Foot | null;
   height_cm: number | null;

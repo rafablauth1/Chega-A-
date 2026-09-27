@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Platform, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { Button, Card, Chip, Input, Label, Screen, SectionTitle, Stars, text } from '@/components/ui';
 import { authErrorMessage, useAuth } from '@/auth';
 import { supabase } from '@/lib/supabase';
@@ -9,6 +9,7 @@ import { colors, fonts, positionColors } from '@/theme';
 import { FEET, POSITIONS, SKILLS, type Foot, type Position, type Skills } from '@/types';
 import { choose, notify } from '@/utils/confirm';
 import { buildIso, maskDate } from '@/utils/format';
+import { detectRegion } from '@/utils/location';
 import { deletePhoto, pickPhoto, uploadPhoto } from '@/utils/photos';
 
 const MAX_PHOTOS = 6;
@@ -39,6 +40,12 @@ export default function ProfileEditScreen() {
   const [team, setTeam] = useState('');
   const [skills, setSkills] = useState<Skills>(DEFAULT_SKILLS);
   const [busy, setBusy] = useState(false);
+  const [neighborhood, setNeighborhood] = useState('');
+  const [regionState, setRegionState] = useState('');
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [coordsChanged, setCoordsChanged] = useState(false);
+  const [discoverable, setDiscoverable] = useState(false);
+  const [locating, setLocating] = useState(false);
 
   // Preenche o formulário uma vez com o perfil salvo
   const [loaded, setLoaded] = useState(false);
@@ -60,6 +67,12 @@ export default function ProfileEditScreen() {
     setShirt(profile.shirt_number !== null ? String(profile.shirt_number) : '');
     setTeam(profile.favorite_team ?? '');
     setSkills({ ...DEFAULT_SKILLS, ...profile.skills });
+    setNeighborhood(profile.neighborhood ?? '');
+    setRegionState(profile.state ?? '');
+    if (profile.lat_approx != null && profile.lng_approx != null) {
+      setCoords({ lat: Number(profile.lat_approx), lng: Number(profile.lng_approx) });
+    }
+    setDiscoverable(!!profile.discoverable);
     setLoaded(true);
   }, [profile, loaded]);
 
@@ -110,6 +123,25 @@ export default function ProfileEditScreen() {
       },
     ]);
 
+  /* ---------------- Região ---------------- */
+
+  const locate = async () => {
+    try {
+      setLocating(true);
+      const r = await detectRegion();
+      setCoords({ lat: r.lat, lng: r.lng });
+      setCoordsChanged(true);
+      if (r.neighborhood) setNeighborhood(r.neighborhood);
+      if (r.city) setCity(r.city);
+      if (r.state) setRegionState(r.state);
+      if (!r.neighborhood && !r.city) notify('Posição encontrada', 'Não achamos o nome do bairro. Digite abaixo.');
+    } catch (e: any) {
+      notify('Não deu para usar a localização', e?.message ?? '');
+    } finally {
+      setLocating(false);
+    }
+  };
+
   /* ---------------- Dados ---------------- */
 
   const save = async () => {
@@ -122,9 +154,15 @@ export default function ProfileEditScreen() {
     if (w !== null && (w < 30 || w > 250)) return notify('Peso inválido', 'Informe em quilos, ex.: 75.');
 
     setBusy(true);
-    const { error } = await supabase
-      .from('profiles')
-      .update({
+    const region = {
+      neighborhood: neighborhood.trim() || null,
+      state: regionState.trim() || null,
+      discoverable: discoverable && !!coords,
+      ...(coordsChanged && coords
+        ? { lat_approx: coords.lat, lng_approx: coords.lng, region_updated_at: new Date().toISOString() }
+        : {}),
+    };
+    const base = {
         name: name.trim(),
         nickname: nickname.trim() || null,
         birth_date: birthIso,
@@ -140,8 +178,13 @@ export default function ProfileEditScreen() {
         shirt_number: intOrNull(shirt),
         favorite_team: team.trim() || null,
         skills,
-      })
-      .eq('id', userId);
+    };
+    let { error } = await supabase.from('profiles').update({ ...base, ...region }).eq('id', userId);
+    // Banco sem a migração 006: salva o resto e avisa
+    if (error && /neighborhood|discoverable|lat_approx|schema cache|column/i.test(error.message)) {
+      ({ error } = await supabase.from('profiles').update(base).eq('id', userId));
+      if (!error) notify('Perfil salvo', 'A região ainda não foi salva: falta rodar a migração 006 no Supabase.');
+    }
     setBusy(false);
     if (error) return notify('Não deu certo', authErrorMessage(error.message));
     await refresh();
@@ -192,7 +235,47 @@ export default function ProfileEditScreen() {
         keyboardType="number-pad"
         maxLength={10}
       />
-      <Input label="Cidade / bairro" value={city} onChangeText={setCity} placeholder="Ex.: Porto Alegre - Menino Deus" />
+      <View style={styles.region}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <Ionicons name="navigate-circle" size={28} color={colors.primary} />
+          <View style={{ flex: 1 }}>
+            <Text style={text.title}>Sua região</Text>
+            <Text style={text.muted}>Para achar jogadores e jogos perto de você</Text>
+          </View>
+        </View>
+        <Button
+          title={locating ? 'Procurando...' : coords ? 'Atualizar pelo GPS' : 'Usar minha localização'}
+          icon="locate"
+          variant="secondary"
+          onPress={locate}
+          disabled={locating}
+        />
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <View style={{ flex: 1 }}>
+            <Input label="Bairro" value={neighborhood} onChangeText={setNeighborhood} placeholder="Ex.: Menino Deus" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Input label="Cidade" value={city} onChangeText={setCity} placeholder="Ex.: Porto Alegre" />
+          </View>
+        </View>
+        <Pressable onPress={() => setDiscoverable(!discoverable)} style={styles.toggleRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={text.title}>Aparecer para jogadores perto</Text>
+            <Text style={text.muted}>
+              {coords
+                ? 'Mostra seu perfil de atleta para quem procura jogo na região. Só o bairro aparece, nunca o endereço.'
+                : 'Use a localização acima para ligar. Só o bairro aparece, nunca o endereço.'}
+            </Text>
+          </View>
+          <Switch
+            value={discoverable}
+            onValueChange={setDiscoverable}
+            disabled={!coords}
+            trackColor={{ true: colors.primaryDark, false: colors.border }}
+            thumbColor={discoverable ? colors.primary : colors.muted}
+          />
+        </Pressable>
+      </View>
       <Input
         label={`Bio (${bio.length}/300)`}
         value={bio}
@@ -261,6 +344,8 @@ export default function ProfileEditScreen() {
 }
 
 const styles = StyleSheet.create({
+  region: { backgroundColor: colors.card, borderRadius: 16, padding: 14, gap: 12, marginBottom: 16 },
+  toggleRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
   slot: { width: '31.8%', aspectRatio: 4 / 5, borderRadius: 12, overflow: 'hidden', backgroundColor: colors.card },
   img: { width: '100%', height: '100%' },
