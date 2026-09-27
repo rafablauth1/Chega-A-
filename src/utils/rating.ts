@@ -9,7 +9,7 @@ export const skillAverage = (p: Player) => {
 export const toTen = (r: number) => r * 2;
 
 /** Colore uma nota de 0 a 10: vermelho, amarelo, verde. */
-export const scoreColor = (n: number) => (n >= 7 ? '#22C55E' : n >= 5 ? '#FACC15' : '#EF4444');
+export const scoreColor = (n: number) => (n >= 7 ? '#5BD08A' : n >= 5 ? '#F4C542' : '#FF5A4E');
 
 /** Média das notas pós-jogo (0 a 10) de um jogador, nos últimos 10 jogos avaliados. */
 export const gameRatingAverage = (playerId: string, games: Game[]) => {

@@ -11,7 +11,7 @@ import { computeStats } from '@/utils/stats';
 import { useCanManage } from '@/auth';
 import { isCloudEnabled } from '@/lib/supabase';
 import { useStore } from '@/store';
-import { colors, positionColors } from '@/theme';
+import { colors, fonts, positionColors } from '@/theme';
 import { POSITIONS, SKILLS, type PlayerType, type Position, type Skills } from '@/types';
 import { confirm, notify } from '@/utils/confirm';
 import { formatShortDate, toLocalIso } from '@/utils/format';
@@ -225,7 +225,7 @@ export default function PlayerFormScreen() {
                 <Text style={text.body}>
                   {formatShortDate(g.date)} {g.location ? `· ${g.location}` : ''}
                 </Text>
-                <Text style={{ color: g.ratings[existing!.id] ? colors.gold : colors.muted, fontWeight: '700' }}>
+                <Text style={{ color: g.ratings[existing!.id] ? colors.gold : colors.muted, fontFamily: fonts.bold }}>
                   {g.ratings[existing!.id] ? `nota ${g.ratings[existing!.id]}` : '—'}
                 </Text>
               </View>

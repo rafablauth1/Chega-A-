@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState } from 'react';
 import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { ageOf, type Profile } from '../auth';
-import { colors, positionColors } from '../theme';
+import { colors, fonts, positionColors } from '../theme';
 import { FEET, POSITIONS } from '../types';
 import { initials } from '../utils/format';
 import { Tag, type IconName } from './ui';
@@ -34,7 +34,7 @@ export function PhotoCarousel({ profile }: { profile: Profile }) {
         </ScrollView>
       ) : (
         <View style={[styles.noPhoto, { backgroundColor: color + '33' }]}>
-          <Text style={{ color, fontSize: width / 4, fontWeight: '900' }}>{initials(profile.name || '?')}</Text>
+          <Text style={{ color, fontSize: width / 4, fontFamily: fonts.displayBlack }}>{initials(profile.name || '?')}</Text>
         </View>
       )}
 
@@ -49,7 +49,7 @@ export function PhotoCarousel({ profile }: { profile: Profile }) {
       <View style={styles.overlay}>
         <Text style={styles.name} numberOfLines={1}>
           {profile.nickname || profile.name}
-          {age !== null && <Text style={{ fontWeight: '400' }}>, {age}</Text>}
+          {age !== null && <Text style={{ fontFamily: fonts.body }}>, {age}</Text>}
         </Text>
         {!!profile.nickname && <Text style={styles.sub}>{profile.name}</Text>}
         {!!profile.city && (
@@ -95,7 +95,7 @@ export function AthleteInfo({ profile, showContacts }: { profile: Profile; showC
           {facts.map((f) => (
             <View key={f.label} style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
               <Ionicons name={f.icon} size={16} color={colors.muted} />
-              <Text style={{ color: colors.text, fontWeight: '600' }}>{f.label}</Text>
+              <Text style={{ color: colors.text, fontFamily: fonts.semibold }}>{f.label}</Text>
             </View>
           ))}
         </View>
@@ -119,7 +119,7 @@ function ContactButton({ icon, label, onPress }: { icon: IconName; label: string
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.contact, pressed && { opacity: 0.7 }]}>
       <Ionicons name={icon} size={18} color={colors.text} />
-      <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>
+      <Text style={{ color: colors.text, fontFamily: fonts.bold }} numberOfLines={1}>
         {label}
       </Text>
     </Pressable>
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     experimental_backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.75))',
     backgroundColor: 'rgba(0,0,0,0.35)',
   },
-  name: { color: '#fff', fontSize: 28, fontWeight: '900' },
+  name: { color: '#fff', fontSize: 28, fontFamily: fonts.displayBlack },
   sub: { color: '#fff', fontSize: 14, opacity: 0.9 },
   contact: {
     flex: 1,

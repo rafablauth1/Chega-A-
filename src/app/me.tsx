@@ -9,7 +9,7 @@ import { Avatar, Button, Card, Empty, Screen, SectionTitle, Stat, Tag, text } fr
 import { ageOf, ROLE_LABEL, useAuth } from '@/auth';
 import { fetchGamesOf } from '@/cloud';
 import { isCloudEnabled, supabase } from '@/lib/supabase';
-import { colors, positionColors } from '@/theme';
+import { colors, fonts, positionColors } from '@/theme';
 import type { Game, Player } from '@/types';
 import { achievementsFor } from '@/utils/achievements';
 import { deleteMyAccount } from '@/utils/account';
@@ -104,7 +104,7 @@ export default function MeScreen() {
     <Screen>
       <View style={{ alignItems: 'center', gap: 6, marginBottom: 12 }}>
         <Avatar name={profile.name || '?'} photo={profile.photos?.[0]} size={96} color={positionColors[profile.position]} />
-        <Text style={{ color: colors.text, fontSize: 22, fontWeight: '800' }}>
+        <Text style={{ color: colors.text, fontSize: 22, fontFamily: fonts.display }}>
           {profile.nickname || profile.name}
           {age !== null ? `, ${age}` : ''}
         </Text>
@@ -199,7 +199,7 @@ export default function MeScreen() {
           >
             <Ionicons name="football" size={22} color={colors.primary} />
             <Text style={[text.title, { flex: 1 }]}>{g.name}</Text>
-            {g.id === activeGroup?.id && <Tag label="ABERTO" color={colors.primary} />}
+            {g.id === activeGroup?.id && <Tag label="Aberto" color={colors.primary} />}
             <Tag label={ROLE_LABEL[g.role]} color={g.role === 'player' ? colors.muted : colors.gold} />
             <Ionicons name="chevron-forward" size={18} color={colors.muted} />
           </Card>

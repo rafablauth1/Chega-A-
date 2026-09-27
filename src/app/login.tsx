@@ -4,7 +4,7 @@ import { KeyboardAvoidingView, Platform, Text, View } from 'react-native';
 import { Button, Input, Screen, Segmented, text } from '@/components/ui';
 import { authErrorMessage } from '@/auth';
 import { supabase } from '@/lib/supabase';
-import { colors } from '@/theme';
+import { colors, fonts } from '@/theme';
 import { notify } from '@/utils/confirm';
 
 type Mode = 'signin' | 'signup';
@@ -47,7 +47,7 @@ export default function LoginScreen() {
       <Screen>
         <View style={{ alignItems: 'center', marginTop: 48, marginBottom: 32 }}>
           <Text style={{ fontSize: 56 }}>⚽</Text>
-          <Text style={{ color: colors.text, fontSize: 30, fontWeight: '900', marginTop: 8 }}>Vaia Aí</Text>
+          <Text style={{ color: colors.text, fontSize: 30, fontFamily: fonts.displayBlack, marginTop: 8 }}>Vaia Aí</Text>
           <Text style={[text.muted, { marginTop: 4 }]}>Sua pelada organizada</Text>
         </View>
 

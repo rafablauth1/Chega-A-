@@ -6,7 +6,7 @@ import { Pressable, Share, Text, View } from 'react-native';
 import { Avatar, Button, Card, Screen, SectionTitle, Tag, text, type IconName } from '@/components/ui';
 import { authErrorMessage, ROLE_LABEL, useAuth, type Profile, type Role } from '@/auth';
 import { supabase } from '@/lib/supabase';
-import { colors, positionColors } from '@/theme';
+import { colors, fonts, positionColors } from '@/theme';
 import { confirm, notify } from '@/utils/confirm';
 
 interface Member {
@@ -121,7 +121,7 @@ export default function GroupScreen() {
             notify('Código copiado!');
           }}
         >
-          <Text style={{ color: colors.primary, fontSize: 34, fontWeight: '900', letterSpacing: 6, marginVertical: 6 }}>
+          <Text style={{ color: colors.primary, fontSize: 34, fontFamily: fonts.displayBlack, letterSpacing: 6, marginVertical: 6 }}>
             {group.invite_code}
           </Text>
         </Pressable>
@@ -182,7 +182,7 @@ function Action({ icon, label, onPress, color = colors.primary }: { icon: IconNa
   return (
     <Pressable onPress={onPress} hitSlop={6} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
       <Ionicons name={icon} size={16} color={color} />
-      <Text style={{ color, fontWeight: '700', fontSize: 13 }}>{label}</Text>
+      <Text style={{ color, fontFamily: fonts.bold, fontSize: 13 }}>{label}</Text>
     </Pressable>
   );
 }

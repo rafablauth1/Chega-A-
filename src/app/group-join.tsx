@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
+import { fonts } from '@/theme';
 import { Button, Input, Screen, Segmented, text } from '@/components/ui';
 import { authErrorMessage, useAuth } from '@/auth';
 import { supabase } from '@/lib/supabase';
@@ -64,7 +65,7 @@ export default function GroupJoinScreen() {
             placeholder="EX: A1B2C3"
             autoCapitalize="characters"
             maxLength={6}
-            style={{ fontSize: 22, letterSpacing: 4, fontWeight: '800' }}
+            style={{ fontSize: 22, letterSpacing: 4, fontFamily: fonts.display }}
           />
         </>
       ) : (

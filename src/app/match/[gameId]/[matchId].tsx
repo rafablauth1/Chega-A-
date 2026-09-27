@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, Vibration, View } from 'react-native';
 import { Button, Card, Empty, Screen, SectionTitle, text } from '@/components/ui';
 import { useCanManage } from '@/auth';
 import { useStore } from '@/store';
-import { colors, teamColors } from '@/theme';
+import { colors, fonts, teamColors } from '@/theme';
 import type { Player } from '@/types';
 import { confirm } from '@/utils/confirm';
 import { displayName, teamName } from '@/utils/names';
@@ -239,18 +239,18 @@ function PickChip({ label, onPress, muted }: { label: string; onPress: () => voi
         pressed && { opacity: 0.6 },
       ]}
     >
-      <Text style={{ color: muted ? colors.muted : colors.text, fontWeight: '700' }}>{label}</Text>
+      <Text style={{ color: muted ? colors.muted : colors.text, fontFamily: fonts.bold }}>{label}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  team: { flex: 1, textAlign: 'center', fontWeight: '800', fontSize: 16 },
-  score: { color: colors.text, fontSize: 48, fontWeight: '900', minWidth: 130, textAlign: 'center' },
+  team: { flex: 1, textAlign: 'center', fontFamily: fonts.display, fontSize: 16 },
+  score: { color: colors.text, fontSize: 48, fontFamily: fonts.displayBlack, minWidth: 130, textAlign: 'center' },
   clock: {
     color: colors.text,
     fontSize: 40,
-    fontWeight: '800',
+    fontFamily: fonts.display,
     textAlign: 'center',
     marginVertical: 12,
     fontVariant: ['tabular-nums'],

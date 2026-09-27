@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { Avatar, Card, Chip, Empty, Screen, Segmented, text } from '@/components/ui';
 import { useStore } from '@/store';
-import { colors, positionColors } from '@/theme';
+import { colors, fonts, positionColors } from '@/theme';
 import { toLocalIso } from '@/utils/format';
 import { displayName } from '@/utils/names';
 import { computeStats, confirmedIds } from '@/utils/stats';
@@ -101,7 +101,7 @@ export default function RankingScreen() {
                 <Text style={[text.title, { fontSize: 14, marginTop: 4 }]} numberOfLines={1}>
                   {displayName(r.p)}
                 </Text>
-                <Text style={{ color: colors.gold, fontWeight: '800' }}>{format(r.value)}</Text>
+                <Text style={{ color: colors.gold, fontFamily: fonts.display }}>{format(r.value)}</Text>
                 <View
                   style={{
                     height: h,
@@ -125,7 +125,7 @@ export default function RankingScreen() {
       {rows.map((r, i) => (
         <Card key={r.p.id} onPress={() => router.push(`/player/${r.p.id}`)}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <Text style={{ width: 28, textAlign: 'center', fontSize: i < 3 ? 20 : 15, color: colors.muted, fontWeight: '800' }}>
+            <Text style={{ width: 28, textAlign: 'center', fontSize: i < 3 ? 20 : 15, color: colors.muted, fontFamily: fonts.display }}>
               {i < 3 ? MEDALS[i] : `${i + 1}º`}
             </Text>
             <Avatar name={r.p.name} photo={r.p.photo} size={36} color={positionColors[r.p.position]} />
@@ -135,7 +135,7 @@ export default function RankingScreen() {
               </Text>
               <Text style={text.muted}>{r.detail}</Text>
             </View>
-            <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 16 }}>{format(r.value)}</Text>
+            <Text style={{ color: colors.primary, fontFamily: fonts.display, fontSize: 16 }}>{format(r.value)}</Text>
           </View>
         </Card>
       ))}

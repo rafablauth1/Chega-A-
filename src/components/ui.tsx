@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import type { ComponentProps, ReactNode } from 'react';
+import { Children, isValidElement, type ComponentProps, type ReactNode } from 'react';
 import {
   Image,
   Pressable,
@@ -10,9 +10,10 @@ import {
   View,
   type StyleProp,
   type TextInputProps,
+  type TextStyle,
   type ViewStyle,
 } from 'react-native';
-import { colors, positionColors } from '../theme';
+import { colors, fonts, positionColors } from '../theme';
 import { initials } from '../utils/format';
 import { scoreColor, toTen } from '../utils/rating';
 
@@ -23,7 +24,7 @@ export function Screen({ children, scroll = true }: { children: ReactNode; scrol
   return (
     <ScrollView
       style={styles.screen}
-      contentContainerStyle={[styles.screenPad, { paddingBottom: 110 }]}
+      contentContainerStyle={[styles.screenPad, { paddingBottom: 120 }]}
       keyboardShouldPersistTaps="handled"
     >
       {children}
@@ -34,12 +35,48 @@ export function Screen({ children, scroll = true }: { children: ReactNode; scrol
 export function Card({ children, style, onPress }: { children: ReactNode; style?: StyleProp<ViewStyle>; onPress?: () => void }) {
   if (onPress) {
     return (
-      <Pressable onPress={onPress} style={({ pressed }) => [styles.card, pressed && { opacity: 0.75 }, style]}>
+      <Pressable onPress={onPress} style={({ pressed }) => [styles.card, pressed && styles.pressed, style]}>
         {children}
       </Pressable>
     );
   }
   return <View style={[styles.card, style]}>{children}</View>;
+}
+
+/** Lista agrupada numa superfície só, com divisórias finas entre as linhas. */
+export function Group({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+  const items = Children.toArray(children).filter(isValidElement);
+  return (
+    <View style={[styles.group, style]}>
+      {items.map((child, i) => (
+        <View key={i}>
+          {i > 0 && <View style={styles.hairline} />}
+          {child}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+/** Linha de lista: toque inteiro, conteúdo livre. */
+export function Row({
+  children,
+  onPress,
+  style,
+}: {
+  children: ReactNode;
+  onPress?: () => void;
+  style?: StyleProp<ViewStyle>;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={!onPress}
+      style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.cardAlt }, style]}
+    >
+      {children}
+    </Pressable>
+  );
 }
 
 type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
@@ -59,30 +96,33 @@ export function Button({
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
-  const bg = { primary: colors.primary, secondary: colors.cardAlt, danger: 'transparent', ghost: 'transparent' }[variant];
-  const fg = { primary: colors.onPrimary, secondary: colors.text, danger: colors.danger, ghost: colors.primary }[variant];
-  const border = variant === 'danger' ? colors.danger : variant === 'secondary' ? colors.border : 'transparent';
+  const bg = { primary: colors.primary, secondary: 'transparent', danger: 'transparent', ghost: 'transparent' }[variant];
+  const fg = { primary: colors.onPrimary, secondary: colors.chalk, danger: colors.danger, ghost: colors.primary }[variant];
+  const border = { primary: colors.primary, secondary: colors.border, danger: colors.danger + '66', ghost: 'transparent' }[variant];
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
       style={({ pressed }) => [
         styles.button,
-        { backgroundColor: bg, borderColor: border, opacity: disabled ? 0.4 : pressed ? 0.75 : 1 },
+        { backgroundColor: bg, borderColor: border, opacity: disabled ? 0.4 : 1 },
+        pressed && { transform: [{ scale: 0.98 }], opacity: 0.85 },
         style,
       ]}
     >
       {icon && <Ionicons name={icon} size={18} color={fg} />}
-      <Text style={[styles.buttonText, { color: fg }]}>{title}</Text>
+      <Text style={[styles.buttonText, { color: fg }]} numberOfLines={1}>
+        {title}
+      </Text>
     </Pressable>
   );
 }
 
 export function Input({ label, style, ...props }: TextInputProps & { label?: string }) {
   return (
-    <View style={{ marginBottom: 14 }}>
+    <View style={{ marginBottom: 16 }}>
       {label && <Text style={styles.label}>{label}</Text>}
-      <TextInput placeholderTextColor={colors.muted} style={[styles.input, style]} {...props} />
+      <TextInput placeholderTextColor={colors.muted + '99'} style={[styles.input, style]} {...props} />
     </View>
   );
 }
@@ -105,7 +145,11 @@ export function Chip({
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.chip, selected && { backgroundColor: color + '33', borderColor: color }]}
+      style={({ pressed }) => [
+        styles.chip,
+        selected && { backgroundColor: color + '26', borderColor: color },
+        pressed && styles.pressed,
+      ]}
     >
       <Text style={[styles.chipText, selected && { color }]}>{label}</Text>
     </Pressable>
@@ -114,14 +158,18 @@ export function Chip({
 
 export function Tag({ label, color = colors.muted }: { label: string; color?: string }) {
   return (
-    <View style={[styles.tag, { backgroundColor: color + '26' }]}>
+    <View style={[styles.tag, { backgroundColor: color + '22' }]}>
       <Text style={[styles.tagText, { color }]}>{label}</Text>
     </View>
   );
 }
 
 export function PositionTag({ position }: { position: string }) {
-  return <Tag label={position} color={positionColors[position]} />;
+  return (
+    <View style={[styles.pos, { borderColor: positionColors[position] }]}>
+      <Text style={[styles.posText, { color: positionColors[position] }]}>{position}</Text>
+    </View>
+  );
 }
 
 export function Stars({
@@ -137,7 +185,7 @@ export function Stars({
     <View style={{ flexDirection: 'row', gap: 4 }}>
       {[1, 2, 3, 4, 5].map((i) => {
         const name: IconName = value >= i ? 'star' : value >= i - 0.5 ? 'star-half' : 'star-outline';
-        const star = <Ionicons name={name} size={size} color={colors.gold} />;
+        const star = <Ionicons name={name} size={size} color={value >= i - 0.5 ? colors.gold : colors.border} />;
         return onChange ? (
           <Pressable key={i} onPress={() => onChange(i)} hitSlop={6}>
             {star}
@@ -153,8 +201,8 @@ export function Stars({
 export function RatingBadge({ value }: { value: number }) {
   return (
     <View style={styles.rating}>
-      <Ionicons name="star" size={12} color={colors.gold} />
       <Text style={styles.ratingText}>{toTen(value).toFixed(1)}</Text>
+      <Ionicons name="star" size={11} color={colors.gold} />
     </View>
   );
 }
@@ -174,7 +222,7 @@ export function ScorePicker({ value, onChange }: { value: number; onChange?: (v:
             onPress={() => onChange?.(value === n ? 0 : n)}
             style={[styles.score, on && { backgroundColor: color, borderColor: color }]}
           >
-            <Text style={[styles.scoreText, on && { color: '#04210F' }]}>{n}</Text>
+            <Text style={[styles.scoreText, on && { color: colors.bg }]}>{n}</Text>
           </Pressable>
         );
       })}
@@ -197,7 +245,7 @@ export function Avatar({
     return (
       <Image
         source={{ uri: photo }}
-        style={{ width: size, height: size, borderRadius: size / 2, borderWidth: 2, borderColor: color, backgroundColor: color + '33' }}
+        style={{ width: size, height: size, borderRadius: size / 2, borderWidth: 1.5, borderColor: color + '88', backgroundColor: color + '26' }}
       />
     );
   }
@@ -207,16 +255,19 @@ export function Avatar({
         width: size,
         height: size,
         borderRadius: size / 2,
-        backgroundColor: color + '33',
+        backgroundColor: color + '26',
+        borderWidth: 1.5,
+        borderColor: color + '88',
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
-      <Text style={{ color, fontWeight: '700', fontSize: size * 0.38 }}>{initials(name)}</Text>
+      <Text style={{ color, fontFamily: fonts.display, fontSize: size * 0.44 }}>{initials(name)}</Text>
     </View>
   );
 }
 
+/** Abas sublinhadas (laranja de colete na ativa). */
 export function Segmented<T extends string>({
   options,
   value,
@@ -228,20 +279,22 @@ export function Segmented<T extends string>({
 }) {
   return (
     <View style={styles.segmented}>
-      {options.map((o) => (
-        <Pressable
-          key={o.key}
-          onPress={() => onChange(o.key)}
-          style={[styles.segment, value === o.key && styles.segmentActive]}
-        >
-          <Text style={[styles.segmentText, value === o.key && { color: colors.onPrimary }]}>{o.label}</Text>
-        </Pressable>
-      ))}
+      {options.map((o) => {
+        const active = value === o.key;
+        return (
+          <Pressable key={o.key} onPress={() => onChange(o.key)} style={styles.segment}>
+            <Text style={[styles.segmentText, active && { color: colors.chalk }]} numberOfLines={1}>
+              {o.label}
+            </Text>
+            <View style={[styles.segmentBar, active && { backgroundColor: colors.primary }]} />
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
 
-export function Check({ checked, color = colors.primary }: { checked: boolean; color?: string }) {
+export function Check({ checked, color = colors.success }: { checked: boolean; color?: string }) {
   return (
     <Ionicons
       name={checked ? 'checkmark-circle' : 'ellipse-outline'}
@@ -251,12 +304,12 @@ export function Check({ checked, color = colors.primary }: { checked: boolean; c
   );
 }
 
-export function Empty({ icon, title, text }: { icon: IconName; title: string; text?: string }) {
+export function Empty({ icon, title, text: body }: { icon: IconName; title: string; text?: string }) {
   return (
     <View style={styles.empty}>
-      <Ionicons name={icon} size={48} color={colors.border} />
+      <Ionicons name={icon} size={44} color={colors.muted + '88'} />
       <Text style={styles.emptyTitle}>{title}</Text>
-      {text && <Text style={styles.emptyText}>{text}</Text>}
+      {body && <Text style={styles.emptyText}>{body}</Text>}
     </View>
   );
 }
@@ -270,30 +323,34 @@ export function SectionTitle({ children, right }: { children: ReactNode; right?:
   );
 }
 
-export function Fab({ icon = 'add', onPress }: { icon?: IconName; onPress: () => void }) {
+export function Fab({ icon = 'add', onPress, label }: { icon?: IconName; onPress: () => void; label?: string }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.fab, pressed && { opacity: 0.8 }]}>
-      <Ionicons name={icon} size={30} color={colors.onPrimary} />
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.fab, label && styles.fabWide, pressed && styles.pressed]}>
+      <Ionicons name={icon} size={26} color={colors.onPrimary} />
+      {label && <Text style={styles.fabText}>{label}</Text>}
     </Pressable>
   );
 }
 
-export function Stat({ label, value, color = colors.text }: { label: string; value: string; color?: string }) {
+/** Número grande (fonte de placar) com rótulo curto embaixo. */
+export function Stat({ label, value, color = colors.chalk }: { label: string; value: string; color?: string }) {
   return (
-    <View style={[styles.card, { flex: 1, marginBottom: 0 }]}>
-      <Text style={styles.statLabel}>{label}</Text>
+    <View style={styles.stat}>
       <Text style={[styles.statValue, { color }]} numberOfLines={1} adjustsFontSizeToFit>
         {value}
       </Text>
+      <Text style={styles.statLabel}>{label}</Text>
     </View>
   );
 }
 
 export const text = StyleSheet.create({
-  title: { color: colors.text, fontSize: 16, fontWeight: '700' },
-  body: { color: colors.text, fontSize: 15 },
-  muted: { color: colors.muted, fontSize: 13 },
-});
+  title: { color: colors.chalk, fontSize: 16, fontFamily: fonts.semibold },
+  body: { color: colors.chalk, fontSize: 15, fontFamily: fonts.body },
+  muted: { color: colors.muted, fontSize: 13, fontFamily: fonts.body },
+  num: { color: colors.chalk, fontFamily: fonts.display },
+  display: { color: colors.chalk, fontFamily: fonts.displayBlack },
+}) satisfies Record<string, TextStyle>;
 
 const styles = StyleSheet.create({
   score: {
@@ -306,29 +363,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scoreText: { color: colors.muted, fontWeight: '800', fontSize: 13 },
+  scoreText: { color: colors.muted, fontFamily: fonts.display, fontSize: 16 },
   screen: { flex: 1, backgroundColor: colors.bg },
   screenPad: { padding: 16 },
+  pressed: { opacity: 0.8 },
   card: {
     backgroundColor: colors.card,
-    borderRadius: 14,
+    borderRadius: 16,
     padding: 14,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'transparent',
   },
+  group: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  hairline: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginLeft: 14 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12 },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 13,
+    minHeight: 50,
     paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 14,
+    borderWidth: 1.5,
   },
-  buttonText: { fontSize: 15, fontWeight: '700' },
-  label: { color: colors.muted, fontSize: 13, fontWeight: '600', marginBottom: 6 },
+  buttonText: { fontSize: 16, fontFamily: fonts.bold },
+  label: { color: colors.muted, fontSize: 14, fontFamily: fonts.medium, marginBottom: 6 },
   input: {
     backgroundColor: colors.card,
     borderWidth: 1,
@@ -336,69 +402,65 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: colors.text,
-    fontSize: 15,
+    color: colors.chalk,
+    fontSize: 16,
+    fontFamily: fonts.body,
   },
   chip: {
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 20,
+    borderRadius: 999,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.card,
   },
-  chipText: { color: colors.muted, fontWeight: '600' },
-  tag: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, alignSelf: 'flex-start' },
-  tagText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
-  rating: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    backgroundColor: colors.gold + '1F',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-  ratingText: { color: colors.gold, fontWeight: '800', fontSize: 13 },
+  chipText: { color: colors.muted, fontFamily: fonts.semibold, fontSize: 14 },
+  tag: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, alignSelf: 'center' },
+  tagText: { fontSize: 12, fontFamily: fonts.semibold },
+  pos: { borderWidth: 1, borderRadius: 5, paddingHorizontal: 5, paddingVertical: 1, alignSelf: 'center' },
+  posText: { fontSize: 13, fontFamily: fonts.display, letterSpacing: 0.5 },
+  rating: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  ratingText: { color: colors.gold, fontFamily: fonts.display, fontSize: 20 },
   segmented: {
     flexDirection: 'row',
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  segment: { flex: 1, paddingVertical: 9, alignItems: 'center', borderRadius: 9 },
-  segmentActive: { backgroundColor: colors.primary },
-  segmentText: { color: colors.muted, fontWeight: '700', fontSize: 13 },
-  empty: { alignItems: 'center', paddingVertical: 48, paddingHorizontal: 24, gap: 8 },
-  emptyTitle: { color: colors.text, fontSize: 17, fontWeight: '700', textAlign: 'center' },
-  emptyText: { color: colors.muted, fontSize: 14, textAlign: 'center' },
+  segment: { flex: 1, alignItems: 'center', paddingTop: 10 },
+  segmentText: { color: colors.muted, fontFamily: fonts.semibold, fontSize: 15, paddingBottom: 10 },
+  segmentBar: { height: 3, alignSelf: 'stretch', marginHorizontal: 8, borderTopLeftRadius: 3, borderTopRightRadius: 3 },
+  empty: { alignItems: 'center', paddingVertical: 44, paddingHorizontal: 24, gap: 8 },
+  emptyTitle: { color: colors.chalk, fontSize: 26, fontFamily: fonts.display, textAlign: 'center' },
+  emptyText: { color: colors.muted, fontSize: 15, fontFamily: fonts.body, textAlign: 'center', lineHeight: 21, maxWidth: 340 },
   sectionRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'baseline',
     justifyContent: 'space-between',
-    marginTop: 12,
-    marginBottom: 8,
+    marginTop: 18,
+    marginBottom: 10,
   },
-  section: { color: colors.muted, fontSize: 12, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
+  section: { color: colors.chalk, fontSize: 24, fontFamily: fonts.display },
   fab: {
     position: 'absolute',
     right: 20,
     bottom: 24,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    height: 58,
+    minWidth: 58,
+    borderRadius: 18,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 6,
     elevation: 6,
     shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
   },
-  statLabel: { color: colors.muted, fontSize: 12, fontWeight: '600' },
-  statValue: { fontSize: 20, fontWeight: '800', marginTop: 4 },
+  fabWide: { paddingHorizontal: 20 },
+  fabText: { color: colors.onPrimary, fontFamily: fonts.bold, fontSize: 16 },
+  stat: { flex: 1, paddingVertical: 4 },
+  statValue: { fontSize: 34, fontFamily: fonts.display, lineHeight: 38 },
+  statLabel: { color: colors.muted, fontSize: 13, fontFamily: fonts.medium },
 });

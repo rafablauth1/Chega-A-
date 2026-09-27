@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors } from '../theme';
+import { colors, fonts } from '../theme';
 import type { Player, Position } from '../types';
 import { toTen } from '../utils/rating';
 import { initials } from '../utils/format';
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 4,
   },
-  initials: { color: '#fff', fontWeight: '900', textShadowColor: 'rgba(0,0,0,0.4)', textShadowRadius: 2 },
+  initials: { color: '#fff', fontFamily: fonts.displayBlack, textShadowColor: 'rgba(0,0,0,0.4)', textShadowRadius: 2 },
   rating: {
     position: 'absolute',
     top: -6,
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     paddingVertical: 1,
   },
-  ratingText: { color: '#000', fontSize: 10, fontWeight: '900' },
+  ratingText: { color: '#000', fontSize: 10, fontFamily: fonts.displayBlack },
   swap: {
     position: 'absolute',
     bottom: -4,
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     maxWidth: 72,
   },
-  name: { color: '#fff', fontSize: 11, fontWeight: '700' },
+  name: { color: '#fff', fontSize: 11, fontFamily: fonts.bold },
   emptyWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
-  emptyText: { color: 'rgba(255,255,255,0.7)', fontWeight: '700' },
+  emptyText: { color: 'rgba(255,255,255,0.7)', fontFamily: fonts.bold },
 });

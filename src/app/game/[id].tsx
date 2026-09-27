@@ -22,7 +22,7 @@ import {
 } from '@/components/ui';
 import { useAuth, useCanManage } from '@/auth';
 import { useStore } from '@/store';
-import { colors, positionColors, teamColors } from '@/theme';
+import { colors, fonts, positionColors, teamColors } from '@/theme';
 import type { Game, Player } from '@/types';
 import { confirm, notify } from '@/utils/confirm';
 import { formatGameDate, formatShortDate, money, monthKey, parseLocal } from '@/utils/format';
@@ -202,8 +202,8 @@ function Attendance({ game, players, rating }: { game: Game; players: Player[]; 
               <Text style={[text.title, { flex: 1 }]} numberOfLines={1}>
                 {displayName(p)}
               </Text>
-              {pos >= 0 && <Text style={[text.muted, { fontWeight: '700' }]}>#{pos + 1}</Text>}
-              {wait >= 0 && <Tag label={`ESPERA ${wait + 1}`} color={colors.warning} />}
+              {pos >= 0 && <Text style={[text.muted, { fontFamily: fonts.bold }]}>#{pos + 1}</Text>}
+              {wait >= 0 && <Tag label={`Espera ${wait + 1}`} color={colors.warning} />}
               <PositionTag position={p.position} />
               <RatingBadge value={rating[p.id]} />
             </View>
@@ -369,7 +369,7 @@ function Teams({
               style={[styles.benchChip, selected === p.id && { borderColor: colors.primary, backgroundColor: colors.primary + '33' }]}
             >
               <PositionTag position={p.position} />
-              <Text style={{ color: colors.text, fontWeight: '700' }}>{displayName(p)}</Text>
+              <Text style={{ color: colors.text, fontFamily: fonts.bold }}>{displayName(p)}</Text>
             </Pressable>
           ))}
         </View>
@@ -400,7 +400,7 @@ function Teams({
       {bench}
 
       <View ref={teamsRef} collapsable={false} style={{ backgroundColor: colors.bg }}>
-      <Text style={{ color: colors.primary, fontWeight: '800', letterSpacing: 1, marginBottom: 8 }}>
+      <Text style={{ color: colors.primary, fontFamily: fonts.display, letterSpacing: 1, marginBottom: 8 }}>
         {groupName.toUpperCase()} · {formatGameDate(game.date)}
       </Text>
       {teams.map((t, i) => {
@@ -414,7 +414,7 @@ function Teams({
             {selected && !t.includes(selected) ? (
               <Pressable onPress={() => moveTo(i)} hitSlop={8} style={styles.placeHere}>
                 <Ionicons name="arrow-down-circle" size={16} color={colors.onPrimary} />
-                <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>Colocar aqui</Text>
+                <Text style={{ color: colors.onPrimary, fontFamily: fonts.display }}>Colocar aqui</Text>
               </Pressable>
             ) : (
               <>
@@ -525,7 +525,7 @@ function Scoreboard({ game, byId, goTeams }: { game: Game; byId: Record<string, 
             <Chip key={'a' + i} label={teamName(i)} selected={a === i} color={teamColors[i % teamColors.length]} onPress={() => setA(i)} />
           ))}
         </View>
-        <Text style={[text.muted, { textAlign: 'center', marginVertical: 6, fontWeight: '800' }]}>VS</Text>
+        <Text style={[text.muted, { textAlign: 'center', marginVertical: 6, fontFamily: fonts.display }]}>VS</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
           {teams.map((_, i) => (
             <Chip key={'b' + i} label={teamName(i)} selected={b === i} color={teamColors[i % teamColors.length]} onPress={() => setB(i)} />
@@ -545,11 +545,11 @@ function Scoreboard({ game, byId, goTeams }: { game: Game; byId: Record<string, 
               <Text style={[text.title, { flex: 1, textAlign: 'right', color: teamColors[m.teamA % teamColors.length] }]}>
                 {teamName(m.teamA)}
               </Text>
-              <Text style={{ color: colors.text, fontSize: 20, fontWeight: '800', minWidth: 64, textAlign: 'center' }}>
+              <Text style={{ color: colors.text, fontSize: 20, fontFamily: fonts.display, minWidth: 64, textAlign: 'center' }}>
                 {ga} x {gb}
               </Text>
               <Text style={[text.title, { flex: 1, color: teamColors[m.teamB % teamColors.length] }]}>{teamName(m.teamB)}</Text>
-              {!m.finished && <Tag label="AO VIVO" color={colors.danger} />}
+              {!m.finished && <Tag label="Ao vivo" color={colors.danger} />}
             </View>
           </Card>
         );
@@ -567,7 +567,7 @@ function Scoreboard({ game, byId, goTeams }: { game: Game; byId: Record<string, 
                 <Text style={text.muted}>
                   {r.w}V {r.d}E {r.l}D · {r.gf}:{r.ga}
                 </Text>
-                <Text style={{ color: colors.primary, fontWeight: '800', width: 34, textAlign: 'right' }}>{r.w * 3 + r.d}</Text>
+                <Text style={{ color: colors.primary, fontFamily: fonts.display, width: 34, textAlign: 'right' }}>{r.w * 3 + r.d}</Text>
               </View>
             ))}
           </Card>
@@ -581,7 +581,7 @@ function Scoreboard({ game, byId, goTeams }: { game: Game; byId: Record<string, 
             {topScorers.map(([pid, n]) => (
               <View key={pid} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 5 }}>
                 <Text style={text.body}>⚽ {byId[pid] ? displayName(byId[pid]) : '?'}</Text>
-                <Text style={{ color: colors.primary, fontWeight: '800' }}>{n}</Text>
+                <Text style={{ color: colors.primary, fontFamily: fonts.display }}>{n}</Text>
               </View>
             ))}
           </Card>
@@ -634,7 +634,7 @@ function Payments({ game, attendees }: { game: Game; attendees: Player[] }) {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
               <Check checked={paid} />
               <Text style={[text.title, { flex: 1 }]}>{displayName(p)}</Text>
-              <Tag label={paid ? 'PAGO' : 'PENDENTE'} color={paid ? colors.primary : colors.warning} />
+              <Tag label={paid ? 'Pago' : 'Pendente'} color={paid ? colors.success : colors.warning} />
             </View>
           </Card>
         );
@@ -648,7 +648,7 @@ function Payments({ game, attendees }: { game: Game; attendees: Player[] }) {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
               <Check checked={paid} />
               <Text style={[text.title, { flex: 1 }]}>{displayName(p)}</Text>
-              <Tag label={paid ? 'MÊS PAGO' : 'MÊS EM ABERTO'} color={paid ? colors.primary : colors.danger} />
+              <Tag label={paid ? 'Mês pago' : 'Mês em aberto'} color={paid ? colors.success : colors.danger} />
             </View>
           </Card>
         );
@@ -685,7 +685,7 @@ function RateGame({ game, attendees, byId }: { game: Game; attendees: Player[]; 
       {selection.length > 0 && (
         <>
           <View ref={selRef} collapsable={false} style={{ backgroundColor: colors.bg, paddingBottom: 4 }}>
-            <Text style={{ color: colors.gold, fontWeight: '900', fontSize: 18, textAlign: 'center' }}>⭐ Seleção da rodada</Text>
+            <Text style={{ color: colors.gold, fontFamily: fonts.displayBlack, fontSize: 18, textAlign: 'center' }}>⭐ Seleção da rodada</Text>
             <Text style={[text.muted, { textAlign: 'center', marginBottom: 10 }]}>
               {groupName} · {formatGameDate(game.date)}
             </Text>
@@ -723,7 +723,7 @@ function RateGame({ game, attendees, byId }: { game: Game; attendees: Player[]; 
                 {displayName(p)}
               </Text>
               {!!game.ratings[p.id] && (
-                <Text style={{ color: scoreColor(game.ratings[p.id]), fontWeight: '900', fontSize: 18 }}>{game.ratings[p.id]}</Text>
+                <Text style={{ color: scoreColor(game.ratings[p.id]), fontFamily: fonts.displayBlack, fontSize: 18 }}>{game.ratings[p.id]}</Text>
               )}
             </View>
             {canManage && <ScorePicker value={game.ratings[p.id] ?? 0} onChange={(v) => ratePlayer(game.id, p.id, v)} />}

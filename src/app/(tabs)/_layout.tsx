@@ -5,7 +5,7 @@ import { Pressable, View } from 'react-native';
 import { useAuth, useCanManage } from '@/auth';
 import { Button, Empty, Screen } from '@/components/ui';
 import { isCloudEnabled } from '@/lib/supabase';
-import { colors } from '@/theme';
+import { colors, fonts } from '@/theme';
 
 export default function TabsLayout() {
   const { activeGroup, groups } = useAuth();
@@ -18,13 +18,14 @@ export default function TabsLayout() {
       screenOptions={{
         headerStyle: { backgroundColor: colors.bg },
         headerTintColor: colors.text,
-        headerTitleStyle: { fontWeight: '800', fontSize: 20 },
+        headerTitleStyle: { fontFamily: fonts.displayBlack, fontSize: 30 },
+        headerTitleAlign: 'left',
         headerShadowVisible: false,
         sceneStyle: { backgroundColor: colors.bg },
-        tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.border },
+        tabBarStyle: { backgroundColor: colors.bg, borderTopColor: colors.border },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.muted,
-        tabBarLabelStyle: { fontWeight: '700' },
+        tabBarLabelStyle: { fontFamily: fonts.semibold, fontSize: 11 },
         headerRight: () => (
           <View style={{ flexDirection: 'row', gap: 18, marginRight: 16 }}>
             <Link href="/me" asChild>

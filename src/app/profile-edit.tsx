@@ -5,7 +5,7 @@ import { ActivityIndicator, Image, Platform, Pressable, StyleSheet, Text, View }
 import { Button, Card, Chip, Input, Label, Screen, SectionTitle, Stars, text } from '@/components/ui';
 import { authErrorMessage, useAuth } from '@/auth';
 import { supabase } from '@/lib/supabase';
-import { colors, positionColors } from '@/theme';
+import { colors, fonts, positionColors } from '@/theme';
 import { FEET, POSITIONS, SKILLS, type Foot, type Position, type Skills } from '@/types';
 import { choose, notify } from '@/utils/confirm';
 import { buildIso, maskDate } from '@/utils/format';
@@ -161,7 +161,7 @@ export default function ProfileEditScreen() {
               <Image source={{ uri: url }} style={styles.img} />
               {i === 0 && (
                 <View style={styles.mainBadge}>
-                  <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '900' }}>PRINCIPAL</Text>
+                  <Text style={{ color: colors.onPrimary, fontSize: 10, fontFamily: fonts.displayBlack }}>PRINCIPAL</Text>
                 </View>
               )}
             </Pressable>
