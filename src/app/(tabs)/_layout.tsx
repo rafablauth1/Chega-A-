@@ -1,15 +1,37 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link, router } from 'expo-router';
 import Tabs from 'expo-router/js-tabs';
+import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useAuth, useCanManage } from '@/auth';
 import { Button, Empty, Screen } from '@/components/ui';
+import { subscribeInbox, unreadCount } from '@/chat';
 import { isCloudEnabled } from '@/lib/supabase';
 import { colors, fonts } from '@/theme';
+
+/** Mensagens não lidas: busca ao abrir, a cada minuto e soma na hora quando chega mensagem nova. */
+function useUnread() {
+  const { session } = useAuth();
+  const me = session?.user.id;
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (!isCloudEnabled || !me) return;
+    const refresh = () => unreadCount().then(setCount);
+    refresh();
+    const timer = setInterval(refresh, 60_000);
+    const stop = subscribeInbox(me, () => setCount((c) => c + 1));
+    return () => {
+      clearInterval(timer);
+      stop();
+    };
+  }, [me]);
+  return count;
+}
 
 export default function TabsLayout() {
   const { activeGroup, groups } = useAuth();
   const canManage = useCanManage();
+  const unread = useUnread();
 
   if (isCloudEnabled && !activeGroup && groups.length === 0) return <NoGroup />;
 
@@ -62,6 +84,8 @@ export default function TabsLayout() {
         name="nearby"
         options={{
           title: 'Bora',
+          tabBarBadge: unread > 0 ? (unread > 9 ? '9+' : unread) : undefined,
+          tabBarBadgeStyle: { backgroundColor: colors.primary, color: colors.onPrimary, fontFamily: fonts.bold },
           href: isCloudEnabled ? undefined : null,
           tabBarIcon: ({ color, size }) => <Ionicons name="flame" size={size} color={color} />,
         }}

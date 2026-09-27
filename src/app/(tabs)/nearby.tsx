@@ -27,6 +27,7 @@ import {
 import { colors, fonts, positionColors } from '@/theme';
 import { POSITIONS } from '@/types';
 import { choose, confirm, notify } from '@/utils/confirm';
+import { chatTime } from '@/chat';
 import { describeSlots, overlap } from '@/utils/availability';
 import { initials, money, parseLocal, relativeDay } from '@/utils/format';
 
@@ -163,7 +164,17 @@ function Deck({ onMatches, mine }: { onMatches: () => void; mine: string[] }) {
         <Text style={[text.body, { color: colors.muted, textAlign: 'center', marginBottom: 16 }]}>
           Você e {matched.nickname || matched.name} toparam jogar juntos.
         </Text>
-        <Button title="Ver meus matches" icon="chatbubbles" onPress={() => { setMatched(null); onMatches(); }} style={{ alignSelf: 'stretch' }} />
+        <Button
+          title="Mandar mensagem"
+          icon="chatbubble"
+          onPress={() => {
+            const who = matched;
+            setMatched(null);
+            router.push({ pathname: '/chat/[id]', params: { id: who.id, name: who.nickname || who.name } });
+          }}
+          style={{ alignSelf: 'stretch' }}
+        />
+        <Button title="Ver meus matches" variant="secondary" icon="chatbubbles" onPress={() => { setMatched(null); onMatches(); }} style={{ alignSelf: 'stretch', marginTop: 8 }} />
         <Button title="Continuar procurando" variant="ghost" onPress={() => setMatched(null)} style={{ alignSelf: 'stretch', marginTop: 8 }} />
       </View>
     );
@@ -328,27 +339,33 @@ function Matches({ userId }: { userId: string }) {
   return (
     <Group>
       {list.map((m) => (
-        <Row key={m.id}>
-          <Avatar name={m.name} photo={m.photo} color={positionColors[m.position]} size={46} />
+        <Row key={m.id} onPress={() => router.push({ pathname: '/chat/[id]', params: { id: m.id, name: m.nickname || m.name } })}>
+          <Avatar name={m.name} photo={m.photo} color={positionColors[m.position]} size={50} />
           <View style={{ flex: 1, gap: 2 }}>
-            <Text style={text.title} numberOfLines={1}>
-              {m.nickname || m.name}
-            </Text>
-            <Text style={text.muted} numberOfLines={1}>
-              {posLabel(m.position)}
-              {m.neighborhood ? ` · ${m.neighborhood}` : ''}
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
+              <Text style={[text.title, { flex: 1 }]} numberOfLines={1}>
+                {m.nickname || m.name}
+              </Text>
+              {!!m.last_at && <Text style={[text.muted, { fontSize: 12 }]}>{chatTime(m.last_at)}</Text>}
+            </View>
+            <Text style={[text.muted, m.unread > 0 && { color: colors.chalk, fontFamily: fonts.semibold }]} numberOfLines={1}>
+              {m.last_message
+                ? `${m.last_from_me ? 'Você: ' : ''}${m.last_message}`
+                : `Deu match! Diga oi 👋 · ${posLabel(m.position)}${m.neighborhood ? `, ${m.neighborhood}` : ''}`}
             </Text>
           </View>
-          {m.phone ? (
+          {m.unread > 0 && (
+            <View style={styles.unread}>
+              <Text style={styles.unreadText}>{m.unread > 9 ? '9+' : m.unread}</Text>
+            </View>
+          )}
+          {!!m.phone && (
             <Pressable
               hitSlop={8}
               onPress={() => Linking.openURL(whatsappLink(m.phone!, 'E aí! Vi seu perfil no Vaia Aí. Bora jogar um fute?'))}
-              style={styles.whats}
             >
-              <Ionicons name="logo-whatsapp" size={20} color={colors.onPrimary} />
+              <Ionicons name="logo-whatsapp" size={22} color={colors.success} />
             </Pressable>
-          ) : (
-            <Tag label="Sem WhatsApp" color={colors.muted} />
           )}
           <Pressable hitSlop={10} onPress={() => menu(m)}>
             <Ionicons name="ellipsis-vertical" size={20} color={colors.muted} />
@@ -458,16 +475,20 @@ function Calls({ userId }: { userId: string }) {
                                 {r.neighborhood ? ` · ${r.neighborhood}` : ''}
                               </Text>
                             </View>
-                            {r.phone ? (
+                            {!!r.phone && (
                               <Pressable
-                                style={styles.whats}
+                                hitSlop={8}
                                 onPress={() => Linking.openURL(whatsappLink(r.phone!, `E aí! Vi que você topou a vaga "${c.title}" no Vaia Aí.`))}
                               >
-                                <Ionicons name="logo-whatsapp" size={20} color={colors.onPrimary} />
+                                <Ionicons name="logo-whatsapp" size={22} color={colors.success} />
                               </Pressable>
-                            ) : (
-                              <Tag label="Sem WhatsApp" color={colors.muted} />
                             )}
+                            <Pressable
+                              style={styles.whats}
+                              onPress={() => router.push({ pathname: '/chat/[id]', params: { id: r.id, name: r.nickname || r.name } })}
+                            >
+                              <Ionicons name="chatbubble" size={18} color={colors.onPrimary} />
+                            </Pressable>
                           </Row>
                         ))}
                       </Group>
@@ -484,6 +505,14 @@ function Calls({ userId }: { userId: string }) {
                     onPress={() => toggleGoing(c)}
                     style={{ flex: 1 }}
                   />
+                  {c.i_responded && (
+                    <Pressable
+                      style={styles.whats}
+                      onPress={() => router.push({ pathname: '/chat/[id]', params: { id: c.author, name: c.author_name } })}
+                    >
+                      <Ionicons name="chatbubble" size={18} color={colors.onPrimary} />
+                    </Pressable>
+                  )}
                   <Pressable hitSlop={10} onPress={() => askReport({ user: c.author, callId: c.id, name: c.author_name }, load)}>
                     <Ionicons name="flag-outline" size={20} color={colors.muted} />
                   </Pressable>
@@ -539,5 +568,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
+  unread: { minWidth: 22, height: 22, borderRadius: 11, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
+  unreadText: { color: colors.onPrimary, fontFamily: fonts.bold, fontSize: 12 },
   commonText: { color: colors.onPrimary, fontFamily: fonts.bold, fontSize: 13, flexShrink: 1 },
 });

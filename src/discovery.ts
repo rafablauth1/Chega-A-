@@ -31,6 +31,10 @@ export interface Match {
   phone: string | null;
   instagram: string | null;
   matched_at: string;
+  last_message: string | null;
+  last_at: string | null;
+  last_from_me: boolean | null;
+  unread: number;
 }
 
 export interface OpenCall {

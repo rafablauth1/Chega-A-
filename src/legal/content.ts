@@ -46,6 +46,7 @@ export const PRIVACY: LegalDoc = {
         'Região (opcional): bairro, cidade, estado e uma posição aproximada (cerca de 1 km), obtidos pelo GPS só quando você toca em "Usar minha localização". Nunca guardamos o endereço exato e não acompanhamos sua localização em segundo plano.',
         'Disponibilidade (opcional): dias e turnos em que você costuma jogar.',
         'Interações do "Bora jogar?": quem você topou ou passou, seus matches, vagas que publicou ou respondeu, bloqueios e denúncias.',
+        'Mensagens do chat com quem deu match com você ou com quem participa das suas vagas, e se foram lidas.',
         'Atividade nos grupos: grupos de que você participa e seu papel neles, presença nos jogos, times, gols, assistências, notas recebidas, craque do jogo, mensalidades e pagamentos marcados pelo organizador.',
         'Dados que o organizador cadastra: jogadores convidados sem conta (nome, apelido, telefone, posição e notas), despesas do grupo e a chave Pix usada para receber.',
         'Dados técnicos: o celular guarda uma cópia dos dados do grupo para o app abrir rápido e funcionar sem internet. Não usamos rastreadores de publicidade nem vendemos dados.',
@@ -77,6 +78,7 @@ export const PRIVACY: LegalDoc = {
         'Suas fotos ficam num endereço público: quem tiver o link da foto consegue abri-la. Não use fotos que você não quer que circulem.',
         'Se você ligar "Aparecer para jogadores perto", pessoas da sua região que procuram jogo podem ver seu perfil de atleta e o seu bairro (nunca o endereço nem a posição exata). Fica desligado até você escolher, e dá para desligar a qualquer momento.',
         'Seu WhatsApp e Instagram só aparecem para quem deu match com você ou para o dono de uma vaga que você topou, e só se você ligar "Mostrar meu WhatsApp para quem der match".',
+        'As conversas do chat ficam visíveis só para as duas pessoas. Nossa equipe não lê conversas; quando você denuncia alguém, as últimas mensagens dessa pessoa vão junto com a denúncia para a análise.',
         'Denúncias são vistas só pela nossa equipe, para analisar e, se preciso, suspender contas. Quem foi denunciado não sabe quem denunciou.',
         'Fora isso, quem não está em nenhum grupo ou comunidade com você não vê seu perfil pelo app.',
         'Provedores que operam o serviço para nós: Supabase (banco de dados, login e armazenamento das fotos) e Expo (distribuição e atualizações do app). Eles tratam os dados só para prestar esse serviço.',
@@ -92,7 +94,7 @@ export const PRIVACY: LegalDoc = {
     {
       heading: 'Por quanto tempo guardamos',
       paragraphs: [
-        'Guardamos seus dados enquanto sua conta existir. Quando você exclui a conta, apagamos o perfil, as fotos, a participação nos grupos e a presença nos jogos.',
+        'Guardamos seus dados enquanto sua conta existir. Quando você exclui a conta, apagamos o perfil, as fotos, a participação nos grupos, a presença nos jogos, os matches e as mensagens do chat.',
         'Resultados antigos dos jogos do grupo (placares, gols e notas) continuam no histórico da pelada, mas sem nome ligado a eles. Podemos manter registros mínimos quando a lei exigir.',
       ],
     },

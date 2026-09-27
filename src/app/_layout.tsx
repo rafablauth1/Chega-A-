@@ -101,6 +101,7 @@ function App() {
           <Stack.Screen name="community/[id]" options={{ title: 'Comunidade' }} />
           <Stack.Screen name="call-new" options={{ title: 'Publicar vaga' }} />
           <Stack.Screen name="bora" options={{ title: 'Bora jogar?' }} />
+          <Stack.Screen name="chat/[id]" options={{ title: 'Conversa' }} />
         </Stack.Protected>
         <Stack.Protected guard={!signedIn}>
           <Stack.Screen name="login" options={{ headerShown: false }} />

@@ -18,6 +18,7 @@ Sem isso, excluir conta, comunidades, região e "Bora jogar?" dão erro no app.
    - [ ] `supabase/migrations/005_communities.sql`: comunidades
    - [ ] `supabase/migrations/006_region.sql`: bairro e posição aproximada
    - [ ] `supabase/migrations/007_discovery.sql`: "Bora jogar?", match, "Falta gente!", bloquear e denunciar
+   - [ ] `supabase/migrations/008_chat.sql`: chat dentro do app
 5. Se alguma der erro, **pare** e me mande a mensagem de erro (print serve).
 
 > Eu confiro a escrita de todos os arquivos com o verificador do próprio Postgres (`npm run check:sql`), mas só rodando no seu Supabase dá para ter certeza de que funcionam.
@@ -32,6 +33,7 @@ O APK que você tem é antigo: não tem visual novo, localização, comunidades 
   - [ ] Criar grupo, marcar jogo, confirmar presença, sortear times
   - [ ] Criar **comunidade**, criar um time nela, entrar com outro celular pelo código
   - [ ] **Bora**: com 2 contas perto (pode ser você + um amigo), dar "bora" nos dois → tem que dar **match**
+  - [ ] **Chat**: mandar mensagem depois do match; a outra conta recebe na hora e aparece "Visto"
   - [ ] **Falta gente**: publicar vaga numa conta e topar pela outra
   - [ ] **Excluir conta** (com uma conta de teste!)
 

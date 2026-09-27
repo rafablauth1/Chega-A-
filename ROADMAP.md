@@ -60,7 +60,7 @@ Ordem sugerida, do que dá base para o que vem depois:
 - [x] 🟡 **Região pelo GPS** (bairro e posição de ~1 km, "Aparecer para jogadores perto") *(falta rodar a migração 006)* · [ ] **Perfil de atleta público** (a pessoa escolhe aparecer) com **região aproximada** (cidade/bairro, nunca o endereço) ⚠️ *(muda a política de privacidade: localização)*
 - [x] 🟡 **"Falta gente!"**: o organizador publica a vaga (posição, dia, hora, local, valor) e quem está perto e disponível fica sabendo
 - [x] 🔴 **"Bora jogar?" estilo Tinder** *(migração 007)*: cartas com jogadores da região (posição, nota, jogos, fotos). Deslizou para a direita = quer jogar junto; se os dois quiserem, dá **match** e vocês podem se chamar
-- [ ] 🟡 **Chat** depois do match e convite direto para um jogo do seu grupo
+- [x] 🟡 **Chat** dentro do app depois do match (e com quem topou sua vaga), em tempo real, com "Visto" e não lidas *(migração 008)* · [ ] convite direto para um jogo do seu grupo
 - [x] 🟡 **Segurança**: denunciar, bloquear e moderar *(falta tela de moderação: por enquanto no painel do Supabase)* *(as lojas exigem em apps onde desconhecidos conversam)*; descoberta só para maiores de 18 ⚠️
 - [x] 🟢 **Disponibilidade de horários** do jogador (dia × turno), com "horários em comum" nas cartas
 - [ ] 🔴 **Clubes com horários, tipo servidor de jogo online**: o grupo se deixa ver na região com dias e horários fixos, nível, vagas e valor; quem procura filtra por horário e distância e toca em **"Pedir pra entrar"**, que o organizador aprova
