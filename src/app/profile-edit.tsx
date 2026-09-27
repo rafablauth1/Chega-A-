@@ -3,7 +3,8 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Platform, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { Button, Card, Chip, Input, Label, Screen, SectionTitle, Stars, text } from '@/components/ui';
-import { authErrorMessage, useAuth } from '@/auth';
+import { ageOf, authErrorMessage, useAuth } from '@/auth';
+import { AvailabilityGrid } from '@/components/AvailabilityGrid';
 import { supabase } from '@/lib/supabase';
 import { colors, fonts, positionColors } from '@/theme';
 import { FEET, POSITIONS, SKILLS, type Foot, type Position, type Skills } from '@/types';
@@ -46,6 +47,8 @@ export default function ProfileEditScreen() {
   const [coordsChanged, setCoordsChanged] = useState(false);
   const [discoverable, setDiscoverable] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [availability, setAvailability] = useState<string[]>([]);
+  const [shareContact, setShareContact] = useState(false);
 
   // Preenche o formulário uma vez com o perfil salvo
   const [loaded, setLoaded] = useState(false);
@@ -73,6 +76,8 @@ export default function ProfileEditScreen() {
       setCoords({ lat: Number(profile.lat_approx), lng: Number(profile.lng_approx) });
     }
     setDiscoverable(!!profile.discoverable);
+    setAvailability(profile.availability ?? []);
+    setShareContact(!!profile.share_contact);
     setLoaded(true);
   }, [profile, loaded]);
 
@@ -142,6 +147,17 @@ export default function ProfileEditScreen() {
     }
   };
 
+  // Descoberta é só para maiores de 18 (o banco também confere)
+  const toggleDiscoverable = (on: boolean) => {
+    if (on) {
+      const iso = birth ? buildIso(birth, '00:00')?.slice(0, 10) : null;
+      const age = ageOf(iso);
+      if (age === null) return notify('Falta sua data de nascimento', 'Preencha acima: essa parte do app é só para maiores de 18.');
+      if (age < 18) return notify('Só para maiores de 18', 'A busca de jogadores perto não está disponível para menores de idade.');
+    }
+    setDiscoverable(on);
+  };
+
   /* ---------------- Dados ---------------- */
 
   const save = async () => {
@@ -179,11 +195,18 @@ export default function ProfileEditScreen() {
         favorite_team: team.trim() || null,
         skills,
     };
-    let { error } = await supabase.from('profiles').update({ ...base, ...region }).eq('id', userId);
-    // Banco sem a migração 006: salva o resto e avisa
-    if (error && /neighborhood|discoverable|lat_approx|schema cache|column/i.test(error.message)) {
+    const discovery = { availability, share_contact: shareContact };
+    const missingColumn = (e: { message: string } | null) => !!e && /schema cache|column|does not exist/i.test(e.message);
+
+    // Tenta tudo; se o banco ainda não tiver as migrações 007/006, salva o que der e avisa
+    let { error } = await supabase.from('profiles').update({ ...base, ...region, ...discovery }).eq('id', userId);
+    if (missingColumn(error)) {
+      ({ error } = await supabase.from('profiles').update({ ...base, ...region }).eq('id', userId));
+      if (!error) notify('Perfil salvo', 'Horários e WhatsApp ainda não foram salvos: falta rodar a migração 007 no Supabase.');
+    }
+    if (missingColumn(error)) {
       ({ error } = await supabase.from('profiles').update(base).eq('id', userId));
-      if (!error) notify('Perfil salvo', 'A região ainda não foi salva: falta rodar a migração 006 no Supabase.');
+      if (!error) notify('Perfil salvo', 'Região e horários ainda não foram salvos: faltam as migrações 006 e 007 no Supabase.');
     }
     setBusy(false);
     if (error) return notify('Não deu certo', authErrorMessage(error.message));
@@ -258,7 +281,7 @@ export default function ProfileEditScreen() {
             <Input label="Cidade" value={city} onChangeText={setCity} placeholder="Ex.: Porto Alegre" />
           </View>
         </View>
-        <Pressable onPress={() => setDiscoverable(!discoverable)} style={styles.toggleRow}>
+        <Pressable onPress={() => coords && toggleDiscoverable(!discoverable)} style={styles.toggleRow}>
           <View style={{ flex: 1 }}>
             <Text style={text.title}>Aparecer para jogadores perto</Text>
             <Text style={text.muted}>
@@ -269,12 +292,34 @@ export default function ProfileEditScreen() {
           </View>
           <Switch
             value={discoverable}
-            onValueChange={setDiscoverable}
+            onValueChange={toggleDiscoverable}
             disabled={!coords}
             trackColor={{ true: colors.primaryDark, false: colors.border }}
             thumbColor={discoverable ? colors.primary : colors.muted}
           />
         </Pressable>
+        <Pressable onPress={() => setShareContact(!shareContact)} style={styles.toggleRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={text.title}>Mostrar meu WhatsApp para quem der match</Text>
+            <Text style={text.muted}>Só aparece depois que vocês dois toparem jogar, ou para o dono de uma vaga que você aceitou.</Text>
+          </View>
+          <Switch
+            value={shareContact}
+            onValueChange={setShareContact}
+            trackColor={{ true: colors.primaryDark, false: colors.border }}
+            thumbColor={shareContact ? colors.primary : colors.muted}
+          />
+        </Pressable>
+      </View>
+
+      <SectionTitle right={<Text style={text.muted}>{availability.length ? `${availability.length} horários` : ''}</Text>}>
+        Quando você joga
+      </SectionTitle>
+      <Text style={[text.muted, { marginBottom: 10 }]}>
+        Marque os turnos em que costuma poder. Toque no dia para marcar ele inteiro. Isso ajuda a achar gente e pelada no seu horário.
+      </Text>
+      <View style={[styles.region, { gap: 0 }]}>
+        <AvailabilityGrid value={availability} onChange={setAvailability} />
       </View>
       <Input
         label={`Bio (${bio.length}/300)`}

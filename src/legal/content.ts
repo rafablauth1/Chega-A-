@@ -44,6 +44,8 @@ export const PRIVACY: LegalDoc = {
         'Perfil de atleta: nome, apelido, posição e autoavaliação das habilidades.',
         'Perfil de atleta (opcional): fotos, telefone/WhatsApp, data de nascimento, cidade, bio, pé preferido, altura, peso, segunda posição, número da camisa, time do coração e Instagram.',
         'Região (opcional): bairro, cidade, estado e uma posição aproximada (cerca de 1 km), obtidos pelo GPS só quando você toca em "Usar minha localização". Nunca guardamos o endereço exato e não acompanhamos sua localização em segundo plano.',
+        'Disponibilidade (opcional): dias e turnos em que você costuma jogar.',
+        'Interações do "Bora jogar?": quem você topou ou passou, seus matches, vagas que publicou ou respondeu, bloqueios e denúncias.',
         'Atividade nos grupos: grupos de que você participa e seu papel neles, presença nos jogos, times, gols, assistências, notas recebidas, craque do jogo, mensalidades e pagamentos marcados pelo organizador.',
         'Dados que o organizador cadastra: jogadores convidados sem conta (nome, apelido, telefone, posição e notas), despesas do grupo e a chave Pix usada para receber.',
         'Dados técnicos: o celular guarda uma cópia dos dados do grupo para o app abrir rápido e funcionar sem internet. Não usamos rastreadores de publicidade nem vendemos dados.',
@@ -74,6 +76,8 @@ export const PRIVACY: LegalDoc = {
         'Membros das comunidades de que você participa (empresa, escola etc.) veem seu perfil de atleta, os times da comunidade e a artilharia geral, com os gols de cada jogador.',
         'Suas fotos ficam num endereço público: quem tiver o link da foto consegue abri-la. Não use fotos que você não quer que circulem.',
         'Se você ligar "Aparecer para jogadores perto", pessoas da sua região que procuram jogo podem ver seu perfil de atleta e o seu bairro (nunca o endereço nem a posição exata). Fica desligado até você escolher, e dá para desligar a qualquer momento.',
+        'Seu WhatsApp e Instagram só aparecem para quem deu match com você ou para o dono de uma vaga que você topou, e só se você ligar "Mostrar meu WhatsApp para quem der match".',
+        'Denúncias são vistas só pela nossa equipe, para analisar e, se preciso, suspender contas. Quem foi denunciado não sabe quem denunciou.',
         'Fora isso, quem não está em nenhum grupo ou comunidade com você não vê seu perfil pelo app.',
         'Provedores que operam o serviço para nós: Supabase (banco de dados, login e armazenamento das fotos) e Expo (distribuição e atualizações do app). Eles tratam os dados só para prestar esse serviço.',
         'Não vendemos, alugamos nem compartilhamos seus dados para publicidade.',
@@ -113,7 +117,7 @@ export const PRIVACY: LegalDoc = {
     {
       heading: 'Crianças e adolescentes',
       paragraphs: [
-        'O app não é destinado a menores de 13 anos. Adolescentes entre 13 e 18 anos devem usá-lo com a autorização dos pais ou responsáveis.',
+        'O app não é destinado a menores de 13 anos. Adolescentes entre 13 e 18 anos devem usá-lo com a autorização dos pais ou responsáveis. A busca de jogadores perto, os matches e as vagas abertas são só para maiores de 18 anos.',
       ],
     },
     {
@@ -175,6 +179,15 @@ export const TERMS: LegalDoc = {
       paragraphs: [
         'Trabalhamos para o app funcionar bem, mas ele pode ter falhas, ficar fora do ar ou mudar de funcionalidades. Mantenha seus próprios registros do que for importante, como pagamentos.',
         'Podemos suspender contas que violem estes termos.',
+      ],
+    },
+    {
+      heading: 'Jogar com gente nova',
+      items: [
+        'O "Bora jogar?" e as vagas abertas são só para maiores de 18 anos.',
+        'Não verificamos a identidade de ninguém. Combine em locais públicos, como quadras e arenas, e avise alguém de confiança.',
+        'Nunca pague antecipado a desconhecidos fora do combinado com o organizador da pelada.',
+        'Use Denunciar e Bloquear se alguém for ofensivo, insistente ou suspeito. Contas denunciadas podem ser suspensas.',
       ],
     },
     {

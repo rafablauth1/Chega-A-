@@ -24,6 +24,9 @@ export interface Profile {
   lat_approx?: number | null;
   lng_approx?: number | null;
   discoverable?: boolean;
+  /** Migração 007 */
+  share_contact?: boolean;
+  availability?: string[];
   bio: string | null;
   foot: Foot | null;
   height_cm: number | null;

@@ -1,6 +1,6 @@
 # Roteiro do app (Vaia Aí / Chega Aí)
 
-Marque `[x]` no que você **autoriza**. Pode riscar, reordenar ou comentar do lado de cada item.
+Marque `[x]` no que você **autoriza**. O que depende de você (Supabase, contas, decisões) está em [TAREFAS_DO_DONO.md](TAREFAS_DO_DONO.md). Pode riscar, reordenar ou comentar do lado de cada item.
 Itens marcados com ⚠️ exigem uma **decisão sua** (custo, conta externa ou escolha de produto).
 
 Legenda de tamanho: 🟢 pequeno (horas) · 🟡 médio (1–2 dias) · 🔴 grande (vários dias)
@@ -58,10 +58,12 @@ Ordem sugerida, do que dá base para o que vem depois:
 - [x] 🔴 **Comunidades** *(falta rodar a migração 005 no Supabase)*: empresa, escola, faculdade, condomínio ou bairro, com **vários times dentro** (ex.: "Empresa X" com o time de cada setor). Ranking entre os times, artilharia da comunidade e convite por código
 - [ ] 🟡 **Torneio interno** da comunidade: tabela, chaveamento e placar usando os times que já existem
 - [x] 🟡 **Região pelo GPS** (bairro e posição de ~1 km, "Aparecer para jogadores perto") *(falta rodar a migração 006)* · [ ] **Perfil de atleta público** (a pessoa escolhe aparecer) com **região aproximada** (cidade/bairro, nunca o endereço) ⚠️ *(muda a política de privacidade: localização)*
-- [ ] 🟡 **"Falta gente!"**: o organizador publica a vaga (posição, dia, hora, local, valor) e quem está perto e disponível fica sabendo
-- [ ] 🔴 **"Bora jogar?" estilo Tinder**: cartas com jogadores da região (posição, nota, jogos, fotos). Deslizou para a direita = quer jogar junto; se os dois quiserem, dá **match** e vocês podem se chamar
+- [x] 🟡 **"Falta gente!"**: o organizador publica a vaga (posição, dia, hora, local, valor) e quem está perto e disponível fica sabendo
+- [x] 🔴 **"Bora jogar?" estilo Tinder** *(migração 007)*: cartas com jogadores da região (posição, nota, jogos, fotos). Deslizou para a direita = quer jogar junto; se os dois quiserem, dá **match** e vocês podem se chamar
 - [ ] 🟡 **Chat** depois do match e convite direto para um jogo do seu grupo
-- [ ] 🟡 **Segurança**: denunciar, bloquear e moderar *(as lojas exigem em apps onde desconhecidos conversam)*; descoberta só para maiores de 18 ⚠️
+- [x] 🟡 **Segurança**: denunciar, bloquear e moderar *(falta tela de moderação: por enquanto no painel do Supabase)* *(as lojas exigem em apps onde desconhecidos conversam)*; descoberta só para maiores de 18 ⚠️
+- [x] 🟢 **Disponibilidade de horários** do jogador (dia × turno), com "horários em comum" nas cartas
+- [ ] 🔴 **Clubes com horários, tipo servidor de jogo online**: o grupo se deixa ver na região com dias e horários fixos, nível, vagas e valor; quem procura filtra por horário e distância e toca em **"Pedir pra entrar"**, que o organizador aprova
 - [ ] 🟡 **Reputação**: presença confirmada, "pipoqueiro" (faltou sem avisar) e avaliação depois de jogar com alguém novo
 - [ ] 🔴 **Quadras**: cadastro colaborativo no mapa, com fotos, preço, horários e avaliações (depois: reserva com as arenas parceiras)
 

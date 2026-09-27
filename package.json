@@ -36,6 +36,7 @@
   "devDependencies": {
     "@expo/ngrok": "^4.1.0",
     "@types/react": "~19.2.2",
+    "libpg-query": "^18.1.5",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -44,7 +45,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "legal": "node scripts/build-legal.ts"
+    "legal": "node scripts/build-legal.ts",
+    "check:sql": "node scripts/check-sql.mjs"
   },
   "private": true
 }

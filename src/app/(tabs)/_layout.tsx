@@ -59,6 +59,14 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="nearby"
+        options={{
+          title: 'Bora',
+          href: isCloudEnabled ? undefined : null,
+          tabBarIcon: ({ color, size }) => <Ionicons name="flame" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="ranking"
         options={{
           title: 'Ranking',
@@ -87,6 +95,13 @@ function NoGroup() {
           text="Crie o grupo da sua pelada ou entre com o código de convite que um amigo te mandou."
         />
         <Button title="Criar ou entrar num grupo" icon="people" onPress={() => router.push('/group-join')} />
+        <Button
+          title="Achar jogo e jogadores perto"
+          icon="flame"
+          variant="secondary"
+          onPress={() => router.push('/bora')}
+          style={{ marginTop: 10 }}
+        />
         <Button
           title="Comunidade da empresa ou escola"
           icon="business-outline"

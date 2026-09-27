@@ -99,6 +99,8 @@ function App() {
           <Stack.Screen name="athlete/[id]" options={{ title: 'Atleta' }} />
           <Stack.Screen name="communities" options={{ title: 'Comunidades' }} />
           <Stack.Screen name="community/[id]" options={{ title: 'Comunidade' }} />
+          <Stack.Screen name="call-new" options={{ title: 'Publicar vaga' }} />
+          <Stack.Screen name="bora" options={{ title: 'Bora jogar?' }} />
         </Stack.Protected>
         <Stack.Protected guard={!signedIn}>
           <Stack.Screen name="login" options={{ headerShown: false }} />
