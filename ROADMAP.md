@@ -44,11 +44,26 @@ Sem isso a loja recusa o app ou a experiência fica abaixo do mínimo esperado.
 - [ ] 🟢 Trocar senha / "esqueci minha senha" com tela própria de nova senha
 - [ ] 🟡 **E-mail próprio para o login** (confirmação e recuperação de senha) ⚠️ *(o e-mail grátis do Supabase manda ~2 por hora; Resend tem plano grátis de 3 mil/mês, precisa de um domínio)*
 - [ ] 🟢 Religar a **confirmação de e-mail** depois do item acima
-- [ ] 🟢 **Nome, ícone e splash definitivos** ⚠️ *(qual nome: "Vaia Aí" ou "Chega Aí"?)*
+- [x] 🟢 **Ícone e splash** (colete laranja 10 no gramado; gerados por scripts/icon) · [ ] nome definitivo ⚠️ *("Vaia Aí" ou "Chega Aí"?)*
 - [ ] 🟡 Conta **Google Play** e build pela nuvem (EAS) assinado para a loja ⚠️ *(US$ 25, pagamento único)*
 - [ ] 🟡 **Atualização sem reinstalar** (EAS Update): corrigir e melhorar o app sem mandar APK novo para todo mundo
 - [ ] 🟡 **Monitor de erros** (Sentry, grátis no início): saber quando o app trava no celular de alguém
 - [ ] 🟡 Teste fechado com a galera pela Play Store (trilha de teste interno)
+
+## Fase C: Comunidade do futebol amador (ir além do Chega+)
+
+A ideia: o app deixa de ser só "a pelada do meu grupo" e vira o lugar onde quem joga bola se encontra.
+Ordem sugerida, do que dá base para o que vem depois:
+
+- [ ] 🔴 **Comunidades**: empresa, escola, faculdade, condomínio ou bairro, com **vários times dentro** (ex.: "Empresa X" com o time de cada setor). Ranking entre os times, artilharia da comunidade e convite por código
+- [ ] 🟡 **Torneio interno** da comunidade: tabela, chaveamento e placar usando os times que já existem
+- [ ] 🟡 **Perfil de atleta público** (a pessoa escolhe aparecer) com **região aproximada** (cidade/bairro, nunca o endereço) ⚠️ *(muda a política de privacidade: localização)*
+- [ ] 🟡 **"Falta gente!"**: o organizador publica a vaga (posição, dia, hora, local, valor) e quem está perto e disponível fica sabendo
+- [ ] 🔴 **"Bora jogar?" estilo Tinder**: cartas com jogadores da região (posição, nota, jogos, fotos). Deslizou para a direita = quer jogar junto; se os dois quiserem, dá **match** e vocês podem se chamar
+- [ ] 🟡 **Chat** depois do match e convite direto para um jogo do seu grupo
+- [ ] 🟡 **Segurança**: denunciar, bloquear e moderar *(as lojas exigem em apps onde desconhecidos conversam)*; descoberta só para maiores de 18 ⚠️
+- [ ] 🟡 **Reputação**: presença confirmada, "pipoqueiro" (faltou sem avisar) e avaliação depois de jogar com alguém novo
+- [ ] 🔴 **Quadras**: cadastro colaborativo no mapa, com fotos, preço, horários e avaliações (depois: reserva com as arenas parceiras)
 
 ## Fase 2: O que faz a galera abrir o app toda semana
 

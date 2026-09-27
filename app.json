@@ -7,7 +7,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#0B1410",
+    "backgroundColor": "#0F2419",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.vaiaai.app"
@@ -15,7 +15,7 @@
     "android": {
       "package": "com.vaiaai.app",
       "adaptiveIcon": {
-        "backgroundColor": "#0B1410",
+        "backgroundColor": "#0F2419",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -34,6 +34,15 @@
           "photosPermission": "O Vaia Aí usa suas fotos para o seu perfil de atleta.",
           "cameraPermission": "O Vaia Aí usa a câmera para tirar a foto do seu perfil de atleta.",
           "microphonePermission": false
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0F2419",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain"
         }
       ]
     ],
