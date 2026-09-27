@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Text, View } from 'react-native';
 import { Button, Input, Screen, Segmented, text } from '@/components/ui';
@@ -91,6 +92,18 @@ export default function LoginScreen() {
         {mode === 'signin' && (
           <Button title="Esqueci minha senha" variant="ghost" onPress={resetPassword} style={{ marginTop: 8 }} />
         )}
+
+        <Text style={[text.muted, { textAlign: 'center', marginTop: 24, lineHeight: 20 }]}>
+          {mode === 'signup' ? 'Ao criar a conta, você concorda com os ' : 'Ao usar o app, você concorda com os '}
+          <Text style={{ color: colors.primary }} onPress={() => router.push('/legal/termos')}>
+            Termos de Uso
+          </Text>
+          {' e a '}
+          <Text style={{ color: colors.primary }} onPress={() => router.push('/legal/privacidade')}>
+            Política de Privacidade
+          </Text>
+          .
+        </Text>
       </Screen>
     </KeyboardAvoidingView>
   );

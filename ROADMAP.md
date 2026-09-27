@@ -39,8 +39,8 @@ depois o que **facilita a vida do organizador**, e por fim o que **diferencia e 
 
 Sem isso a loja recusa o app ou a experiência fica abaixo do mínimo esperado.
 
-- [ ] 🟢 **Excluir minha conta** dentro do app e por uma página web *(exigência do Google Play para apps com login)*
-- [ ] 🟡 **Política de privacidade e termos de uso** (LGPD), com link no app e na loja
+- [x] 🟢 **Excluir minha conta** dentro do app e por uma página web *(falta rodar a migração 004 no Supabase)*
+- [x] 🟡 **Política de privacidade e termos de uso** (LGPD), no app e em docs/ *(falta preencher nome e e-mail em src/legal/content.ts, ligar o GitHub Pages e uma revisão jurídica)*
 - [ ] 🟢 Trocar senha / "esqueci minha senha" com tela própria de nova senha
 - [ ] 🟡 **E-mail próprio para o login** (confirmação e recuperação de senha) ⚠️ *(o e-mail grátis do Supabase manda ~2 por hora; Resend tem plano grátis de 3 mil/mês, precisa de um domínio)*
 - [ ] 🟢 Religar a **confirmação de e-mail** depois do item acima

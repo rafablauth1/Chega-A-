@@ -12,7 +12,8 @@ import { isCloudEnabled, supabase } from '@/lib/supabase';
 import { colors, positionColors } from '@/theme';
 import type { Game, Player } from '@/types';
 import { achievementsFor } from '@/utils/achievements';
-import { confirm } from '@/utils/confirm';
+import { deleteMyAccount } from '@/utils/account';
+import { confirm, notify } from '@/utils/confirm';
 import { toLocalIso } from '@/utils/format';
 import { gameRatingAverage, overallRating, scoreColor } from '@/utils/rating';
 import { shareView } from '@/utils/share';
@@ -22,6 +23,7 @@ export default function MeScreen() {
   const { session, profile, groups, activeGroup } = useAuth();
   const [games, setGames] = useState<(Game & { groupId: string })[]>([]);
   const cardRef = useRef<View>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Jogos de todos os grupos: as estatísticas do atleta somam tudo
   const groupIds = groups.map((g) => g.id).join(',');
@@ -59,6 +61,28 @@ export default function MeScreen() {
   if (!session || !profile) return <Screen>{null}</Screen>;
 
   const signOut = () => confirm('Sair da conta', 'Você vai precisar entrar de novo com e-mail e senha.', () => supabase.auth.signOut(), 'Sair');
+
+  const askDelete = () =>
+    confirm(
+      'Excluir minha conta',
+      'Apaga seu perfil de atleta, suas fotos e sua participação em todos os grupos. Grupos em que você é dono passam para outro membro. Não dá para desfazer.',
+      () =>
+        confirm(
+          'Tem certeza?',
+          'Última confirmação: sua conta será excluída agora.',
+          async () => {
+            setDeleting(true);
+            try {
+              await deleteMyAccount(myId);
+            } catch (e: any) {
+              setDeleting(false);
+              notify('Não deu para excluir', e?.message?.includes('delete_my_account') ? 'O servidor ainda não tem a função de exclusão. Avise o administrador do app.' : 'Verifique sua internet e tente de novo.');
+            }
+          },
+          'Excluir de vez',
+        ),
+      'Continuar',
+    );
 
   const me: Player = {
     id: myId,
@@ -183,6 +207,26 @@ export default function MeScreen() {
       )}
 
       <Button title="Sair da conta" icon="log-out" variant="danger" onPress={signOut} style={{ marginTop: 24 }} />
+
+      <SectionTitle>Privacidade</SectionTitle>
+      <Card onPress={() => router.push('/legal/privacidade')} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Ionicons name="shield-checkmark-outline" size={20} color={colors.muted} />
+        <Text style={[text.body, { flex: 1 }]}>Política de Privacidade</Text>
+        <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+      </Card>
+      <Card onPress={() => router.push('/legal/termos')} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Ionicons name="document-text-outline" size={20} color={colors.muted} />
+        <Text style={[text.body, { flex: 1 }]}>Termos de Uso</Text>
+        <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+      </Card>
+      <Button
+        title={deleting ? 'Excluindo...' : 'Excluir minha conta'}
+        icon="trash-outline"
+        variant="ghost"
+        disabled={deleting}
+        onPress={askDelete}
+        style={{ marginTop: 8 }}
+      />
     </Screen>
   );
 }

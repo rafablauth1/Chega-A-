@@ -85,6 +85,8 @@ function App() {
         <Stack.Protected guard={!signedIn}>
           <Stack.Screen name="login" options={{ headerShown: false }} />
         </Stack.Protected>
+        {/* Privacidade e termos abrem com ou sem login */}
+        <Stack.Screen name="legal/[doc]" options={{ title: 'Documento' }} />
       </Stack>
     </ThemeProvider>
   );
