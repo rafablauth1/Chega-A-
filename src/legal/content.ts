@@ -70,6 +70,7 @@ export const PRIVACY: LegalDoc = {
       heading: 'Quem vê seus dados',
       items: [
         'Membros dos grupos de que você participa veem seu perfil de atleta, suas estatísticas e sua atividade naquele grupo.',
+        'Membros das comunidades de que você participa (empresa, escola etc.) veem seu perfil de atleta, os times da comunidade e a artilharia geral, com os gols de cada jogador.',
         'Suas fotos ficam num endereço público: quem tiver o link da foto consegue abri-la. Não use fotos que você não quer que circulem.',
         'Quem não está em nenhum grupo com você não vê seu perfil pelo app.',
         'Provedores que operam o serviço para nós: Supabase (banco de dados, login e armazenamento das fotos) e Expo (distribuição e atualizações do app). Eles tratam os dados só para prestar esse serviço.',

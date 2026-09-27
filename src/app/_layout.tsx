@@ -97,6 +97,8 @@ function App() {
           <Stack.Screen name="group/[id]" options={{ title: 'Grupo' }} />
           <Stack.Screen name="profile-edit" options={{ title: 'Editar perfil' }} />
           <Stack.Screen name="athlete/[id]" options={{ title: 'Atleta' }} />
+          <Stack.Screen name="communities" options={{ title: 'Comunidades' }} />
+          <Stack.Screen name="community/[id]" options={{ title: 'Comunidade' }} />
         </Stack.Protected>
         <Stack.Protected guard={!signedIn}>
           <Stack.Screen name="login" options={{ headerShown: false }} />

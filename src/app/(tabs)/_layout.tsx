@@ -87,6 +87,13 @@ function NoGroup() {
           text="Crie o grupo da sua pelada ou entre com o código de convite que um amigo te mandou."
         />
         <Button title="Criar ou entrar num grupo" icon="people" onPress={() => router.push('/group-join')} />
+        <Button
+          title="Comunidade da empresa ou escola"
+          icon="business-outline"
+          variant="secondary"
+          onPress={() => router.push('/communities')}
+          style={{ marginTop: 10 }}
+        />
         <Button title="Meu perfil" icon="person-circle-outline" variant="ghost" onPress={() => router.push('/me')} style={{ marginTop: 8 }} />
       </Screen>
     </View>

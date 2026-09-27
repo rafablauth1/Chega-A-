@@ -55,7 +55,7 @@ Sem isso a loja recusa o app ou a experiência fica abaixo do mínimo esperado.
 A ideia: o app deixa de ser só "a pelada do meu grupo" e vira o lugar onde quem joga bola se encontra.
 Ordem sugerida, do que dá base para o que vem depois:
 
-- [ ] 🔴 **Comunidades**: empresa, escola, faculdade, condomínio ou bairro, com **vários times dentro** (ex.: "Empresa X" com o time de cada setor). Ranking entre os times, artilharia da comunidade e convite por código
+- [x] 🔴 **Comunidades** *(falta rodar a migração 005 no Supabase)*: empresa, escola, faculdade, condomínio ou bairro, com **vários times dentro** (ex.: "Empresa X" com o time de cada setor). Ranking entre os times, artilharia da comunidade e convite por código
 - [ ] 🟡 **Torneio interno** da comunidade: tabela, chaveamento e placar usando os times que já existem
 - [ ] 🟡 **Perfil de atleta público** (a pessoa escolhe aparecer) com **região aproximada** (cidade/bairro, nunca o endereço) ⚠️ *(muda a política de privacidade: localização)*
 - [ ] 🟡 **"Falta gente!"**: o organizador publica a vaga (posição, dia, hora, local, valor) e quem está perto e disponível fica sabendo

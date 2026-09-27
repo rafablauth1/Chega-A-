@@ -206,6 +206,16 @@ export default function MeScreen() {
         ))
       )}
 
+      <SectionTitle>Comunidades</SectionTitle>
+      <Card onPress={() => router.push('/communities')} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Ionicons name="business-outline" size={22} color={colors.primary} />
+        <View style={{ flex: 1 }}>
+          <Text style={text.title}>Empresa, escola, condomínio...</Text>
+          <Text style={text.muted}>Vários times, ranking entre eles e artilharia geral</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+      </Card>
+
       <Button title="Sair da conta" icon="log-out" variant="danger" onPress={signOut} style={{ marginTop: 24 }} />
 
       <SectionTitle>Privacidade</SectionTitle>
