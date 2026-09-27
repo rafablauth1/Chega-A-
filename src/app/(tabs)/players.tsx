@@ -1,9 +1,10 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Text, View } from 'react-native';
-import { Avatar, Card, Chip, Empty, Fab, Input, PositionTag, RatingBadge, Screen, Tag, text } from '@/components/ui';
+import { ScrollView, Text, TextInput, View } from 'react-native';
+import { Avatar, Chip, Empty, Fab, Group, PositionTag, RatingBadge, Row, Screen, Tag, text } from '@/components/ui';
 import { useStore } from '@/store';
-import { colors, positionColors } from '@/theme';
+import { colors, fonts, positionColors } from '@/theme';
 import { POSITIONS, type Position } from '@/types';
 import { buildRatingMap } from '@/utils/rating';
 
@@ -29,16 +30,47 @@ export default function PlayersScreen() {
         ? Number(b.active) - Number(a.active)
         : sort === 'nota'
           ? rating[b.id] - rating[a.id]
-          : a.name.localeCompare(b.name),
+          : (a.nickname || a.name).localeCompare(b.nickname || b.name),
     );
+
+  const active = players.filter((p) => p.active).length;
 
   return (
     <View style={{ flex: 1 }}>
       <Screen>
         {players.length > 0 && (
           <>
-            <Input placeholder="Buscar jogador..." value={query} onChangeText={setQuery} />
-            <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, marginBottom: 12 }}>
+              <Text style={{ color: colors.chalk, fontFamily: fonts.display, fontSize: 40, lineHeight: 44 }}>{active}</Text>
+              <Text style={[text.muted, { fontSize: 15 }]}>
+                {active === 1 ? 'jogador ativo' : 'jogadores ativos'}
+                {players.length > active ? `, ${players.length - active} parados` : ''}
+              </Text>
+            </View>
+
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 8,
+                backgroundColor: colors.card,
+                borderRadius: 12,
+                paddingHorizontal: 12,
+                marginBottom: 12,
+              }}
+            >
+              <Ionicons name="search" size={18} color={colors.muted} />
+              <TextInput
+                placeholder="Buscar pelo nome ou apelido"
+                placeholderTextColor={colors.muted + '99'}
+                value={query}
+                onChangeText={setQuery}
+                style={{ flex: 1, color: colors.chalk, fontFamily: fonts.body, fontSize: 16, paddingVertical: 12 }}
+              />
+            </View>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }} style={{ marginBottom: 14, flexGrow: 0 }}>
+              <Chip label={sort === 'nota' ? 'Maior nota' : 'A a Z'} selected color={colors.chalk} onPress={() => setSort(sort === 'nome' ? 'nota' : 'nome')} />
               {POSITIONS.map((p) => (
                 <Chip
                   key={p.key}
@@ -48,15 +80,7 @@ export default function PlayersScreen() {
                   onPress={() => setPos(pos === p.key ? null : p.key)}
                 />
               ))}
-              <Chip
-                label={sort === 'nota' ? '↓ Nota' : 'A-Z'}
-                selected
-                onPress={() => setSort(sort === 'nome' ? 'nota' : 'nome')}
-              />
-            </View>
-            <Text style={[text.muted, { marginBottom: 10 }]}>
-              {players.filter((p) => p.active).length} ativos · {players.length} no total
-            </Text>
+            </ScrollView>
           </>
         )}
 
@@ -64,33 +88,34 @@ export default function PlayersScreen() {
           <Empty
             icon="people-outline"
             title="Cadastre a galera"
-            text="Adicione os amigos da pelada e avalie cada um. As notas deixam o sorteio dos times equilibrado."
+            text="Adicione os amigos da pelada e dê nota para cada um. As notas deixam o sorteio dos times equilibrado."
           />
         )}
 
-        {list.map((p) => (
-          <Card key={p.id} onPress={() => router.push(`/player/${p.id}`)} style={!p.active && { opacity: 0.5 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <Avatar name={p.name} color={positionColors[p.position]} />
-              <View style={{ flex: 1, gap: 4 }}>
-                <Text style={text.title} numberOfLines={1}>
-                  {p.nickname || p.name}
-                </Text>
-                <View style={{ flexDirection: 'row', gap: 6 }}>
-                  <PositionTag position={p.position} />
-                  <Tag
-                    label={p.type === 'mensalista' ? 'MENSALISTA' : 'AVULSO'}
-                    color={p.type === 'mensalista' ? colors.primary : colors.muted}
-                  />
-                  {!p.active && <Tag label="INATIVO" color={colors.danger} />}
+        {players.length > 0 && list.length === 0 && <Empty icon="search" title="Ninguém com esse nome" text="Confira a busca ou limpe o filtro de posição." />}
+
+        {list.length > 0 && (
+          <Group>
+            {list.map((p) => (
+              <Row key={p.id} onPress={() => router.push(`/player/${p.id}`)} style={!p.active && { opacity: 0.45 }}>
+                <Avatar name={p.name} color={positionColors[p.position]} />
+                <View style={{ flex: 1, gap: 3 }}>
+                  <Text style={text.title} numberOfLines={1}>
+                    {p.nickname || p.name}
+                  </Text>
+                  <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
+                    <PositionTag position={p.position} />
+                    <Text style={text.muted}>{p.type === 'mensalista' ? 'Mensalista' : 'Avulso'}</Text>
+                    {!p.active && <Tag label="Parado" color={colors.danger} />}
+                  </View>
                 </View>
-              </View>
-              <RatingBadge value={rating[p.id]} />
-            </View>
-          </Card>
-        ))}
+                <RatingBadge value={rating[p.id]} />
+              </Row>
+            ))}
+          </Group>
+        )}
       </Screen>
-      <Fab icon="person-add" onPress={() => router.push('/player/new')} />
+      <Fab icon="person-add" label="Jogador" onPress={() => router.push('/player/new')} />
     </View>
   );
 }

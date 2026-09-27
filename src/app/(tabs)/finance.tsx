@@ -6,7 +6,7 @@ import { PixCard } from '@/components/PixCard';
 import { Button, Card, Check, Empty, Input, Screen, SectionTitle, Stat, Tag, text } from '@/components/ui';
 import { pixPayload } from '@/utils/pix';
 import { useStore } from '@/store';
-import { colors } from '@/theme';
+import { colors, fonts } from '@/theme';
 import type { Player } from '@/types';
 import { confirm, notify } from '@/utils/confirm';
 import { formatShortDate, money, monthKey, monthLabel, parseMoney, shiftMonth, todayIso } from '@/utils/format';
@@ -80,7 +80,7 @@ export default function FinanceScreen() {
     <Screen>
       <Card style={{ alignItems: 'center', paddingVertical: 20 }}>
         <Text style={text.muted}>Saldo em caixa</Text>
-        <Text style={{ fontSize: 34, fontWeight: '800', color: balance >= 0 ? colors.primary : colors.danger }}>
+        <Text style={{ fontSize: 34, fontFamily: fonts.display, color: balance >= 0 ? colors.primary : colors.danger }}>
           {money(balance)}
         </Text>
       </Card>
@@ -123,7 +123,7 @@ export default function FinanceScreen() {
               >
                 <Check checked={paid} />
                 <Text style={[text.body, { flex: 1 }]}>{displayName(p)}</Text>
-                <Tag label={paid ? 'PAGO' : 'ABERTO'} color={paid ? colors.primary : colors.danger} />
+                <Tag label={paid ? 'Pago' : 'Em aberto'} color={paid ? colors.success : colors.danger} />
               </Pressable>
             );
           })}
@@ -152,7 +152,7 @@ export default function FinanceScreen() {
                 <Text style={text.body}>{displayName(player)}</Text>
                 <Text style={text.muted}>Jogo de {formatShortDate(game.date)}</Text>
               </View>
-              <Text style={{ color: colors.warning, fontWeight: '700' }}>{money(game.pricePerPlayer)}</Text>
+              <Text style={{ color: colors.warning, fontFamily: fonts.bold }}>{money(game.pricePerPlayer)}</Text>
             </Pressable>
           ))}
           <Text style={[text.muted, { marginTop: 6, fontSize: 12 }]}>Toque para marcar como pago.</Text>
@@ -169,7 +169,7 @@ export default function FinanceScreen() {
               <Text style={text.body}>{e.description}</Text>
               <Text style={text.muted}>{formatShortDate(e.date)}</Text>
             </View>
-            <Text style={{ color: colors.danger, fontWeight: '700' }}>-{money(e.amount)}</Text>
+            <Text style={{ color: colors.danger, fontFamily: fonts.bold }}>-{money(e.amount)}</Text>
             <Pressable
               hitSlop={10}
               onPress={() => confirm('Excluir despesa', `Remover "${e.description}"?`, () => removeExpense(e.id))}

@@ -1,10 +1,18 @@
+import {
+  Barlow_400Regular,
+  Barlow_500Medium,
+  Barlow_600SemiBold,
+  Barlow_700Bold,
+  useFonts,
+} from '@expo-google-fonts/barlow';
+import { BigShouldersDisplay_800ExtraBold, BigShouldersDisplay_900Black } from '@expo-google-fonts/big-shoulders-display';
 import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, View } from 'react-native';
 import { useStore } from '@/store';
 import { buildDemo } from '@/utils/demo';
-import { colors } from '@/theme';
+import { colors, fonts } from '@/theme';
 
 const theme = {
   ...DarkTheme,
@@ -20,6 +28,14 @@ const theme = {
 
 export default function RootLayout() {
   const [hydrated, setHydrated] = useState(useStore.persist.hasHydrated());
+  const [fontsLoaded] = useFonts({
+    Barlow_400Regular,
+    Barlow_500Medium,
+    Barlow_600SemiBold,
+    Barlow_700Bold,
+    BigShouldersDisplay_800ExtraBold,
+    BigShouldersDisplay_900Black,
+  });
 
   useEffect(() => {
     const unsub = useStore.persist.onFinishHydration(() => setHydrated(true));
@@ -35,7 +51,7 @@ export default function RootLayout() {
     }
   }, [hydrated]);
 
-  if (!hydrated) {
+  if (!hydrated || !fontsLoaded) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator color={colors.primary} />
@@ -50,7 +66,7 @@ export default function RootLayout() {
         screenOptions={{
           headerStyle: { backgroundColor: colors.bg },
           headerTintColor: colors.text,
-          headerTitleStyle: { fontWeight: '700' },
+          headerTitleStyle: { fontFamily: fonts.display, fontSize: 22 },
           headerShadowVisible: false,
           contentStyle: { backgroundColor: colors.bg },
           headerBackTitle: 'Voltar',

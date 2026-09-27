@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { fonts } from '../theme';
 import { POSITIONS, SKILLS, type Player } from '../types';
 import { initials } from '../utils/format';
 import { displayName } from '../utils/names';
@@ -115,10 +116,10 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '35deg' }],
   },
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  ovr: { fontSize: 52, fontWeight: '900', lineHeight: 56 },
-  pos: { fontSize: 18, fontWeight: '900', letterSpacing: 1 },
+  ovr: { fontSize: 52, fontFamily: fonts.displayBlack, lineHeight: 56 },
+  pos: { fontSize: 18, fontFamily: fonts.displayBlack, letterSpacing: 1 },
   divider: { width: 26, height: 2, marginVertical: 6, opacity: 0.5 },
-  tier: { fontSize: 10, fontWeight: '900', letterSpacing: 1.5, opacity: 0.8 },
+  tier: { fontSize: 10, fontFamily: fonts.displayBlack, letterSpacing: 1.5, opacity: 0.8 },
   photo: {
     width: 128,
     height: 128,
@@ -127,13 +128,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  photoText: { fontSize: 48, fontWeight: '900' },
-  name: { fontSize: 24, fontWeight: '900', textAlign: 'center', marginTop: 12, letterSpacing: 1 },
-  sub: { fontSize: 12, fontWeight: '700', textAlign: 'center', opacity: 0.75 },
+  photoText: { fontSize: 48, fontFamily: fonts.displayBlack },
+  name: { fontSize: 24, fontFamily: fonts.displayBlack, textAlign: 'center', marginTop: 12, letterSpacing: 1 },
+  sub: { fontSize: 12, fontFamily: fonts.bold, textAlign: 'center', opacity: 0.75 },
   line: { height: 1.5, opacity: 0.35, marginVertical: 10 },
   stats: { flexDirection: 'row', justifyContent: 'space-around' },
   stat: { alignItems: 'center', minWidth: 40 },
-  statValue: { fontSize: 20, fontWeight: '900' },
-  statLabel: { fontSize: 10, fontWeight: '800', letterSpacing: 1, opacity: 0.8 },
-  footer: { fontSize: 11, fontWeight: '800', textAlign: 'center', marginTop: 12, opacity: 0.7 },
+  statValue: { fontSize: 20, fontFamily: fonts.displayBlack },
+  statLabel: { fontSize: 10, fontFamily: fonts.display, letterSpacing: 1, opacity: 0.8 },
+  footer: { fontSize: 11, fontFamily: fonts.display, textAlign: 'center', marginTop: 12, opacity: 0.7 },
 });

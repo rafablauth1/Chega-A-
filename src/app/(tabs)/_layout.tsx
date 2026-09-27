@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link } from 'expo-router';
 import Tabs from 'expo-router/js-tabs';
 import { Pressable } from 'react-native';
-import { colors } from '@/theme';
+import { colors, fonts } from '@/theme';
 
 export default function TabsLayout() {
   return (
@@ -10,13 +10,14 @@ export default function TabsLayout() {
       screenOptions={{
         headerStyle: { backgroundColor: colors.bg },
         headerTintColor: colors.text,
-        headerTitleStyle: { fontWeight: '800', fontSize: 20 },
+        headerTitleStyle: { fontFamily: fonts.displayBlack, fontSize: 30 },
+        headerTitleAlign: 'left',
         headerShadowVisible: false,
         sceneStyle: { backgroundColor: colors.bg },
-        tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.border },
+        tabBarStyle: { backgroundColor: colors.bg, borderTopColor: colors.border },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.muted,
-        tabBarLabelStyle: { fontWeight: '700' },
+        tabBarLabelStyle: { fontFamily: fonts.semibold, fontSize: 11 },
         headerRight: () => (
           <Link href="/settings" asChild>
             <Pressable hitSlop={10} style={{ marginRight: 16 }}>
