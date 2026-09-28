@@ -78,3 +78,15 @@ Converse com o dono em português, de forma simples (não é programador).
 - Antes de entregar migração: `npm run check:sql`. Antes de commitar: o hook roda `npm run check:secrets`
   (repositório público: nada de `service_role`, `sb_secret_`, chaves de pagamento ou tokens).
 - Pagamentos: seguir a seção 9 do `SEGURANCA.md` (chave do PSP só em Edge Function; app nunca grava pagamento).
+
+### Lançar versão nova do APK (fora da Play Store)
+1. Subir `version` (ex.: 1.2.0) e `android.versionCode` (+1, sempre) em `app.json`.
+2. Build local: copiar o projeto para `C:\Users\10088132\va` (robocopy sem `.git`, `.expo` e a pasta `android`),
+   `npx expo prebuild --platform android --clean` e `android\gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a`.
+3. A assinatura usa a **chave própria** (plugin `plugins/withReleaseSigning.js`), lida de
+   `%USERPROFILE%\.gradle\gradle.properties` (`VAIAAI_UPLOAD_*`). A chave fica em `C:\Users\10088132\VaiaAi-chave`,
+   **fora do repositório**. Nunca commitar a chave nem as senhas (o check:secrets bloqueia). Sem a chave, não há
+   como atualizar o app instalado: nunca gerar outra.
+4. Publicar no GitHub Releases com a tag `vX.Y.Z` e o arquivo `VaiaAi-X.Y.Z.apk`.
+5. Atualizar `release/android.json` (versionCode, versionName, url, notes; `minVersionCode` só para correção
+   obrigatória). O app lê esse arquivo e mostra "Nova versão disponível" (`src/components/UpdatePrompt.tsx`).

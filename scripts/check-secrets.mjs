@@ -17,6 +17,7 @@ const PATTERNS = [
   [/sk_(live|test)_[A-Za-z0-9]{16,}/, 'chave secreta do Stripe'],
   [/-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----/, 'chave privada'],
   [/EXPO_TOKEN\s*=\s*\S{10,}/, 'token do Expo'],
+  [/VAIAAI_UPLOAD_(STORE|KEY)_PASSWORD\s*=\s*[A-Za-z0-9!@#$%^&*_+-]{8,}/, 'senha da chave de assinatura do app'],
 ];
 
 // Arquivos versionados + os que estão para entrar no commit
@@ -26,6 +27,13 @@ const files = execSync('git ls-files --cached --others --exclude-standard', { en
   .filter((f) => f !== 'scripts/check-secrets.mjs' && f !== 'SEGURANCA.md');
 
 let found = 0;
+// Arquivos de chave de assinatura nunca podem entrar no repositório
+for (const f of files) {
+  if (/\.(keystore|jks|p12|pem|key)$/i.test(f) && !/debug\.keystore$/.test(f)) {
+    found++;
+    console.log(`PERIGO  ${f}  arquivo de chave (assinatura do app ou certificado)`);
+  }
+}
 for (const f of files) {
   let text;
   try {

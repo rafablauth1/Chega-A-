@@ -12,6 +12,7 @@ import { isCloudEnabled, supabase } from '@/lib/supabase';
 import { colors, fonts, positionColors } from '@/theme';
 import type { Game, Player } from '@/types';
 import { achievementsFor } from '@/utils/achievements';
+import { installedVersionCode, installedVersionName } from '@/utils/appUpdate';
 import { exportMyData } from '@/people';
 import { deleteMyAccount } from '@/utils/account';
 import { confirm, notify } from '@/utils/confirm';
@@ -263,6 +264,9 @@ export default function MeScreen() {
         onPress={askDelete}
         style={{ marginTop: 8 }}
       />
+      <Text style={[text.muted, { textAlign: 'center', marginTop: 16, fontSize: 12 }]}>
+        Vaia Aí {installedVersionName()} ({installedVersionCode()})
+      </Text>
     </Screen>
   );
 }

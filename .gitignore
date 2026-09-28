@@ -39,3 +39,10 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Chave de assinatura e builds (nunca no Git)
+*.keystore
+!debug.keystore
+*.apk
+*.aab
+
