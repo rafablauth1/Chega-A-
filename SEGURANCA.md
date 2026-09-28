@@ -193,7 +193,7 @@ Também está em `TAREFAS_DO_DONO.md`.
   `updates/` e **assina o manifesto** com `updates-keys/private-key.pem` (só no PC do dono). O app tem o
   certificado (`certs/certificate.pem`) e **recusa atualização sem assinatura válida**. Assim, nem quem invadir
   o GitHub ou a função do Supabase consegue empurrar código para os celulares.
-- A função `app-updates` (Supabase) só repassa o manifesto do GitHub com os cabeçalhos do protocolo; não tem segredo.
+- A função `rapid-endpoint` (Supabase; é a ponte das atualizações, NÃO apagar) só repassa o manifesto do GitHub com os cabeçalhos do protocolo; não tem segredo.
 - Aviso de APK novo (`release/android.json`) só aceita link do GitHub Releases oficial do repositório.
 - Mudança nativa (biblioteca, permissão, ícone) = APK novo com `version` maior; as atualizações automáticas são
   separadas por versão (`runtimeVersion` = versão do app).

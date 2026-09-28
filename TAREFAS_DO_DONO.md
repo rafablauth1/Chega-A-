@@ -33,7 +33,8 @@ O app 1.1.0 em diante se atualiza sozinho pelo GitHub. Falta publicar a "ponte" 
    (https://raw.githubusercontent.com/rafablauth1/Chega-A-/main/supabase/functions/app-updates/index.ts) → **Deploy**.
 4. Na função, em **Details/Settings**: **desligar "Enforce JWT Verification"** → Save.
 5. Me avise: eu testo daqui.
-- [ ] Função `app-updates` publicada e com JWT desligado
+- [x] Função publicada: ficou com o nome **rapid-endpoint** (é ela a ponte; não apagar nem renomear)
+- [ ] Na função rapid-endpoint → Settings → desligar "Verify JWT" → Save
 
 ### 1.2 Guardar as chaves do app (MUITO importante)
 - [ ] Copie a pasta **C:\Users\10088132\VaiaAi-chave** inteira para o seu Google Drive pessoal ou um pendrive.

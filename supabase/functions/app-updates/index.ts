@@ -1,4 +1,4 @@
-// Função "app-updates": entrega as atualizações automáticas do app (expo-updates).
+// Função da ponte de atualizações (no painel ficou com o nome "rapid-endpoint"; não apagar): entrega as atualizações automáticas do app (expo-updates).
 //
 // As atualizações ficam NO GIT (pasta updates/ do repositório); esta função só busca o manifesto no
 // GitHub e devolve com os cabeçalhos que o app exige (o GitHub sozinho não manda esses cabeçalhos).
