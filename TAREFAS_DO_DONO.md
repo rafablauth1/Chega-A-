@@ -7,7 +7,7 @@ Marque `[x]` quando terminar e me avise. Ordem = prioridade.
 
 ## 🔴 Agora (para o que já está pronto funcionar)
 
-### 1. Rodar as migrações no Supabase ✅ (feito em 28/09, conferido)
+### 1. Rodar as migrações no Supabase (004 a 009 feitas em 28/09 ✅; falta a 010)
 Sem isso, excluir conta, comunidades, região e "Bora jogar?" dão erro no app.
 
 1. Entre em https://supabase.com/dashboard e abra o projeto **ycgaprsgshtfveajjkby**.
@@ -20,6 +20,7 @@ Sem isso, excluir conta, comunidades, região e "Bora jogar?" dão erro no app.
    - [x] `supabase/migrations/007_discovery.sql`: "Bora jogar?", match, "Falta gente!", bloquear e denunciar
    - [x] `supabase/migrations/008_chat.sql`: chat dentro do app
    - [x] `supabase/migrations/009_security.sql`: **segurança** (telefone e dados pessoais só para quem pode, limites anti-spam, baixar meus dados)
+   - [ ] `supabase/migrations/010_password_security.sql`: **senha** (data de nascimento na redefinição conferida pelo servidor, trava de troca de senha)
 5. Se alguma der erro, **pare** e me mande a mensagem de erro (print serve).
 
 > Eu confiro a escrita de todos os arquivos com o verificador do próprio Postgres (`npm run check:sql`), mas só rodando no seu Supabase dá para ter certeza de que funcionam.
@@ -58,7 +59,15 @@ O Google Play exige um link público para a política de privacidade e para a ex
 ## 🔴 Segurança das suas contas (faça uma vez, leva 20 min)
 Detalhes e o porquê em `SEGURANCA.md`. **Quem invadir uma dessas contas controla o app inteiro.**
 - [ ] **Verificação em duas etapas (2FA)** no **GitHub**, **Supabase**, **Google** (a da Play Store) e **Expo**.
-- [ ] Supabase → **Authentication → Providers → Email**: senha mínima **8** e exigir **letras e números** (o app já pede isso).
+- [ ] Supabase → **Authentication → Providers → Email** (ou *Sign In / Providers → Email*):
+  - **Minimum password length: 8**
+  - **Password requirements: Lowercase, uppercase letters, digits and symbols** (a opção mais forte)
+  - **Secure password change: ligado** e **Secure email change: ligado**
+  - **Email OTP Expiration: 900** (15 minutos) e **Email OTP Length: 6**
+- [ ] Supabase → **Authentication → Emails → Reset Password** (e-mail de "esqueci a senha"):
+  - Assunto: `Seu código do Vaia Aí: {{ .Token }}`
+  - Corpo: apague o que tem e cole o conteúdo de `supabase/templates/recovery.html`.
+  - **Sem isso, o e-mail chega com um link em vez do código e a redefinição não funciona no app.**
 - [ ] Supabase → **Authentication → Attack Protection**: ligar **CAPTCHA** com Cloudflare Turnstile (grátis) e me avisar, que eu ligo no app.
 - [ ] Supabase → **Advisors → Security Advisor**: rodar depois das migrações e me mandar um print do que aparecer.
 - [ ] Nunca mande para ninguém (nem para mim no chat) a chave **service_role / secret** do Supabase. A que eu uso é a *publishable*, que é pública.

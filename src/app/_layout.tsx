@@ -37,9 +37,9 @@ export default function RootLayout() {
 }
 
 function App() {
-  const { ready, session } = useAuth();
+  const { ready, session, holdSession } = useAuth();
   // Sem Supabase configurado o app funciona como antes, sem login
-  const signedIn = !isCloudEnabled || !!session;
+  const signedIn = !isCloudEnabled || (!!session && !holdSession);
   const [hydrated, setHydrated] = useState(useStore.persist.hasHydrated());
   const [fontsLoaded] = useFonts({
     Barlow_400Regular,
@@ -102,9 +102,11 @@ function App() {
           <Stack.Screen name="call-new" options={{ title: 'Publicar vaga' }} />
           <Stack.Screen name="bora" options={{ title: 'Bora jogar?' }} />
           <Stack.Screen name="chat/[id]" options={{ title: 'Conversa' }} />
+          <Stack.Screen name="account-security" options={{ title: 'Senha e segurança' }} />
         </Stack.Protected>
         <Stack.Protected guard={!signedIn}>
           <Stack.Screen name="login" options={{ headerShown: false }} />
+          <Stack.Screen name="reset-password" options={{ title: 'Esqueci minha senha' }} />
         </Stack.Protected>
         {/* Privacidade e termos abrem com ou sem login */}
         <Stack.Screen name="legal/[doc]" options={{ title: 'Documento' }} />

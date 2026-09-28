@@ -229,6 +229,14 @@ export default function MeScreen() {
       <Button title="Sair da conta" icon="log-out" variant="danger" onPress={signOut} style={{ marginTop: 24 }} />
 
       <SectionTitle>Privacidade</SectionTitle>
+      <Card onPress={() => router.push('/account-security')} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Ionicons name="key-outline" size={20} color={colors.muted} />
+        <View style={{ flex: 1 }}>
+          <Text style={text.body}>Senha e segurança</Text>
+          <Text style={text.muted}>Trocar senha, sair de todos os aparelhos</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+      </Card>
       <Card onPress={() => router.push('/legal/privacidade')} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <Ionicons name="shield-checkmark-outline" size={20} color={colors.muted} />
         <Text style={[text.body, { flex: 1 }]}>Política de Privacidade</Text>

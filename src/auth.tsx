@@ -65,6 +65,9 @@ interface AuthState {
   activeGroup: GroupSummary | null;
   setActiveGroup: (id: string) => void;
   refresh: () => Promise<void>;
+  /** true durante "Esqueci minha senha": a sessão aberta pelo código não entra no app até a senha nova ser salva */
+  holdSession: boolean;
+  setHoldSession: (v: boolean) => void;
 }
 
 const AuthContext = createContext<AuthState>({
@@ -75,6 +78,8 @@ const AuthContext = createContext<AuthState>({
   activeGroup: null,
   setActiveGroup: () => {},
   refresh: async () => {},
+  holdSession: false,
+  setHoldSession: () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -107,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [groups, setGroups] = useState<GroupSummary[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [holdSession, setHoldSession] = useState(false);
 
   const load = useCallback(async (s: Session | null) => {
     if (!s) {
@@ -164,7 +170,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [activeId, ready]);
 
   return (
-    <AuthContext.Provider value={{ ready, session, profile, groups, activeGroup, setActiveGroup: setActiveId, refresh }}>
+    <AuthContext.Provider value={{ ready, session, profile, groups, activeGroup, setActiveGroup: setActiveId, refresh, holdSession, setHoldSession }}>
       {children}
     </AuthContext.Provider>
   );

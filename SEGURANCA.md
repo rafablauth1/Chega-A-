@@ -39,10 +39,40 @@ pessoa ou sessão que mexer no projeto: **toda mudança nova precisa respeitar a
 ---
 
 ## 3. Senhas e login
-- Supabase Auth guarda só o **hash** (bcrypt). Ninguém da equipe consegue ver senha.
-- App exige **8+ caracteres com letras e números** no cadastro. ⚠️ Configure o mesmo no painel (seção 10).
+
+### Onde mudar as regras (fácil de alterar)
+| Regra | Onde |
+|---|---|
+| Tamanho mínimo, maiúscula, minúscula, número, caractere especial, bloquear senha vazada, bloquear nome/e-mail na senha | `src/config/security.ts` (app) **e** Supabase → Authentication → Providers → Email (servidor). Os dois devem bater |
+| Data de nascimento no cadastro e idade mínima | `src/config/security.ts` → `signup` |
+| Pedir data de nascimento na redefinição | Supabase → Table Editor → `security_settings.reset_requires_birthdate` (o app lê de lá; muda sem gerar APK novo) |
+| Tentativas erradas de data de nascimento por dia | `security_settings.reset_max_attempts` |
+| Tentativas de login antes de travar e o tempo de espera | `src/config/security.ts` → `login` |
+| Derrubar outros aparelhos ao trocar senha | `src/config/security.ts` → `session` |
+| Texto do e-mail com o código | `supabase/templates/recovery.html` (colar no painel) |
+
+### Como funciona
+- **Guarda:** o Supabase Auth guarda só o **hash** (bcrypt). Ninguém da equipe consegue ver senha.
+- **Regras (padrão):** 8+ caracteres, maiúscula, minúscula, número e caractere especial. Senhas comuns ("Senha123!",
+  "@Brasil2026") e com o nome/e-mail da pessoa são recusadas. Senhas que **já vazaram** em outros sites também
+  (base Have I Been Pwned por k-anonimato: só 5 caracteres do hash SHA-1 saem do celular; a senha nunca).
+- **Login:** mensagem genérica ("e-mail ou senha incorretos"); depois de 5 erros seguidos o celular espera 30 s,
+  60 s, 120 s... O servidor tem o próprio limite. Botão de mostrar/esconder senha.
+- **Esqueci minha senha (código, não link):**
+  1. E-mail + data de nascimento → o Supabase manda um **código** para o e-mail. A resposta é igual exista a conta
+     ou não (ninguém descobre quem tem conta) e a data **não** é conferida nesse passo (ninguém descobre a data de
+     nascimento de um e-mail sem acesso à caixa de entrada).
+  2. Código + senha nova → o app entra com o código **sem liberar o app** (`holdSession`), o servidor confere a
+     data (`verify_reset_identity`, 5 erros por dia e bloqueia) e só então a senha é trocada.
+  3. **O banco recusa** a troca de senha de quem tem redefinição aberta e não passou pela data de nascimento
+     (gatilho `guard_password_change` em `auth.users`), mesmo que alguém chame a API direto.
+  4. Senha trocada → todos os outros aparelhos são desconectados.
+- **Trocar senha logado** (Meu perfil → Senha e segurança): pede a senha atual, o servidor confere pelo próprio
+  token que ela foi digitada há menos de 5 minutos (`password_change_ticket`), troca e derruba os outros aparelhos.
+- **Sair de todos os aparelhos:** mesma tela.
 - Sessão cifrada no celular (`src/lib/secureStorage.ts`); renovação automática só com o app aberto.
-- Próximos passos: confirmação de e-mail (precisa de SMTP próprio), CAPTCHA no cadastro, login Google/Apple.
+- Próximos passos: verificação em duas etapas opcional para usuários (app autenticador), confirmação de e-mail com
+  SMTP próprio, CAPTCHA, login Google/Apple, exigir senha para mudar a data de nascimento no perfil.
 
 ## 4. No celular
 - Sessão: cifrada (AES-256 + cofre do sistema).
@@ -145,7 +175,9 @@ grupo, jogador, valor em centavos, vencimento, status), `payments` (tentativas: 
 
 ## 10. Checklist de configuração (dono, no painel)
 Também está em `TAREFAS_DO_DONO.md`.
-- [ ] Supabase → Authentication → Providers → Email: **mínimo 8 caracteres**, exigir letras e números.
+- [ ] Supabase → Authentication → Providers → Email: **mínimo 8 caracteres**, Password requirements = **letras
+      minúsculas, maiúsculas, números e símbolos**; ligar **Secure password change** e **Secure email change**.
+- [ ] Supabase → Authentication → Emails → **Reset Password**: colar `supabase/templates/recovery.html`.
 - [ ] Supabase → Authentication → Attack Protection: **CAPTCHA** (Cloudflare Turnstile é grátis). Avise para eu ligar no app.
 - [ ] Supabase → Authentication → Attack Protection: **proteção contra senhas vazadas** (se disponível no seu plano).
 - [ ] Supabase → Advisors → **Security Advisor**: rodar e me mandar o que aparecer.

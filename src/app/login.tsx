@@ -1,11 +1,16 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Text, View } from 'react-native';
+import { birthToIso, PasswordChecklist, PasswordField } from '@/components/PasswordField';
 import { Button, Input, Screen, Segmented, text } from '@/components/ui';
-import { authErrorMessage } from '@/auth';
+import { ageOf, authErrorMessage } from '@/auth';
+import { clearLoginLock, loginLockRemaining, registerLoginFailure } from '@/accountSecurity';
+import { SECURITY } from '@/config/security';
 import { supabase } from '@/lib/supabase';
 import { colors, fonts } from '@/theme';
 import { notify } from '@/utils/confirm';
+import { maskDate } from '@/utils/format';
+import { validateNewPassword } from '@/utils/password';
 
 type Mode = 'signin' | 'signup';
 
@@ -13,36 +18,74 @@ export default function LoginScreen() {
   const [mode, setMode] = useState<Mode>('signin');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [birth, setBirth] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
   const [busy, setBusy] = useState(false);
+  const [lock, setLock] = useState(0);
 
-  const submit = async () => {
-    const mail = email.trim().toLowerCase();
+  // Trava depois de muitas senhas erradas seguidas (config em src/config/security.ts)
+  useEffect(() => {
+    loginLockRemaining().then(setLock);
+  }, []);
+  useEffect(() => {
+    if (lock <= 0) return;
+    const t = setTimeout(() => setLock((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [lock]);
+
+  const mail = email.trim().toLowerCase();
+
+  const signIn = async () => {
     if (!mail || !password) return notify('Preencha e-mail e senha');
-    if (mode === 'signup' && !name.trim()) return notify('Informe seu nome');
-    if (mode === 'signup' && (password.length < 8 || !/[A-Za-z]/.test(password) || !/d/.test(password)))
-      return notify('Senha fraca', 'Use pelo menos 8 caracteres, com letras e números.');
+    const wait = await loginLockRemaining();
+    if (wait > 0) return setLock(wait);
     setBusy(true);
-    const { data, error } =
-      mode === 'signin'
-        ? await supabase.auth.signInWithPassword({ email: mail, password })
-        : await supabase.auth.signUp({ email: mail, password, options: { data: { name: name.trim() } } });
+    const { error } = await supabase.auth.signInWithPassword({ email: mail, password });
     setBusy(false);
-    if (error) return notify('Não deu certo', authErrorMessage(error.message));
-    if (mode === 'signup' && !data.session) {
-      notify('Conta criada!', 'Enviamos um link de confirmação para o seu e-mail. Depois é só entrar.');
-      setMode('signin');
+    if (error) {
+      if (/invalid login credentials/i.test(error.message)) {
+        const locked = await registerLoginFailure();
+        if (locked) setLock(locked);
+      }
+      return notify('Não deu certo', authErrorMessage(error.message));
     }
+    await clearLoginLock();
     // Com sessão, o layout raiz troca para o app sozinho
   };
 
-  const resetPassword = async () => {
-    const mail = email.trim().toLowerCase();
-    if (!mail) return notify('Digite seu e-mail no campo acima');
-    const { error } = await supabase.auth.resetPasswordForEmail(mail);
+  const signUp = async () => {
+    if (!name.trim()) return notify('Informe seu nome');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) return notify('E-mail inválido', 'Confira o e-mail.');
+    const birthIso = birth ? birthToIso(birth) : null;
+    if (SECURITY.signup.requireBirthDate && !birthIso)
+      return notify('Data de nascimento', 'Use o formato dd/mm/aaaa. Ela também serve para recuperar sua senha.');
+    if (birthIso && (ageOf(birthIso) ?? 0) < SECURITY.signup.minAge)
+      return notify('Idade mínima', `O app é para quem tem ${SECURITY.signup.minAge} anos ou mais.`);
+    if (password !== confirmPw) return notify('Senhas diferentes', 'A confirmação não bate com a senha.');
+    setBusy(true);
+    const problem = await validateNewPassword(password, { email: mail, name });
+    if (problem) {
+      setBusy(false);
+      return notify('Senha fraca', problem);
+    }
+    const { data, error } = await supabase.auth.signUp({
+      email: mail,
+      password,
+      options: { data: { name: name.trim(), birth_date: birthIso } },
+    });
+    setBusy(false);
     if (error) return notify('Não deu certo', authErrorMessage(error.message));
-    notify('Pronto', 'Se o e-mail tiver conta, você vai receber um link para criar uma nova senha.');
+    if (!data.session) {
+      notify('Conta criada!', 'Enviamos um link de confirmação para o seu e-mail. Depois é só entrar.');
+      setMode('signin');
+      setPassword('');
+      setConfirmPw('');
+    }
   };
+
+  const submit = mode === 'signin' ? signIn : signUp;
+  const locked = mode === 'signin' && lock > 0;
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -75,24 +118,54 @@ export default function LoginScreen() {
           autoComplete="email"
           keyboardType="email-address"
         />
-        <Input
+        {mode === 'signup' && (
+          <Input
+            label={SECURITY.signup.requireBirthDate ? 'Data de nascimento' : 'Data de nascimento (opcional)'}
+            value={birth}
+            onChangeText={(v) => setBirth(maskDate(v))}
+            placeholder="dd/mm/aaaa"
+            keyboardType="number-pad"
+            maxLength={10}
+          />
+        )}
+        <PasswordField
           label="Senha"
           value={password}
           onChangeText={setPassword}
-          placeholder={mode === 'signup' ? 'Mínimo 8, com letras e números' : 'Sua senha'}
-          secureTextEntry
+          placeholder={mode === 'signup' ? 'Crie uma senha forte' : 'Sua senha'}
           autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-          onSubmitEditing={submit}
+          textContentType={mode === 'signup' ? 'newPassword' : 'password'}
+          onSubmitEditing={mode === 'signin' ? submit : undefined}
         />
+        {mode === 'signup' && (
+          <>
+            <PasswordChecklist password={password} email={mail} name={name} />
+            <PasswordField
+              label="Repita a senha"
+              value={confirmPw}
+              onChangeText={setConfirmPw}
+              autoComplete="new-password"
+              textContentType="newPassword"
+              onSubmitEditing={submit}
+            />
+          </>
+        )}
 
         <Button
-          title={busy ? 'Aguarde...' : mode === 'signin' ? 'Entrar' : 'Criar conta'}
+          title={
+            busy ? 'Aguarde...' : locked ? `Muitas tentativas. Aguarde ${lock}s` : mode === 'signin' ? 'Entrar' : 'Criar conta'
+          }
           icon={mode === 'signin' ? 'log-in' : 'person-add'}
           onPress={submit}
-          disabled={busy}
+          disabled={busy || locked}
         />
         {mode === 'signin' && (
-          <Button title="Esqueci minha senha" variant="ghost" onPress={resetPassword} style={{ marginTop: 8 }} />
+          <Button
+            title="Esqueci minha senha"
+            variant="ghost"
+            onPress={() => router.push({ pathname: '/reset-password', params: { email: mail } })}
+            style={{ marginTop: 8 }}
+          />
         )}
 
         <Text style={[text.muted, { textAlign: 'center', marginTop: 24, lineHeight: 20 }]}>

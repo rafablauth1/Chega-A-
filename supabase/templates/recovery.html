@@ -1,0 +1,18 @@
+<!--
+  E-mail de "Esqueci minha senha" com CÓDIGO (o app não usa link).
+  Onde colar: Supabase → Authentication → Emails (Email Templates) → Reset Password.
+  Assunto sugerido: Seu código do Vaia Aí: {{ .Token }}
+-->
+<div style="font-family: Arial, Helvetica, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #0F2419;">
+  <h2 style="margin: 0 0 8px;">Vaia Aí ⚽</h2>
+  <p>Recebemos um pedido para criar uma senha nova para <strong>{{ .Email }}</strong>.</p>
+  <p>Digite este código no app:</p>
+  <p style="font-size: 32px; font-weight: bold; letter-spacing: 8px; background: #F2F5EE; padding: 16px; text-align: center; border-radius: 12px;">
+    {{ .Token }}
+  </p>
+  <p>O código vale por pouco tempo e só funciona uma vez. O app também vai pedir a sua data de nascimento.</p>
+  <p style="color: #555;">
+    <strong>Não foi você?</strong> Ignore este e-mail: sua senha continua a mesma.
+    Nunca passe este código para ninguém. A equipe do Vaia Aí nunca pede código nem senha.
+  </p>
+</div>
