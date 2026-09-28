@@ -46,3 +46,6 @@ yarn-error.*
 *.apk
 *.aab
 
+# Certificado PUBLICO das atualizacoes automaticas (a chave privada fica fora do repositorio)
+!certs/certificate.pem
+
