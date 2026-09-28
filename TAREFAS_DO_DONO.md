@@ -25,6 +25,21 @@ Sem isso, excluir conta, comunidades, região e "Bora jogar?" dão erro no app.
 
 > Eu confiro a escrita de todos os arquivos com o verificador do próprio Postgres (`npm run check:sql`), mas só rodando no seu Supabase dá para ter certeza de que funcionam.
 
+### 1.1 Ligar as atualizações automáticas (uma vez só, 5 min)
+O app 1.1.0 em diante se atualiza sozinho pelo GitHub. Falta publicar a "ponte" no Supabase:
+1. Supabase → **Edge Functions** → **Deploy a new function** → **Via Editor**.
+2. Nome: `app-updates` (exatamente assim).
+3. Apague o exemplo e cole o conteúdo de `supabase/functions/app-updates/index.ts`
+   (https://raw.githubusercontent.com/rafablauth1/Chega-A-/main/supabase/functions/app-updates/index.ts) → **Deploy**.
+4. Na função, em **Details/Settings**: **desligar "Enforce JWT Verification"** → Save.
+5. Me avise: eu testo daqui.
+- [ ] Função `app-updates` publicada e com JWT desligado
+
+### 1.2 Guardar as chaves do app (MUITO importante)
+- [ ] Copie a pasta **C:\Users\10088132\VaiaAi-chave** inteira para o seu Google Drive pessoal ou um pendrive.
+  Ela tem a chave que assina o APK e a que assina as atualizações. **Perdeu = nunca mais atualiza o app.**
+  Leia o `LEIA-ME.txt` que está dentro.
+
 ### 2. Instalar o APK novo e testar
 O APK que você tem é antigo: não tem visual novo, localização, comunidades nem "Bora".
 - [ ] Me peça **"gera o APK"**. Eu compilo aqui no PC (demora uns 15 min) e deixo em `Desktop\Vaia Aí\`.

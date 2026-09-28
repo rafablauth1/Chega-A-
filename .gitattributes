@@ -1,0 +1,3 @@
+# Atualizações automáticas: bytes exatos (o hash e a assinatura dependem disso)
+updates/** -text
+certs/** -text

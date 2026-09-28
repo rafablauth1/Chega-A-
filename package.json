@@ -24,6 +24,7 @@
     "expo-splash-screen": "~57.0.9",
     "expo-status-bar": "~57.0.1",
     "expo-system-ui": "~57.0.4",
+    "expo-updates": "~57.0.23",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.3",
@@ -52,6 +53,7 @@
     "legal": "node scripts/build-legal.ts",
     "check:sql": "node scripts/check-sql.mjs",
     "check:secrets": "node scripts/check-secrets.mjs",
+    "update:publish": "node scripts/publish-update.mjs",
     "prepare": "git config core.hooksPath .githooks || true"
   },
   "private": true

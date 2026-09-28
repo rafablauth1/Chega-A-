@@ -15,7 +15,7 @@ const PATTERNS = [
   [/APP_USR-[0-9a-f-]{20,}|TEST-[0-9]{10,}-[0-9]{6}-[0-9a-f]{32}/, 'token do Mercado Pago'],
   [/\$aact_[A-Za-z0-9]{20,}/, 'chave do Asaas'],
   [/sk_(live|test)_[A-Za-z0-9]{16,}/, 'chave secreta do Stripe'],
-  [/-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----/, 'chave privada'],
+  [/-----BEGIN (RSA |EC |OPENSSH |ENCRYPTED )?PRIVATE KEY-----/, 'chave privada'],
   [/EXPO_TOKEN\s*=\s*\S{10,}/, 'token do Expo'],
   [/VAIAAI_UPLOAD_(STORE|KEY)_PASSWORD\s*=\s*[A-Za-z0-9!@#$%^&*_+-]{8,}/, 'senha da chave de assinatura do app'],
 ];
@@ -29,7 +29,8 @@ const files = execSync('git ls-files --cached --others --exclude-standard', { en
 let found = 0;
 // Arquivos de chave de assinatura nunca podem entrar no repositório
 for (const f of files) {
-  if (/\.(keystore|jks|p12|pem|key)$/i.test(f) && !/debug\.keystore$/.test(f)) {
+  // certs/certificate.pem é o certificado PÚBLICO das atualizações (pode e deve ir para o repositório)
+  if (/\.(keystore|jks|p12|pem|key)$/i.test(f) && !/debug\.keystore$/.test(f) && f !== 'certs/certificate.pem') {
     found++;
     console.log(`PERIGO  ${f}  arquivo de chave (assinatura do app ou certificado)`);
   }
