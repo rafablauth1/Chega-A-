@@ -104,8 +104,15 @@ Detalhes e o porquê em `SEGURANCA.md`. **Quem invadir uma dessas contas control
 ### 9. Apple / iPhone (opcional, US$ 99 por ano)
 - [ ] Só se quiser o app no iPhone: conta em https://developer.apple.com/programs/. **Não precisa de Mac**: eu gero o app do iPhone pela nuvem (EAS).
 
-### 10. E-mail do login (quando tiver o domínio)
-- [ ] Conta grátis no https://resend.com (3 mil e-mails por mês) para os e-mails de confirmação e de "esqueci a senha". Eu configuro no Supabase com você.
+### 10. E-mail próprio (SMTP): OBRIGATÓRIO antes de ter usuários de verdade
+O e-mail padrão do Supabase é só para teste: **só entrega para os e-mails da sua equipe no Supabase**, manda poucos
+por hora e não deixa mudar o texto. Sem SMTP próprio, **nenhum usuário recebe o e-mail de "esqueci a senha"**
+nem o de confirmação de cadastro.
+- [ ] Criar um Gmail só do app (ex.: vaiaai.app@gmail.com).
+- [ ] Criar conta grátis no https://www.brevo.com com esse Gmail (300 e-mails por dia).
+- [ ] Me avisar: eu passo os 5 campos para colar em Supabase → Authentication → SMTP Settings.
+- [ ] Depois: colar o modelo `supabase/templates/recovery.html` em Authentication → Emails → Reset Password (código de 6 números).
+- Alternativa quando tiver domínio (ex.: vaiaai.com.br): https://resend.com (3 mil por mês, e-mail @vaiaai.com.br).
 
 ---
 
