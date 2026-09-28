@@ -7,19 +7,19 @@ Marque `[x]` quando terminar e me avise. Ordem = prioridade.
 
 ## 🔴 Agora (para o que já está pronto funcionar)
 
-### 1. Rodar as migrações no Supabase
+### 1. Rodar as migrações no Supabase ✅ (feito em 28/09, conferido)
 Sem isso, excluir conta, comunidades, região e "Bora jogar?" dão erro no app.
 
 1. Entre em https://supabase.com/dashboard e abra o projeto **ycgaprsgshtfveajjkby**.
 2. Menu da esquerda: **SQL Editor** → **New query**.
 3. Abra o arquivo no PC, copie **tudo**, cole e clique em **Run**. Deve aparecer *"Success. No rows returned"*.
 4. Uma de cada vez, **nesta ordem**:
-   - [ ] `supabase/migrations/004_delete_account.sql`: excluir conta
-   - [ ] `supabase/migrations/005_communities.sql`: comunidades
-   - [ ] `supabase/migrations/006_region.sql`: bairro e posição aproximada
-   - [ ] `supabase/migrations/007_discovery.sql`: "Bora jogar?", match, "Falta gente!", bloquear e denunciar
-   - [ ] `supabase/migrations/008_chat.sql`: chat dentro do app
-   - [ ] `supabase/migrations/009_security.sql`: **segurança** (telefone e dados pessoais só para quem pode, limites anti-spam, baixar meus dados)
+   - [x] `supabase/migrations/004_delete_account.sql`: excluir conta
+   - [x] `supabase/migrations/005_communities.sql`: comunidades
+   - [x] `supabase/migrations/006_region.sql`: bairro e posição aproximada
+   - [x] `supabase/migrations/007_discovery.sql`: "Bora jogar?", match, "Falta gente!", bloquear e denunciar
+   - [x] `supabase/migrations/008_chat.sql`: chat dentro do app
+   - [x] `supabase/migrations/009_security.sql`: **segurança** (telefone e dados pessoais só para quem pode, limites anti-spam, baixar meus dados)
 5. Se alguma der erro, **pare** e me mande a mensagem de erro (print serve).
 
 > Eu confiro a escrita de todos os arquivos com o verificador do próprio Postgres (`npm run check:sql`), mas só rodando no seu Supabase dá para ter certeza de que funcionam.
