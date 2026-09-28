@@ -8,7 +8,7 @@ import { useStore } from '@/store';
 import { colors, fonts } from '@/theme';
 import type { Game, Player } from '@/types';
 import { buildDemo } from '@/utils/demo';
-import { MONTHS_SHORT, formatGameDate, money, parseLocal, relativeDay, toLocalIso } from '@/utils/format';
+import { MONTHS_SHORT, formatGameDate, gameEndTime, money, parseLocal, relativeDay, toLocalIso } from '@/utils/format';
 import { matchScore, confirmedIds, waitlistIds } from '@/utils/stats';
 
 /** Mesma hora e dia da semana, na próxima data futura. */
@@ -126,6 +126,10 @@ function NextGame({ game, players }: { game: Game; players: Player[] }) {
 
       <Text style={styles.heroDay}>{relativeDay(game.date)}</Text>
       <Text style={styles.heroTime}>{hh}</Text>
+      <Text style={[text.muted, { fontSize: 15, marginBottom: 2 }]}>
+        até {gameEndTime(game)}
+        {game.matchMinutes ? ` · partidas de ${game.matchMinutes} min` : ''}
+      </Text>
       {!!game.location && (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 2 }}>
           <Ionicons name="location" size={14} color={colors.muted} />

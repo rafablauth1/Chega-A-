@@ -22,6 +22,7 @@ Sem isso, excluir conta, comunidades, região e "Bora jogar?" dão erro no app.
    - [x] `supabase/migrations/009_security.sql`: **segurança** (telefone e dados pessoais só para quem pode, limites anti-spam, baixar meus dados)
    - [x] `supabase/migrations/010_password_security.sql`: **senha** (data de nascimento na redefinição conferida pelo servidor, trava de troca de senha)
    - [ ] `supabase/migrations/011_match_votes.sql`: **avaliação da galera** estilo Cartola (encerrar jogo, 24 h para votar, voto secreto)
+   - [ ] `supabase/migrations/012_court_time_and_roles.sql`: **horário da quadra** (início/fim, duração da partida) e **só o dono mexe em admin**
 5. Se alguma der erro, **pare** e me mande a mensagem de erro (print serve).
 
 > Eu confiro a escrita de todos os arquivos com o verificador do próprio Postgres (`npm run check:sql`), mas só rodando no seu Supabase dá para ter certeza de que funcionam.

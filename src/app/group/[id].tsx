@@ -133,7 +133,8 @@ export default function GroupScreen() {
       {members.map((m) => {
         const name = m.profile?.nickname || m.profile?.name || 'Jogador';
         const isMe = m.user_id === session?.user.id;
-        const editable = canManage && m.role !== 'owner' && !isMe;
+        // Dono mexe em todos (menos nele mesmo); admin só em jogador comum. Dar/tirar admin: só o dono.
+        const editable = !isMe && m.role !== 'owner' && (myRole === 'owner' || (myRole === 'admin' && m.role === 'player'));
         return (
           <Card key={m.user_id}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -153,11 +154,13 @@ export default function GroupScreen() {
             </View>
             {editable && (
               <View style={{ flexDirection: 'row', gap: 16, marginTop: 10, flexWrap: 'wrap' }}>
-                <Action
-                  icon={m.role === 'admin' ? 'shield-outline' : 'shield-checkmark'}
-                  label={m.role === 'admin' ? 'Tirar admin' : 'Tornar admin'}
-                  onPress={() => updateMember(m.user_id, { role: m.role === 'admin' ? 'player' : 'admin' })}
-                />
+                {myRole === 'owner' && (
+                  <Action
+                    icon={m.role === 'admin' ? 'shield-outline' : 'shield-checkmark'}
+                    label={m.role === 'admin' ? 'Tirar admin' : 'Tornar admin'}
+                    onPress={() => updateMember(m.user_id, { role: m.role === 'admin' ? 'player' : 'admin' })}
+                  />
+                )}
                 <Action
                   icon="swap-horizontal"
                   label={m.type === 'mensalista' ? 'Virar avulso' : 'Virar mensalista'}

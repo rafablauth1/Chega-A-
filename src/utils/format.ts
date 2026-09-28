@@ -52,6 +52,37 @@ export const formatGameDate = (iso: string) => {
   return `${WEEKDAYS[d.getDay()]}, ${pad(d.getDate())}/${pad(d.getMonth() + 1)} às ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
+/** Duração padrão de um horário de quadra */
+export const DEFAULT_COURT_MINUTES = 60;
+
+const toMinutes = (hhmm: string) => {
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + m;
+};
+
+/** Hora de fim da quadra (HH:mm): a escolhida ou 60 min depois do início. */
+export const gameEndTime = (g: { date: string; endTime?: string }) => {
+  if (g.endTime && /^\d{2}:\d{2}$/.test(g.endTime)) return g.endTime;
+  const d = parseLocal(g.date);
+  d.setMinutes(d.getMinutes() + DEFAULT_COURT_MINUTES);
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+/** Minutos de quadra (atravessa a meia-noite: 23:00 às 00:30 = 90). */
+export const courtMinutes = (start: string, end: string) => {
+  const diff = toMinutes(end) - toMinutes(start);
+  return diff > 0 ? diff : diff + 24 * 60;
+};
+
+/** "20:00–21:00" */
+export const gameTimeRange = (g: { date: string; endTime?: string }) => `${g.date.slice(11, 16)}–${gameEndTime(g)}`;
+
+/** "Seg, 29/09 · 20:00–21:00" */
+export const formatGameSlot = (g: { date: string; endTime?: string }) => {
+  const d = parseLocal(g.date);
+  return `${WEEKDAYS[d.getDay()]}, ${pad(d.getDate())}/${pad(d.getMonth() + 1)} · ${gameTimeRange(g)}`;
+};
+
 export const formatShortDate = (iso: string) => {
   const d = parseLocal(iso);
   return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;

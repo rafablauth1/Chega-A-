@@ -55,8 +55,12 @@ export interface Match {
 
 export interface Game {
   id: string;
-  /** Data/hora local no formato YYYY-MM-DDTHH:mm */
+  /** Data/hora local de INÍCIO da quadra, no formato YYYY-MM-DDTHH:mm */
   date: string;
+  /** Hora de FIM da quadra (HH:mm). Sem valor = 60 min depois do início. */
+  endTime?: string;
+  /** Duração de cada partida em minutos (ex.: 3 partidas de 20 min numa hora de quadra) */
+  matchMinutes?: number;
   location: string;
   pricePerPlayer: number;
   playersPerTeam: number;

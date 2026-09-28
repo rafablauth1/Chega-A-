@@ -25,7 +25,7 @@ import { useStore } from '@/store';
 import { colors, fonts, positionColors, teamColors } from '@/theme';
 import type { Game, Player } from '@/types';
 import { confirm, notify } from '@/utils/confirm';
-import { formatGameDate, formatShortDate, money, monthKey, parseLocal } from '@/utils/format';
+import { formatGameDate, formatShortDate, gameTimeRange, money, monthKey, parseLocal } from '@/utils/format';
 import { PixCard } from '@/components/PixCard';
 import { displayName, nextPair, teamName } from '@/utils/names';
 import { buildRatingMap, scoreColor } from '@/utils/rating';
@@ -76,6 +76,7 @@ export default function GameDetailScreen() {
   const games = useStore((s) => s.games);
   const [tab, setTab] = useState<Tab>(TABS.some((t) => t.key === initialTab) ? initialTab! : 'lista');
   const canManage = useCanManage();
+  const defaultMatchMinutes = useStore((s) => s.settings.defaultMatchMinutes);
 
   const rating = useMemo(() => buildRatingMap(players, games), [players, games]);
   const byId = useMemo(() => Object.fromEntries(players.map((p) => [p.id, p])), [players]);
@@ -104,6 +105,12 @@ export default function GameDetailScreen() {
             : undefined,
         }}
       />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+        <Ionicons name="time-outline" size={15} color={colors.muted} />
+        <Text style={text.muted}>
+          Quadra {gameTimeRange(game)} · partidas de {game.matchMinutes ?? defaultMatchMinutes} min
+        </Text>
+      </View>
       {(!!game.location || !!game.notes) && (
         <View style={{ marginBottom: 12, gap: 4 }}>
           {!!game.location && (
@@ -474,7 +481,8 @@ function PlayerRow({ player, selected, onPress }: { player?: Player; selected: b
 function Scoreboard({ game, byId, goTeams }: { game: Game; byId: Record<string, Player>; goTeams: () => void }) {
   const addMatch = useStore((s) => s.addMatch);
   const canManage = useCanManage();
-  const minutes = useStore((s) => s.settings.defaultMatchMinutes);
+  const defaultMinutes = useStore((s) => s.settings.defaultMatchMinutes);
+  const minutes = game.matchMinutes ?? defaultMinutes;
   const groupName = useStore((s) => s.settings.groupName);
   const teams = game.teams ?? [];
   const suggested = nextPair(game);

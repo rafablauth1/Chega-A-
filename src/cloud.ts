@@ -38,6 +38,21 @@ const apply = (data: Data) => {
 
 /* ------------------------------ Leitura ------------------------------ */
 
+/** Quais colunas novas de `games` o servidor já tem (011: closed_at; 012: end_time e match_minutes). */
+let gameCols: { closed: boolean; court: boolean } | null = null;
+
+async function probeGameColumns() {
+  if (gameCols) return gameCols;
+  const [a, b] = await Promise.all([
+    supabase.from('games').select('closed_at').limit(1),
+    supabase.from('games').select('end_time, match_minutes').limit(1),
+  ]);
+  // Só guarda a resposta quando o servidor respondeu (sem internet, tenta de novo depois)
+  const answered = (e: { code?: string } | null) => !e || e.code === '42703' || e.code === 'PGRST204';
+  if (answered(a.error) && answered(b.error)) gameCols = { closed: !a.error, court: !b.error };
+  return gameCols;
+}
+
 const toGame = (g: any, attendees: string[]): Game => ({
   id: g.id,
   date: g.date,
@@ -54,6 +69,8 @@ const toGame = (g: any, attendees: string[]): Game => ({
   notes: g.notes ?? undefined,
   // Sem a migração 011 a coluna não existe: não inventa o campo (senão as gravações do jogo falhariam)
   ...('closed_at' in g ? { closedAt: g.closed_at } : {}),
+  ...(g.end_time ? { endTime: g.end_time } : {}),
+  ...(g.match_minutes ? { matchMinutes: g.match_minutes } : {}),
 });
 
 const attendeesByGame = (rows: { game_id: string; player_id: string }[] | null) => {
@@ -93,6 +110,7 @@ async function fetchGroup(gid: string): Promise<Data> {
     fetchPeople(ids).catch(() => []),
     fetchGuestPhones(gid),
     fetchVoteTotals(gid),
+    probeGameColumns(),
   ]);
   const profileOf: Record<string, any> = Object.fromEntries(profiles.map((p) => [p.id, p]));
 
@@ -175,8 +193,9 @@ const gameRow = (g: Game, gid: string) => ({
   paid: g.paid,
   ratings: g.ratings,
   notes: g.notes ?? null,
-  // Só manda closed_at quando o servidor já tem a coluna (migração 011); a hora oficial é a do servidor
-  ...(g.closedAt !== undefined ? { closed_at: g.closedAt } : {}),
+  // Colunas novas só vão quando o servidor já as tem (senão a gravação do jogo inteira falharia)
+  ...(gameCols?.closed && g.closedAt !== undefined ? { closed_at: g.closedAt } : {}),
+  ...(gameCols?.court ? { end_time: g.endTime ?? null, match_minutes: g.matchMinutes ?? null } : {}),
 });
 
 const guestRow = (p: Player, gid: string) => ({
