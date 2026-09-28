@@ -16,6 +16,9 @@ export const supabase = createClient(url || 'http://localhost', key || 'missing'
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
+    // PKCE: o link de "esqueci a senha" só vira login no MESMO celular que pediu (o segredo fica no cofre dele).
+    // Um app espião que capture o link não consegue usar.
+    flowType: 'pkce',
   },
 });
 

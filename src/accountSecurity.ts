@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Linking from 'expo-linking';
 import { SECURITY } from './config/security';
 import { supabase } from './lib/supabase';
 
@@ -17,9 +18,15 @@ export async function serverSecuritySettings(): Promise<ServerSecuritySettings> 
   return { reset_requires_birthdate: data?.reset_requires_birthdate ?? SECURITY.reset.askBirthDate };
 }
 
-/** Passo 1 de "Esqueci minha senha": manda o código. A resposta é sempre a mesma, exista a conta ou não. */
+/** Endereço que o link do e-mail abre: o próprio app (vaiaai://reset-password). Precisa estar em Redirect URLs no Supabase. */
+export const resetRedirectUrl = () => Linking.createURL('/reset-password');
+
+/**
+ * Passo 1 de "Esqueci minha senha": manda o e-mail (com link para o app e, se o modelo tiver, um código).
+ * A resposta é sempre a mesma, exista a conta ou não.
+ */
 export async function requestResetCode(email: string) {
-  const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase());
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo: resetRedirectUrl() });
   // Limite de envios é o único erro que vale mostrar; o resto não pode revelar se o e-mail tem conta
   if (error && /rate limit|security purposes/i.test(error.message)) throw error;
 }
@@ -27,16 +34,23 @@ export async function requestResetCode(email: string) {
 export type ResetResult = 'ok' | 'bad_code' | 'wrong_birth' | 'locked' | 'error';
 
 /**
- * Passo 2: código do e-mail + data de nascimento + senha nova.
- * Ordem: entra com o código → servidor confere a data → troca a senha → derruba os outros aparelhos.
+ * Passo 2: (código digitado OU link do e-mail) + data de nascimento + senha nova.
+ * Ordem: entra com o código/link → servidor confere a data → troca a senha → derruba os outros aparelhos.
  * Se a data não conferir, sai na hora (a sessão aberta pelo código não fica no celular).
  */
-export async function completeReset(input: { email: string; code: string; birth: string | null; password: string }): Promise<{
-  result: ResetResult;
-  message?: string;
-}> {
-  const email = input.email.trim().toLowerCase();
-  const { error: otpError } = await supabase.auth.verifyOtp({ email, token: input.code.trim(), type: 'recovery' });
+export async function completeReset(input: {
+  /** Código de 6 números digitado (modelo de e-mail com {{ .Token }}) */
+  otp?: { email: string; code: string };
+  /** Código que veio no link do e-mail (PKCE; só funciona no celular que pediu) */
+  linkCode?: string;
+  birth: string | null;
+  password: string;
+}): Promise<{ result: ResetResult; message?: string }> {
+  const { error: otpError } = input.linkCode
+    ? await supabase.auth.exchangeCodeForSession(input.linkCode)
+    : input.otp
+      ? await supabase.auth.verifyOtp({ email: input.otp.email.trim().toLowerCase(), token: input.otp.code.trim(), type: 'recovery' })
+      : { error: new Error('missing code') };
   if (otpError) return { result: 'bad_code', message: otpError.message };
 
   try {

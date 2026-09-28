@@ -64,10 +64,11 @@ Detalhes e o porquê em `SEGURANCA.md`. **Quem invadir uma dessas contas control
   - **Password requirements: Lowercase, uppercase letters, digits and symbols** (a opção mais forte)
   - **Secure password change: ligado** e **Secure email change: ligado**
   - **Email OTP Expiration: 900** (15 minutos) e **Email OTP Length: 6**
-- [ ] Supabase → **Authentication → Emails → Reset Password** (e-mail de "esqueci a senha"):
-  - Assunto: `Seu código do Vaia Aí: {{ .Token }}`
-  - Corpo: apague o que tem e cole o conteúdo de `supabase/templates/recovery.html`.
-  - **Sem isso, o e-mail chega com um link em vez do código e a redefinição não funciona no app.**
+- [ ] Supabase → **Authentication → URL Configuration → Redirect URLs** → **Add URL**: `vaiaai://**` → Save.
+  - **Sem isso, o link do e-mail de "esqueci a senha" não abre o app.**
+- [ ] (Depois, quando tiver e-mail próprio/SMTP; no servidor padrão o Supabase não deixa editar)
+  **Authentication → Emails → Reset Password**: assunto `Seu código do Vaia Aí: {{ .Token }}` e corpo
+  `supabase/templates/recovery.html`. Aí o e-mail passa a ter também um código de 6 números (o link continua valendo).
 - [ ] Supabase → **Authentication → Attack Protection**: ligar **CAPTCHA** com Cloudflare Turnstile (grátis) e me avisar, que eu ligo no app.
 - [ ] Supabase → **Advisors → Security Advisor**: rodar depois das migrações e me mandar um print do que aparecer.
 - [ ] Nunca mande para ninguém (nem para mim no chat) a chave **service_role / secret** do Supabase. A que eu uso é a *publishable*, que é pública.
