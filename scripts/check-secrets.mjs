@@ -24,7 +24,10 @@ const PATTERNS = [
 const files = execSync('git ls-files --cached --others --exclude-standard', { encoding: 'utf8' })
   .split('\n')
   .filter((f) => f && !f.startsWith('node_modules/') && !/\.(png|jpg|jpeg|ttf|otf|apk|aab|ico)$/i.test(f))
-  .filter((f) => f !== 'scripts/check-secrets.mjs' && f !== 'SEGURANCA.md');
+  .filter((f) => f !== 'scripts/check-secrets.mjs' && f !== 'SEGURANCA.md')
+  // Pacotes compilados das atualizações automáticas: são gerados a partir do código-fonte (que já é verificado)
+  // e têm os textos grudados, o que dá falso alarme (ex.: o "sb_secret_" que o supabase-js usa para RECUSAR chave secreta)
+  .filter((f) => !/^updates\/files\/.+\.bundle$/.test(f));
 
 let found = 0;
 // Arquivos de chave de assinatura nunca podem entrar no repositório
