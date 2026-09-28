@@ -17,6 +17,7 @@ import { POSITIONS, SKILLS, type PlayerType, type Position, type Skills } from '
 import { confirm, notify } from '@/utils/confirm';
 import { formatShortDate, toLocalIso } from '@/utils/format';
 import { gameRatingAverage, overallRating } from '@/utils/rating';
+import { useMonthlyOn } from '@/utils/monthly';
 
 const DEFAULT_SKILLS: Skills = { tecnica: 3, fisico: 3, passe: 3, finalizacao: 3, defesa: 3 };
 
@@ -34,6 +35,7 @@ export default function PlayerFormScreen() {
   const [phone, setPhone] = useState(existing?.phone ?? '');
   const [position, setPosition] = useState<Position>(existing?.position ?? 'MEI');
   const [type, setType] = useState<PlayerType>(existing?.type ?? 'avulso');
+  const withMonthly = useMonthlyOn();
   const [skills, setSkills] = useState<Skills>(existing?.skills ?? DEFAULT_SKILLS);
   const [active, setActive] = useState(existing?.active ?? true);
   const groupName = useStore((s) => s.settings.groupName);
@@ -176,11 +178,15 @@ export default function PlayerFormScreen() {
       {canManage && (
         <>
 
-      <Label>Tipo</Label>
-      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 6 }}>
-        <Chip label="Avulso (paga por jogo)" selected={type === 'avulso'} onPress={() => setType('avulso')} />
-        <Chip label="Mensalista" selected={type === 'mensalista'} onPress={() => setType('mensalista')} />
-      </View>
+      {withMonthly && (
+        <>
+        <Label>Tipo</Label>
+        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 6 }}>
+          <Chip label="Avulso (paga por jogo)" selected={type === 'avulso'} onPress={() => setType('avulso')} />
+          <Chip label="Mensalista" selected={type === 'mensalista'} onPress={() => setType('mensalista')} />
+        </View>
+        </>
+      )}
 
       <SectionTitle right={<RatingBadge value={overall} />}>Avaliação</SectionTitle>
       <Card>

@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Share, Text, View } from 'react-native';
+import { Share, Switch, Text, View } from 'react-native';
 import { Button, Card, Chip, Input, Label, Screen, SectionTitle, text } from '@/components/ui';
 import { getLocalBackup, importLocalBackup } from '@/cloud';
 import { isCloudEnabled } from '@/lib/supabase';
@@ -8,12 +8,16 @@ import { exportData, normalize, useStore, type Data } from '@/store';
 import { confirm, notify } from '@/utils/confirm';
 import { buildDemo } from '@/utils/demo';
 import { money, parseMoney } from '@/utils/format';
+import { monthlyOn } from '@/utils/monthly';
+import { colors } from '@/theme';
+
 
 export default function SettingsScreen() {
   const settings = useStore((s) => s.settings);
   const { updateSettings, replaceAll, resetAll } = useStore.getState();
 
   const [groupName, setGroupName] = useState(settings.groupName);
+  const [monthlyEnabled, setMonthlyEnabled] = useState(monthlyOn(settings));
   const [monthlyFee, setMonthlyFee] = useState(String(settings.monthlyFee).replace('.', ','));
   const [defaultPrice, setDefaultPrice] = useState(String(settings.defaultPrice).replace('.', ','));
   const [defaultLocation, setDefaultLocation] = useState(settings.defaultLocation);
@@ -54,6 +58,7 @@ export default function SettingsScreen() {
   const save = () => {
     updateSettings({
       groupName: groupName.trim() || 'Minha pelada',
+      monthlyEnabled,
       monthlyFee: parseMoney(monthlyFee),
       defaultPrice: parseMoney(defaultPrice),
       defaultLocation: defaultLocation.trim(),
@@ -102,9 +107,22 @@ export default function SettingsScreen() {
 
   return (
     <Screen>
-      <Input label="Nome do grupo" value={groupName} onChangeText={setGroupName} />
-      <Input label="Mensalidade (R$)" value={monthlyFee} onChangeText={setMonthlyFee} keyboardType="decimal-pad" />
-      <Input label="Valor padrão por avulso (R$)" value={defaultPrice} onChangeText={setDefaultPrice} keyboardType="decimal-pad" />
+      <Input label="Nome do clube" value={groupName} onChangeText={setGroupName} />
+      <Card style={{ gap: 8, marginBottom: 14 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <View style={{ flex: 1 }}>
+            <Text style={text.title}>Tem mensalista?</Text>
+            <Text style={text.muted}>
+              {monthlyEnabled
+                ? 'Mensalistas pagam por mês e avulsos por jogo.'
+                : 'Todo mundo paga por jogo. A mensalidade some das telas (o que já foi pago continua no caixa).'}
+            </Text>
+          </View>
+          <Switch value={monthlyEnabled} onValueChange={setMonthlyEnabled} trackColor={{ true: colors.primary, false: colors.border }} />
+        </View>
+        {monthlyEnabled && <Input label="Mensalidade (R$)" value={monthlyFee} onChangeText={setMonthlyFee} keyboardType="decimal-pad" />}
+      </Card>
+      <Input label={monthlyEnabled ? 'Valor padrão por avulso (R$)' : 'Valor padrão por jogo (R$)'} value={defaultPrice} onChangeText={setDefaultPrice} keyboardType="decimal-pad" />
       <Input label="Local padrão" value={defaultLocation} onChangeText={setDefaultLocation} placeholder="Ex.: Arena do Bairro" />
       <Input
         label="Limite de vagas padrão (0 = sem limite)"

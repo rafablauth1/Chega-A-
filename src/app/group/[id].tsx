@@ -3,9 +3,10 @@ import * as Clipboard from 'expo-clipboard';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, Share, Text, View } from 'react-native';
-import { Avatar, Button, Card, Screen, SectionTitle, Tag, text, type IconName } from '@/components/ui';
+import { Avatar, Button, Card, Input, Screen, SectionTitle, Tag, text, type IconName } from '@/components/ui';
 import { authErrorMessage, ROLE_LABEL, useAuth, type Profile, type Role } from '@/auth';
 import { supabase } from '@/lib/supabase';
+import { clubError, convertToClub } from '@/clubs';
 import { fetchPeople } from '@/people';
 import { colors, fonts, positionColors } from '@/theme';
 import { confirm, notify } from '@/utils/confirm';
@@ -21,6 +22,9 @@ interface Group {
   id: string;
   name: string;
   invite_code: string;
+  /** Migração 013; ausente em servidor antigo */
+  kind?: 'clube' | 'avulso';
+  settings?: { monthlyEnabled?: boolean } | null;
 }
 
 const ROLE_ORDER: Record<Role, number> = { owner: 0, admin: 1, player: 2 };
@@ -31,10 +35,11 @@ export default function GroupScreen() {
   const [group, setGroup] = useState<Group | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
+  const [clubName, setClubName] = useState('');
 
   const load = useCallback(async () => {
     const [g, m] = await Promise.all([
-      supabase.from('groups').select('id, name, invite_code').eq('id', id).single(),
+      supabase.from('groups').select('*').eq('id', id).single(),
       supabase.from('group_members').select('user_id, role, type').eq('group_id', id),
     ]);
     const rows = (m.data ?? []) as Member[];
@@ -56,13 +61,28 @@ export default function GroupScreen() {
   if (!group) {
     return (
       <Screen>
-        <Text style={text.body}>Grupo não encontrado.</Text>
+        <Text style={text.body}>Não encontrado.</Text>
       </Screen>
     );
   }
 
   const myRole = members.find((m) => m.user_id === session?.user.id)?.role;
   const canManage = myRole === 'owner' || myRole === 'admin';
+  const isSingle = group.kind === 'avulso';
+  const withMonthly = !isSingle && group.settings?.monthlyEnabled !== false;
+  const noun = isSingle ? 'jogo' : 'clube';
+
+  const makeClub = async () => {
+    if (!clubName.trim()) return notify('Dê um nome para o clube', 'Ex.: Pelada de quinta');
+    try {
+      await convertToClub(group.id, clubName);
+      await refresh();
+      await load();
+      notify('Virou clube ✅', 'Todo mundo que estava no jogo já está no clube. Agora é marcar os próximos jogos lá dentro.');
+    } catch (e: any) {
+      notify('Não deu certo', clubError(e?.message));
+    }
+  };
 
   const run = async (op: PromiseLike<{ error: { message: string } | null }>) => {
     const { error } = await op;
@@ -74,19 +94,19 @@ export default function GroupScreen() {
     run(supabase.from('group_members').update(patch).eq('group_id', id).eq('user_id', userId));
 
   const removeMember = (m: Member) =>
-    confirm('Remover do grupo', `Tirar ${m.profile?.name ?? 'este jogador'} do grupo?`, () =>
+    confirm('Remover', `Tirar ${m.profile?.name ?? 'este jogador'} do ${noun}?`, () =>
       run(supabase.from('group_members').delete().eq('group_id', id).eq('user_id', m.user_id)),
     'Remover');
 
   const leave = () =>
-    confirm('Sair do grupo', `Você sai de "${group.name}". Para voltar, vai precisar do código de convite.`, async () => {
+    confirm(`Sair do ${noun}`, `Você sai de "${group.name}". Para voltar, vai precisar do código de convite.`, async () => {
       await supabase.from('group_members').delete().eq('group_id', id).eq('user_id', session!.user.id);
       await refresh();
       router.back();
     }, 'Sair');
 
   const deleteGroup = () =>
-    confirm('Apagar grupo', `Apagar "${group.name}" para todos os membros? Não dá para desfazer.`, async () => {
+    confirm(`Apagar ${noun}`, `Apagar "${group.name}" para todos? Não dá para desfazer.`, async () => {
       const { error } = await supabase.from('groups').delete().eq('id', id);
       if (error) return notify('Não deu certo', authErrorMessage(error.message));
       await refresh();
@@ -104,7 +124,7 @@ export default function GroupScreen() {
 
       {activeGroup?.id !== group.id && (
         <Button
-          title="Abrir jogos deste grupo"
+          title={isSingle ? 'Abrir o jogo' : 'Abrir jogos deste clube'}
           icon="football"
           style={{ marginBottom: 12 }}
           onPress={() => {
@@ -129,7 +149,19 @@ export default function GroupScreen() {
         <Button title="Convidar pelo WhatsApp" icon="share-social" onPress={invite} style={{ alignSelf: 'stretch' }} />
       </Card>
 
-      <SectionTitle right={<Text style={text.muted}>{members.length}</Text>}>Membros</SectionTitle>
+      {isSingle && canManage && (
+        <Card style={{ gap: 8, marginTop: 12, borderColor: colors.primary }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Ionicons name="flash" size={20} color={colors.primary} />
+            <Text style={[text.title, { flex: 1 }]}>O jogo foi bom? Transforme em clube</Text>
+          </View>
+          <Text style={text.muted}>Todo mundo que está no jogo vira membro do clube, com histórico, ranking e caixa.</Text>
+          <Input value={clubName} onChangeText={setClubName} placeholder="Nome do clube (ex.: Pelada de quinta)" />
+          <Button title="Transformar em clube" icon="people" onPress={makeClub} />
+        </Card>
+      )}
+
+      <SectionTitle right={<Text style={text.muted}>{members.length}</Text>}>{isSingle ? 'Quem está no jogo' : 'Membros'}</SectionTitle>
       {members.map((m) => {
         const name = m.profile?.nickname || m.profile?.name || 'Jogador';
         const isMe = m.user_id === session?.user.id;
@@ -147,7 +179,7 @@ export default function GroupScreen() {
                   {isMe ? ' (você)' : ''}
                 </Text>
                 <Text style={text.muted}>
-                  {m.profile?.position ?? ''} · {m.type === 'mensalista' ? 'Mensalista' : 'Avulso'}
+                  {m.profile?.position ?? ''}{withMonthly ? (m.type === 'mensalista' ? ' · Mensalista' : ' · Avulso') : ''}
                 </Text>
               </View>
               <Tag label={ROLE_LABEL[m.role]} color={m.role === 'player' ? colors.muted : colors.gold} />
@@ -161,11 +193,13 @@ export default function GroupScreen() {
                     onPress={() => updateMember(m.user_id, { role: m.role === 'admin' ? 'player' : 'admin' })}
                   />
                 )}
-                <Action
-                  icon="swap-horizontal"
-                  label={m.type === 'mensalista' ? 'Virar avulso' : 'Virar mensalista'}
-                  onPress={() => updateMember(m.user_id, { type: m.type === 'mensalista' ? 'avulso' : 'mensalista' })}
-                />
+                {withMonthly && (
+                  <Action
+                    icon="swap-horizontal"
+                    label={m.type === 'mensalista' ? 'Virar avulso' : 'Virar mensalista'}
+                    onPress={() => updateMember(m.user_id, { type: m.type === 'mensalista' ? 'avulso' : 'mensalista' })}
+                  />
+                )}
                 <Action icon="person-remove" label="Remover" color={colors.danger} onPress={() => removeMember(m)} />
               </View>
             )}
@@ -174,9 +208,9 @@ export default function GroupScreen() {
       })}
 
       {myRole === 'owner' ? (
-        <Button title="Apagar grupo" icon="trash" variant="danger" onPress={deleteGroup} style={{ marginTop: 24 }} />
+        <Button title={`Apagar ${noun}`} icon="trash" variant="danger" onPress={deleteGroup} style={{ marginTop: 24 }} />
       ) : (
-        <Button title="Sair do grupo" icon="exit" variant="danger" onPress={leave} style={{ marginTop: 24 }} />
+        <Button title={`Sair do ${noun}`} icon="exit" variant="danger" onPress={leave} style={{ marginTop: 24 }} />
       )}
     </Screen>
   );

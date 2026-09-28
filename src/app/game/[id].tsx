@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useMemo, useRef, useState } from 'react';
-import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import {
   Avatar,
   Button,
@@ -25,7 +25,9 @@ import { useStore } from '@/store';
 import { colors, fonts, positionColors, teamColors } from '@/theme';
 import type { Game, Player } from '@/types';
 import { confirm, notify } from '@/utils/confirm';
-import { formatGameDate, formatShortDate, gameTimeRange, money, monthKey, parseLocal } from '@/utils/format';
+import { formatGameDate, formatShortDate, gameEndTime, gameTimeRange, money, monthKey, parseLocal } from '@/utils/format';
+import { isMensalista, useMonthlyOn } from '@/utils/monthly';
+import { isCloudEnabled } from '@/lib/supabase';
 import { PixCard } from '@/components/PixCard';
 import { displayName, nextPair, teamName } from '@/utils/names';
 import { buildRatingMap, scoreColor } from '@/utils/rating';
@@ -70,7 +72,15 @@ const TABS: { key: Tab; label: string }[] = [
 ];
 
 export default function GameDetailScreen() {
-  const { id, tab: initialTab } = useLocalSearchParams<{ id: string; tab?: Tab }>();
+  const { id, tab: initialTab, group } = useLocalSearchParams<{ id: string; tab?: Tab; group?: string }>();
+  const { activeGroup, setActiveGroup } = useAuth();
+  const [waited, setWaited] = useState(false);
+  // Veio de outro clube (lista da tela inicial / convite): abre aquele clube e espera os dados chegarem
+  useEffect(() => {
+    if (group && activeGroup?.id !== group) setActiveGroup(group);
+    const t = setTimeout(() => setWaited(true), 8000);
+    return () => clearTimeout(t);
+  }, [group]);
   const game = useStore((s) => s.games.find((g) => g.id === id));
   const players = useStore((s) => s.players);
   const games = useStore((s) => s.games);
@@ -84,7 +94,14 @@ export default function GameDetailScreen() {
   if (!game) {
     return (
       <Screen>
-        <Empty icon="alert-circle-outline" title="Jogo não encontrado" />
+        {group && !waited ? (
+          <View style={{ paddingTop: 80, alignItems: 'center', gap: 12 }}>
+            <ActivityIndicator color={colors.primary} />
+            <Text style={text.muted}>Abrindo o jogo...</Text>
+          </View>
+        ) : (
+          <Empty icon="alert-circle-outline" title="Jogo não encontrado" />
+        )}
       </Screen>
     );
   }
@@ -139,9 +156,22 @@ export default function GameDetailScreen() {
 function Attendance({ game, players, rating }: { game: Game; players: Player[]; rating: Record<string, number> }) {
   const toggleAttendee = useStore((s) => s.toggleAttendee);
   const canManage = useCanManage();
-  const myId = useAuth().session?.user.id;
+  const { session, activeGroup } = useAuth();
+  const myId = session?.user.id;
+  const withMonthly = useMonthlyOn();
   const byId = Object.fromEntries(players.map((p) => [p.id, p]));
   const inList = confirmedIds(game);
+
+  // Convite: quem entra pelo código vira membro do clube (ou do jogo avulso) e confirma presença aqui
+  const invite = () => {
+    if (!activeGroup) return;
+    const avulso = activeGroup.kind === 'avulso';
+    Share.share({
+      message:
+        `⚽ Bora jogar! ${formatGameDate(game.date)} até ${gameEndTime(game)}${game.location ? `\n📍 ${game.location}` : ''}\n\n` +
+        `Baixe o app Vaia Aí, crie sua conta e toque em ${avulso ? '"Entrar num jogo"' : '"Entrar num clube"'} com o código: ${activeGroup.invite_code}`,
+    });
+  };
   const waiting = waitlistIds(game);
   const list = players
     .filter((p) => (canManage && p.active) || game.attendees.includes(p.id))
@@ -163,7 +193,7 @@ function Attendance({ game, players, rating }: { game: Game; players: Player[]; 
 
   const addAllMonthly = () => {
     players
-      .filter((p) => p.active && p.type === 'mensalista' && !game.attendees.includes(p.id))
+      .filter((p) => p.active && isMensalista(p, { monthlyEnabled: withMonthly }) && !game.attendees.includes(p.id))
       .forEach((p) => toggleAttendee(game.id, p.id));
   };
 
@@ -189,8 +219,13 @@ function Attendance({ game, players, rating }: { game: Game; players: Player[]; 
         <Stat label="Goleiros" value={String(keepers)} color={positionColors.GOL} />
       </View>
       {myId && byId[myId] && <MyPresence game={game} myId={myId} />}
+      {isCloudEnabled && activeGroup && (
+        <Button title="Convidar para o jogo" icon="person-add" onPress={invite} style={{ marginBottom: 10 }} />
+      )}
       <View style={{ flexDirection: 'row', gap: 10, marginBottom: 6 }}>
-        {canManage && <Button title="Mensalistas" icon="people" variant="secondary" onPress={addAllMonthly} style={{ flex: 1 }} />}
+        {canManage && withMonthly && (
+          <Button title="Mensalistas" icon="people" variant="secondary" onPress={addAllMonthly} style={{ flex: 1 }} />
+        )}
         <Button title="Enviar lista" icon="share-social" variant="secondary" onPress={share} style={{ flex: 1 }} />
       </View>
 
@@ -619,8 +654,10 @@ function Payments({ game, attendees }: { game: Game; attendees: Player[] }) {
   const month = monthKey(parseLocal(game.date));
   const monthlyPaid = useStore((s) => s.monthly[month]) ?? [];
 
-  const avulsos = attendees.filter((p) => p.type === 'avulso');
-  const mensalistas = attendees.filter((p) => p.type === 'mensalista');
+  // Clube sem mensalista: todo mundo paga o jogo
+  const settings = useStore((s) => s.settings);
+  const mensalistas = attendees.filter((p) => isMensalista(p, settings));
+  const avulsos = attendees.filter((p) => !mensalistas.includes(p));
   const received = avulsos.filter((p) => game.paid.includes(p.id)).length * game.pricePerPlayer;
   const expected = avulsos.length * game.pricePerPlayer;
 

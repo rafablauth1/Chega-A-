@@ -95,8 +95,9 @@ function App() {
           <Stack.Screen name="match/[gameId]/[matchId]" options={{ title: 'Partida' }} />
           <Stack.Screen name="settings" options={{ title: 'Ajustes do grupo' }} />
           <Stack.Screen name="me" options={{ title: 'Meu perfil' }} />
-          <Stack.Screen name="group-join" options={{ title: 'Grupos' }} />
-          <Stack.Screen name="group/[id]" options={{ title: 'Grupo' }} />
+          <Stack.Screen name="group-join" options={{ title: 'Clubes' }} />
+          <Stack.Screen name="single-game" options={{ title: 'Jogo avulso' }} />
+          <Stack.Screen name="group/[id]" options={{ title: 'Clube' }} />
           <Stack.Screen name="profile-edit" options={{ title: 'Editar perfil' }} />
           <Stack.Screen name="athlete/[id]" options={{ title: 'Atleta' }} />
           <Stack.Screen name="communities" options={{ title: 'Comunidades' }} />

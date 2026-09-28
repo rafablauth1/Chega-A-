@@ -53,6 +53,8 @@ export interface GroupSummary {
   name: string;
   invite_code: string;
   role: Role;
+  /** 'clube' (pelada fixa) ou 'avulso' (um jogo solto, sem clube). Servidor sem a migração 013: sempre clube. */
+  kind: 'clube' | 'avulso';
 }
 
 interface AuthState {
@@ -123,7 +125,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const [p, g] = await Promise.all([
       fetchMyProfile(s.user.id).then((data) => ({ data })).catch(() => ({ data: null })),
-      supabase.from('group_members').select('role, groups(id, name, invite_code)').eq('user_id', s.user.id),
+      // groups(*): pega "kind" quando a coluna existe (migração 013) sem quebrar em servidor antigo
+      supabase.from('group_members').select('role, groups(*)').eq('user_id', s.user.id),
     ]);
     if (p.data) setProfile(p.data as Profile);
     const saved = await AsyncStorage.getItem(ACTIVE_KEY).catch(() => null);
@@ -133,7 +136,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     const list: GroupSummary[] = (g.data ?? []).flatMap((row: any) =>
-      row.groups ? [{ ...row.groups, role: row.role as Role }] : [],
+      row.groups
+        ? [
+            {
+              id: row.groups.id,
+              name: row.groups.name,
+              invite_code: row.groups.invite_code,
+              role: row.role as Role,
+              kind: row.groups.kind === 'avulso' ? 'avulso' : 'clube',
+            },
+          ]
+        : [],
     );
     list.sort((a, b) => a.name.localeCompare(b.name));
     setGroups(list);

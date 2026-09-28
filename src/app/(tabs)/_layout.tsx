@@ -116,9 +116,16 @@ function NoGroup() {
         <Empty
           icon="people-circle-outline"
           title="Bora entrar na pelada!"
-          text="Crie o grupo da sua pelada ou entre com o código de convite que um amigo te mandou."
+          text="Crie o clube da sua pelada, marque um jogo avulso ou entre com o código que um amigo te mandou."
         />
-        <Button title="Criar ou entrar num grupo" icon="people" onPress={() => router.push('/group-join')} />
+        <Button title="Criar clube ou entrar com código" icon="people" onPress={() => router.push('/group-join')} />
+        <Button
+          title="Marcar um jogo avulso"
+          icon="flash"
+          variant="secondary"
+          onPress={() => router.push('/single-game')}
+          style={{ marginTop: 10 }}
+        />
         <Button
           title="Achar jogo e jogadores perto"
           icon="flame"

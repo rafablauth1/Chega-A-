@@ -1,14 +1,17 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Button, Empty, Fab, Group, Row, Screen, SectionTitle, Tag, text } from '@/components/ui';
-import { useCanManage } from '@/auth';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Button, Chip, Empty, Fab, Group, Row, Screen, SectionTitle, Tag, text } from '@/components/ui';
+import { useAuth, useCanManage } from '@/auth';
+import { fetchGamesOf } from '@/cloud';
 import { isCloudEnabled } from '@/lib/supabase';
 import { useStore } from '@/store';
 import { colors, fonts } from '@/theme';
 import type { Game, Player } from '@/types';
 import { buildDemo } from '@/utils/demo';
-import { MONTHS_SHORT, formatGameDate, gameEndTime, money, parseLocal, relativeDay, toLocalIso } from '@/utils/format';
+import { MONTHS_SHORT, formatGameDate, gameEndTime, gameTimeRange, money, parseLocal, relativeDay, toLocalIso } from '@/utils/format';
+import { isMensalista } from '@/utils/monthly';
 import { matchScore, confirmedIds, waitlistIds } from '@/utils/stats';
 
 /** Mesma hora e dia da semana, na próxima data futura. */
@@ -20,6 +23,8 @@ const nextWeekly = (iso: string) => {
   return toLocalIso(d);
 };
 
+type AnyGame = Game & { groupId: string };
+
 export default function GamesScreen() {
   const games = useStore((s) => s.games);
   const players = useStore((s) => s.players);
@@ -27,10 +32,27 @@ export default function GamesScreen() {
   const replaceAll = useStore((s) => s.replaceAll);
   const addGame = useStore((s) => s.addGame);
   const canManage = useCanManage();
+  const { groups, activeGroup, setActiveGroup, session } = useAuth();
+  const me = session?.user.id ?? '';
+
+  // Jogos dos OUTROS clubes e jogos avulsos (o clube aberto vem do store, em tempo real)
+  const [others, setOthers] = useState<AnyGame[]>([]);
+  const otherIds = groups.filter((g) => g.id !== activeGroup?.id).map((g) => g.id);
+  const otherKey = otherIds.join(',');
+  useFocusEffect(
+    useCallback(() => {
+      if (!isCloudEnabled || !otherKey) return setOthers([]);
+      fetchGamesOf(otherKey.split(',')).then(setOthers).catch(() => {});
+    }, [otherKey]),
+  );
+  const nameOf = (gid: string) => groups.find((g) => g.id === gid)?.name ?? '';
+  const kindOf = (gid: string) => groups.find((g) => g.id === gid)?.kind ?? 'clube';
 
   const repeatGame = (g: Game) => {
     const id = addGame({
       date: nextWeekly(g.date),
+      endTime: g.endTime,
+      matchMinutes: g.matchMinutes,
       location: g.location,
       pricePerPlayer: g.pricePerPlayer,
       playersPerTeam: g.playersPerTeam,
@@ -41,16 +63,32 @@ export default function GamesScreen() {
   };
 
   const now = toLocalIso(new Date(Date.now() - 3 * 60 * 60 * 1000)); // jogo em andamento conta como próximo por 3h
-  const upcoming = games.filter((g) => g.date >= now).sort((a, b) => a.date.localeCompare(b.date));
+  const activeId = activeGroup?.id ?? 'local';
+  const mine: AnyGame[] = games.map((g) => ({ ...g, groupId: activeId }));
+  const upcoming = [...mine.filter((g) => g.date >= now), ...others.filter((g) => g.date >= now)].sort((a, b) =>
+    a.date.localeCompare(b.date),
+  );
   const past = games.filter((g) => g.date < now).sort((a, b) => b.date.localeCompare(a.date));
   const [next, ...later] = upcoming;
+  const multi = groups.length > 1;
+  const clubs = groups.filter((g) => g.kind === 'clube');
+  const isActive = (g: AnyGame) => g.groupId === activeId;
 
   return (
     <View style={{ flex: 1 }}>
       <Screen>
-        <Text style={styles.group}>{groupName}</Text>
+        {/* Clube aberto (vale para Jogadores, Ranking e Caixa); troca com um toque */}
+        {clubs.length > 1 ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }} contentContainerStyle={{ gap: 8 }}>
+            {clubs.map((c) => (
+              <Chip key={c.id} label={c.name} selected={c.id === activeGroup?.id} onPress={() => setActiveGroup(c.id)} />
+            ))}
+          </ScrollView>
+        ) : (
+          <Text style={styles.group}>{groupName}</Text>
+        )}
 
-        {games.length === 0 && (
+        {upcoming.length === 0 && games.length === 0 && (
           <>
             <Empty
               icon="football-outline"
@@ -59,8 +97,8 @@ export default function GamesScreen() {
                 !canManage
                   ? 'Quando o organizador marcar o próximo jogo, ele aparece aqui para você confirmar presença.'
                   : players.length === 0
-                  ? 'Cadastre a galera na aba Jogadores e depois marque o jogo no botão laranja.'
-                  : 'Toque em "Marcar jogo" para abrir a lista de presença.'
+                    ? 'Convide a galera pelo clube e depois marque o jogo no botão laranja.'
+                    : 'Toque em "Marcar jogo" para abrir a lista de presença.'
               }
             />
             {players.length === 0 && !isCloudEnabled && (
@@ -69,13 +107,13 @@ export default function GamesScreen() {
           </>
         )}
 
-        {next && <NextGame game={next} players={players} />}
+        {next && (isActive(next) ? <NextGame game={next} players={players} club={multi ? nameOf(next.groupId) : undefined} /> : <OtherGameRow game={next} club={nameOf(next.groupId)} avulso={kindOf(next.groupId) === 'avulso'} me={me} highlight />)}
 
-        {canManage && !next && past.length > 0 && (
+        {canManage && !games.some((g) => g.date >= now) && past.length > 0 && (
           <View style={styles.repeat}>
             <Text style={styles.repeatTitle}>Sem jogo marcado</Text>
             <Text style={[text.muted, { fontSize: 15, marginBottom: 14 }]}>
-              Repetir o último{past[0].location ? ` na ${past[0].location}` : ''}: {formatGameDate(nextWeekly(past[0].date))}.
+              {multi ? `${groupName}: r` : 'R'}epetir o último{past[0].location ? ` na ${past[0].location}` : ''}: {formatGameDate(nextWeekly(past[0].date))}.
             </Text>
             <Button title="Marcar próximo jogo" icon="calendar" onPress={() => repeatGame(past[0])} />
           </View>
@@ -85,16 +123,30 @@ export default function GamesScreen() {
           <>
             <SectionTitle>Depois</SectionTitle>
             <Group>
-              {later.map((g) => (
-                <GameRow key={g.id} game={g} players={players} />
-              ))}
+              {later.map((g) =>
+                isActive(g) ? (
+                  <GameRow key={g.id} game={g} players={players} club={multi ? nameOf(g.groupId) : undefined} />
+                ) : (
+                  <OtherGameRow key={g.id} game={g} club={nameOf(g.groupId)} avulso={kindOf(g.groupId) === 'avulso'} me={me} />
+                ),
+              )}
             </Group>
           </>
         )}
 
+        {isCloudEnabled && (
+          <Button
+            title="Marcar jogo avulso (sem clube)"
+            icon="flash-outline"
+            variant="ghost"
+            onPress={() => router.push('/single-game')}
+            style={{ marginTop: 8 }}
+          />
+        )}
+
         {past.length > 0 && (
           <>
-            <SectionTitle>Já rolou</SectionTitle>
+            <SectionTitle>{multi ? `Já rolou · ${groupName}` : 'Já rolou'}</SectionTitle>
             <Group>
               {past.map((g) => (
                 <GameRow key={g.id} game={g} players={players} />
@@ -109,7 +161,7 @@ export default function GamesScreen() {
 }
 
 /** Destaque do próximo jogo: dia grande, horário e as vagas desenhadas como camisas. */
-function NextGame({ game, players }: { game: Game; players: Player[] }) {
+function NextGame({ game, players, club }: { game: Game; players: Player[]; club?: string }) {
   const d = parseLocal(game.date);
   const confirmed = confirmedIds(game);
   const waiting = waitlistIds(game).length;
@@ -124,6 +176,7 @@ function NextGame({ game, players }: { game: Game; players: Player[] }) {
       <View style={styles.heroCircle} />
       <View style={styles.heroLine} />
 
+      {!!club && <Tag label={club} color={colors.muted} />}
       <Text style={styles.heroDay}>{relativeDay(game.date)}</Text>
       <Text style={styles.heroTime}>{hh}</Text>
       <Text style={[text.muted, { fontSize: 15, marginBottom: 2 }]}>
@@ -167,12 +220,17 @@ function NextGame({ game, players }: { game: Game; players: Player[] }) {
   );
 }
 
-function GameRow({ game, players }: { game: Game; players: Player[] }) {
+function GameRow({ game, players, club }: { game: Game; players: Player[]; club?: string }) {
+  const settings = useStore((s) => s.settings);
   const d = parseLocal(game.date);
   const confirmed = confirmedIds(game);
-  const unpaid = confirmed.filter((id) => players.find((p) => p.id === id)?.type === 'avulso' && !game.paid.includes(id)).length;
+  const unpaid = confirmed.filter((id) => {
+    const p = players.find((x) => x.id === id);
+    return !!p && !isMensalista(p, settings) && !game.paid.includes(id);
+  }).length;
   const goals = game.matches.reduce((s, m) => s + matchScore(m)[0] + matchScore(m)[1], 0);
   const detail = [
+    club,
     `${confirmed.length} jogadores`,
     game.matches.length ? `${game.matches.length} partidas, ${goals} gols` : null,
     game.matches.length ? null : money(game.pricePerPlayer),
@@ -195,6 +253,33 @@ function GameRow({ game, players }: { game: Game; players: Player[] }) {
         </Text>
       </View>
       {unpaid > 0 && <Tag label={`${unpaid} a pagar`} color={colors.warning} />}
+      <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+    </Row>
+  );
+}
+
+/** Jogo de outro clube ou jogo avulso: abre trocando para aquele clube. */
+function OtherGameRow({ game, club, avulso, me, highlight }: { game: AnyGame; club: string; avulso: boolean; me: string; highlight?: boolean }) {
+  const d = parseLocal(game.date);
+  const confirmed = confirmedIds(game);
+  const going = game.attendees.includes(me);
+  const open = () => router.push({ pathname: '/game/[id]', params: { id: game.id, group: game.groupId } });
+  return (
+    <Row onPress={open} style={highlight ? { borderColor: colors.primary, borderWidth: 1, borderRadius: 16, marginBottom: 8 } : undefined}>
+      <View style={styles.date}>
+        <Text style={styles.dateDay}>{d.getDate()}</Text>
+        <Text style={styles.dateMonth}>{MONTHS_SHORT[d.getMonth()]}</Text>
+      </View>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={text.title} numberOfLines={1}>
+          {game.location || 'Pelada'} · {gameTimeRange(game)}
+        </Text>
+        <Text style={text.muted} numberOfLines={1}>
+          {avulso ? '⚡ Jogo avulso' : club} · {confirmed.length}
+          {game.maxPlayers ? `/${game.maxPlayers}` : ''} confirmados
+        </Text>
+      </View>
+      {going ? <Tag label="Vou ✓" color={colors.success} /> : <Tag label="Confirmar" color={colors.primary} />}
       <Ionicons name="chevron-forward" size={18} color={colors.muted} />
     </Row>
   );

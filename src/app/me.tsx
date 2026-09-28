@@ -193,13 +193,13 @@ export default function MeScreen() {
       <Achievements list={career.achievements} />
 
       <SectionTitle right={<Button title="Novo" icon="add" variant="ghost" onPress={() => router.push('/group-join')} />}>
-        Meus grupos
+        Meus clubes e jogos
       </SectionTitle>
       {groups.length === 0 ? (
         <Card>
-          <Text style={text.body}>Você ainda não está em nenhum grupo.</Text>
-          <Text style={[text.muted, { marginTop: 4 }]}>Crie a sua pelada ou entre com o código que um amigo te mandou.</Text>
-          <Button title="Criar ou entrar num grupo" icon="people" style={{ marginTop: 12 }} onPress={() => router.push('/group-join')} />
+          <Text style={text.body}>Você ainda não está em nenhum clube.</Text>
+          <Text style={[text.muted, { marginTop: 4 }]}>Crie o clube da sua pelada, marque um jogo avulso ou entre com o código que um amigo te mandou.</Text>
+          <Button title="Criar clube ou entrar com código" icon="people" style={{ marginTop: 12 }} onPress={() => router.push('/group-join')} />
         </Card>
       ) : (
         groups.map((g) => (
@@ -208,8 +208,9 @@ export default function MeScreen() {
             onPress={() => router.push({ pathname: '/group/[id]', params: { id: g.id } })}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}
           >
-            <Ionicons name="football" size={22} color={colors.primary} />
+            <Ionicons name={g.kind === 'avulso' ? 'flash' : 'football'} size={22} color={colors.primary} />
             <Text style={[text.title, { flex: 1 }]}>{g.name}</Text>
+            {g.kind === 'avulso' && <Tag label="Jogo avulso" color={colors.muted} />}
             {g.id === activeGroup?.id && <Tag label="Aberto" color={colors.primary} />}
             <Tag label={ROLE_LABEL[g.role]} color={g.role === 'player' ? colors.muted : colors.gold} />
             <Ionicons name="chevron-forward" size={18} color={colors.muted} />

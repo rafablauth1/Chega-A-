@@ -55,6 +55,10 @@ export interface OpenCall {
   responses: number;
   i_responded: boolean;
   mine: boolean;
+  /** Vaga ligada a um jogo (jogo avulso publicado no Bora): dá para entrar direto. Migração 013. */
+  joinable?: boolean;
+  group_id?: string | null;
+  game_id?: string | null;
 }
 
 export interface Responder {

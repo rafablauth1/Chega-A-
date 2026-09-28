@@ -8,12 +8,14 @@ import { useStore } from '@/store';
 import { colors, fonts, positionColors } from '@/theme';
 import { POSITIONS, type Position } from '@/types';
 import { buildRatingMap } from '@/utils/rating';
+import { useMonthlyOn } from '@/utils/monthly';
 
 type Sort = 'nome' | 'nota';
 
 export default function PlayersScreen() {
   const players = useStore((s) => s.players);
   const games = useStore((s) => s.games);
+  const withMonthly = useMonthlyOn();
   const [query, setQuery] = useState('');
   const [pos, setPos] = useState<Position | null>(null);
   const [sort, setSort] = useState<Sort>('nome');
@@ -107,7 +109,7 @@ export default function PlayersScreen() {
                   </Text>
                   <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
                     <PositionTag position={p.position} />
-                    <Text style={text.muted}>{p.type === 'mensalista' ? 'Mensalista' : 'Avulso'}</Text>
+                    {withMonthly && <Text style={text.muted}>{p.type === 'mensalista' ? 'Mensalista' : 'Avulso'}</Text>}
                     {!p.active && <Tag label="Parado" color={colors.danger} />}
                   </View>
                 </View>

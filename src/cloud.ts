@@ -41,7 +41,7 @@ const apply = (data: Data) => {
 /** Quais colunas novas de `games` o servidor já tem (011: closed_at; 012: end_time e match_minutes). */
 let gameCols: { closed: boolean; court: boolean } | null = null;
 
-async function probeGameColumns() {
+export async function probeGameColumns() {
   if (gameCols) return gameCols;
   const [a, b] = await Promise.all([
     supabase.from('games').select('closed_at').limit(1),

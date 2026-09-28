@@ -102,6 +102,8 @@ export interface Expense {
 
 export interface Settings {
   groupName: string;
+  /** O clube tem mensalistas? Desligado: todo mundo paga por jogo e a mensalidade some. Sem valor = ligado (clubes antigos). */
+  monthlyEnabled?: boolean;
   monthlyFee: number;
   defaultPrice: number;
   defaultPlayersPerTeam: number;

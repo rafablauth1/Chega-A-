@@ -28,6 +28,7 @@ import { colors, fonts, positionColors } from '@/theme';
 import { POSITIONS } from '@/types';
 import { choose, confirm, notify } from '@/utils/confirm';
 import { chatTime } from '@/chat';
+import { clubError, joinCallGame } from '@/clubs';
 import { describeSlots, overlap } from '@/utils/availability';
 import { initials, money, parseLocal, relativeDay } from '@/utils/format';
 
@@ -379,6 +380,7 @@ function Matches({ userId }: { userId: string }) {
 /* ------------------------------ Falta gente ------------------------------ */
 
 function Calls({ userId }: { userId: string }) {
+  const { refresh } = useAuth();
   const [list, setList] = useState<OpenCall[] | null>(null);
   const [open, setOpen] = useState<string | null>(null);
   const [responders, setResponders] = useState<Record<string, Responder[]>>({});
@@ -400,6 +402,19 @@ function Calls({ userId }: { userId: string }) {
       if (!c.i_responded) notify('Boa!', `${c.author_name} vai ver que você topou. Se você liberou o WhatsApp no perfil, ele pode te chamar.`);
     } catch (e: any) {
       notify('Não deu certo', discoveryError(e.message));
+    }
+  };
+
+  // Jogo avulso publicado no Bora: entra no jogo (vira membro e já confirma presença) e abre ele
+  const enterGame = async (c: OpenCall) => {
+    try {
+      const groupId = c.i_responded && c.group_id ? c.group_id : await joinCallGame(c.id);
+      await refresh();
+      if (c.game_id) router.push({ pathname: '/game/[id]', params: { id: c.game_id, group: groupId } });
+      if (!c.i_responded) notify('Você está no jogo ⚽', `Presença confirmada. Qualquer coisa, chame ${c.author_name} no chat.`);
+      load();
+    } catch (e: any) {
+      notify('Não deu certo', clubError(e?.message));
     }
   };
 
@@ -498,13 +513,23 @@ function Calls({ userId }: { userId: string }) {
                 </>
               ) : (
                 <View style={{ flexDirection: 'row', gap: 8, marginTop: 12, alignItems: 'center' }}>
-                  <Button
-                    title={c.i_responded ? 'Você topou · desistir' : 'Tô dentro'}
-                    icon={c.i_responded ? 'checkmark-circle' : 'hand-right'}
-                    variant={c.i_responded ? 'secondary' : 'primary'}
-                    onPress={() => toggleGoing(c)}
-                    style={{ flex: 1 }}
-                  />
+                  {c.joinable ? (
+                    <Button
+                      title={c.i_responded ? 'Você está no jogo · abrir' : 'Entrar no jogo'}
+                      icon={c.i_responded ? 'football' : 'enter'}
+                      variant={c.i_responded ? 'secondary' : 'primary'}
+                      onPress={() => enterGame(c)}
+                      style={{ flex: 1 }}
+                    />
+                  ) : (
+                    <Button
+                      title={c.i_responded ? 'Você topou · desistir' : 'Tô dentro'}
+                      icon={c.i_responded ? 'checkmark-circle' : 'hand-right'}
+                      variant={c.i_responded ? 'secondary' : 'primary'}
+                      onPress={() => toggleGoing(c)}
+                      style={{ flex: 1 }}
+                    />
+                  )}
                   {c.i_responded && (
                     <Pressable
                       style={styles.whats}

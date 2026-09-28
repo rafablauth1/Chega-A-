@@ -10,6 +10,7 @@ import { colors, fonts } from '@/theme';
 import type { Player } from '@/types';
 import { confirm, notify } from '@/utils/confirm';
 import { formatShortDate, money, monthKey, monthLabel, parseMoney, shiftMonth, todayIso } from '@/utils/format';
+import { isMensalista, monthlyOn } from '@/utils/monthly';
 
 const displayName = (p: Player) => p.nickname || p.name;
 
@@ -28,7 +29,9 @@ export default function FinanceScreen() {
   const [amount, setAmount] = useState('');
 
   const byId = Object.fromEntries(players.map((p) => [p.id, p]));
-  const isAvulso = (id: string) => byId[id]?.type === 'avulso';
+  // Clube sem mensalista: todo mundo paga por jogo (o que já foi pago de mensalidade continua no saldo)
+  const withMonthly = monthlyOn(settings);
+  const isAvulso = (id: string) => !!byId[id] && !isMensalista(byId[id], settings);
 
   // ---- Entradas e saídas
   const gameIncome = (gs: typeof games) =>
@@ -43,7 +46,7 @@ export default function FinanceScreen() {
 
   // ---- Mensalistas do mês
   const mensalistas = players
-    .filter((p) => p.type === 'mensalista' && (p.active || monthly[month]?.includes(p.id)))
+    .filter((p) => isMensalista(p, settings) && (p.active || monthly[month]?.includes(p.id)))
     .sort((a, b) => displayName(a).localeCompare(displayName(b)));
   const paidMonthly = mensalistas.filter((p) => monthly[month]?.includes(p.id));
 
@@ -103,11 +106,13 @@ export default function FinanceScreen() {
       <Button title="Cobrar pendentes" icon="logo-whatsapp" variant="secondary" onPress={charge} style={{ marginBottom: 10 }} />
       <PixCard />
 
-      {/* Mensalidades */}
-      <SectionTitle right={<Text style={text.muted}>{paidMonthly.length}/{mensalistas.length} · {money(fee)}</Text>}>
-        Mensalidades
-      </SectionTitle>
-      {mensalistas.length === 0 ? (
+      {/* Mensalidades (só em clube com mensalista) */}
+      {withMonthly && (
+        <SectionTitle right={<Text style={text.muted}>{paidMonthly.length}/{mensalistas.length} · {money(fee)}</Text>}>
+          Mensalidades
+        </SectionTitle>
+      )}
+      {!withMonthly ? null : mensalistas.length === 0 ? (
         <Card>
           <Text style={text.muted}>Nenhum mensalista. Marque jogadores como mensalista no cadastro.</Text>
         </Card>

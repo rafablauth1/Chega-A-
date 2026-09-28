@@ -5,6 +5,7 @@ import { Button, Chip, Input, Label, Screen, text } from '@/components/ui';
 import { useStore } from '@/store';
 import { confirm, notify } from '@/utils/confirm';
 import { buildIso, courtMinutes, DEFAULT_COURT_MINUTES, gameEndTime, maskDate, maskTime, money, parseMoney, splitIso } from '@/utils/format';
+import { monthlyOn } from '@/utils/monthly';
 
 /** Próximo dia da semana igual ao do último jogo, ou amanhã. */
 const suggestDate = (lastIso?: string) => {
@@ -160,7 +161,7 @@ export default function GameFormScreen() {
       <Input label="Local" value={location} onChangeText={setLocation} placeholder="Ex.: Arena do Bairro - Quadra 2" />
       <Input label="Valor por avulso (R$)" value={price} onChangeText={setPrice} keyboardType="decimal-pad" placeholder="20,00" />
       <Text style={[text.muted, { fontSize: 12, marginTop: -8, marginBottom: 14 }]}>
-        Mensalistas não pagam por jogo. Avulsos pagam {money(parseMoney(price))}.
+        {monthlyOn(settings) ? `Mensalistas não pagam por jogo. Avulsos pagam ${money(parseMoney(price))}.` : `Cada um paga ${money(parseMoney(price))} por jogo.`}
       </Text>
 
       <Label>Jogadores por time (com goleiro)</Label>
