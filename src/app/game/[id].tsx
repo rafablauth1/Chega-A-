@@ -31,6 +31,7 @@ import { displayName, nextPair, teamName } from '@/utils/names';
 import { buildRatingMap, scoreColor } from '@/utils/rating';
 import { confirmedIds, matchScore, waitlistIds } from '@/utils/stats';
 import { drawTeams, teamAverage, teamSizes } from '@/utils/teams';
+import { GameScores } from '@/components/GameScores';
 import { Pitch } from '@/components/Pitch';
 import { shareView } from '@/utils/share';
 import { roundSelection, summaryText } from '@/utils/selection';
@@ -667,13 +668,9 @@ function Payments({ game, attendees }: { game: Game; attendees: Player[] }) {
 /* ---------------------------- Avaliação ---------------------------- */
 
 function RateGame({ game, attendees, byId }: { game: Game; attendees: Player[]; byId: Record<string, Player> }) {
-  const ratePlayer = useStore((s) => s.ratePlayer);
-  const canManage = useCanManage();
-  const setMvp = useStore((s) => s.setMvp);
   const groupName = useStore((s) => s.settings.groupName);
   const selRef = useRef<View>(null);
-  const rated = attendees.filter((p) => game.ratings[p.id]).length;
-  const hasData = rated > 0 || game.matches.some((m) => m.goals.length);
+  const hasData = Object.keys(game.ratings).length > 0 || Object.keys(game.votes ?? {}).length > 0 || game.matches.some((m) => m.goals.length);
   const selection = hasData ? roundSelection(game, byId) : [];
 
   if (!attendees.length) {
@@ -707,29 +704,7 @@ function RateGame({ game, attendees, byId }: { game: Game; attendees: Player[]; 
           />
         </>
       )}
-      <Text style={[text.muted, { marginBottom: 12 }]}>
-        Dê nota de 1 a 10 para a atuação de cada um e toque no troféu para eleger o craque do jogo. As notas entram na
-        média usada nos próximos sorteios. ({rated}/{attendees.length} avaliados)
-      </Text>
-      {attendees.map((p) => {
-        const isMvp = game.mvp === p.id;
-        return (
-          <Card key={p.id} style={[{ gap: 10 }, isMvp && { borderColor: colors.gold }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Pressable onPress={() => setMvp(game.id, isMvp ? null : p.id)} hitSlop={8} disabled={!canManage}>
-                <Ionicons name={isMvp ? 'trophy' : 'trophy-outline'} size={22} color={isMvp ? colors.gold : colors.border} />
-              </Pressable>
-              <Text style={[text.title, { flex: 1 }]} numberOfLines={1}>
-                {displayName(p)}
-              </Text>
-              {!!game.ratings[p.id] && (
-                <Text style={{ color: scoreColor(game.ratings[p.id]), fontFamily: fonts.displayBlack, fontSize: 18 }}>{game.ratings[p.id]}</Text>
-              )}
-            </View>
-            {canManage && <ScorePicker value={game.ratings[p.id] ?? 0} onChange={(v) => ratePlayer(game.id, p.id, v)} />}
-          </Card>
-        );
-      })}
+      <GameScores game={game} byId={byId} />
     </>
   );
 }

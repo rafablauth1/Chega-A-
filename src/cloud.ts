@@ -5,6 +5,7 @@ import { DEFAULT_SETTINGS, exportData, normalize, scaleOldRatings, useStore, typ
 import type { Game, Player } from './types';
 import { notify } from './utils/confirm';
 import { fetchGuestPhones, fetchPeople } from './people';
+import { fetchVoteTotals } from './votes';
 
 /**
  * Sincroniza o store local com o grupo ativo no Supabase.
@@ -51,6 +52,8 @@ const toGame = (g: any, attendees: string[]): Game => ({
   teams: g.teams,
   ratings: g.ratings ?? {},
   notes: g.notes ?? undefined,
+  // Sem a migração 011 a coluna não existe: não inventa o campo (senão as gravações do jogo falhariam)
+  ...('closed_at' in g ? { closedAt: g.closed_at } : {}),
 });
 
 const attendeesByGame = (rows: { game_id: string; player_id: string }[] | null) => {
@@ -86,7 +89,11 @@ async function fetchGroup(gid: string): Promise<Data> {
   if (failed?.error) throw failed.error;
 
   const ids = (members.data ?? []).map((m) => m.user_id);
-  const [profiles, guestPhones] = await Promise.all([fetchPeople(ids).catch(() => []), fetchGuestPhones(gid)]);
+  const [profiles, guestPhones, voteTotals] = await Promise.all([
+    fetchPeople(ids).catch(() => []),
+    fetchGuestPhones(gid),
+    fetchVoteTotals(gid),
+  ]);
   const profileOf: Record<string, any> = Object.fromEntries(profiles.map((p) => [p.id, p]));
 
   const players: Player[] = [
@@ -128,7 +135,7 @@ async function fetchGroup(gid: string): Promise<Data> {
 
   return {
     players,
-    games: (games.data ?? []).map((g) => toGame(g, byGame[g.id] ?? [])),
+    games: (games.data ?? []).map((g) => ({ ...toGame(g, byGame[g.id] ?? []), ...voteTotals[g.id] })),
     expenses: (expenses.data ?? []).map((e) => ({ ...e, amount: Number(e.amount) })),
     monthly: monthlyMap,
     settings: { ...DEFAULT_SETTINGS, ...(group.data?.settings ?? {}), groupName: group.data?.name ?? '' },
@@ -168,6 +175,8 @@ const gameRow = (g: Game, gid: string) => ({
   paid: g.paid,
   ratings: g.ratings,
   notes: g.notes ?? null,
+  // Só manda closed_at quando o servidor já tem a coluna (migração 011); a hora oficial é a do servidor
+  ...(g.closedAt !== undefined ? { closed_at: g.closedAt } : {}),
 });
 
 const guestRow = (p: Player, gid: string) => ({

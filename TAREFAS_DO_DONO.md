@@ -20,7 +20,8 @@ Sem isso, excluir conta, comunidades, região e "Bora jogar?" dão erro no app.
    - [x] `supabase/migrations/007_discovery.sql`: "Bora jogar?", match, "Falta gente!", bloquear e denunciar
    - [x] `supabase/migrations/008_chat.sql`: chat dentro do app
    - [x] `supabase/migrations/009_security.sql`: **segurança** (telefone e dados pessoais só para quem pode, limites anti-spam, baixar meus dados)
-   - [ ] `supabase/migrations/010_password_security.sql`: **senha** (data de nascimento na redefinição conferida pelo servidor, trava de troca de senha)
+   - [x] `supabase/migrations/010_password_security.sql`: **senha** (data de nascimento na redefinição conferida pelo servidor, trava de troca de senha)
+   - [ ] `supabase/migrations/011_match_votes.sql`: **avaliação da galera** estilo Cartola (encerrar jogo, 24 h para votar, voto secreto)
 5. Se alguma der erro, **pare** e me mande a mensagem de erro (print serve).
 
 > Eu confiro a escrita de todos os arquivos com o verificador do próprio Postgres (`npm run check:sql`), mas só rodando no seu Supabase dá para ter certeza de que funcionam.
@@ -34,7 +35,7 @@ O app 1.1.0 em diante se atualiza sozinho pelo GitHub. Falta publicar a "ponte" 
 4. Na função, em **Details/Settings**: **desligar "Enforce JWT Verification"** → Save.
 5. Me avise: eu testo daqui.
 - [x] Função publicada: ficou com o nome **rapid-endpoint** (é ela a ponte; não apagar nem renomear)
-- [ ] Na função rapid-endpoint → Settings → desligar "Verify JWT" → Save
+- [x] Na função rapid-endpoint → Settings → desligar "Verify JWT" → Save (feito e testado em 28/09)
 
 ### 1.2 Guardar as chaves do app (MUITO importante)
 - [ ] Copie a pasta **C:\Users\10088132\VaiaAi-chave** inteira para o seu Google Drive pessoal ou um pendrive.

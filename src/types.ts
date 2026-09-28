@@ -70,9 +70,22 @@ export interface Game {
   /** Avulsos que já pagaram este jogo */
   paid: string[];
   teams: string[][] | null;
-  /** Nota pós-jogo (1 a 5) por jogador */
+  /** Nota pós-jogo (0 a 10) dada pelo organizador; usada quando não há votos da galera (modo sem conta e jogos antigos) */
   ratings: Record<string, number>;
   notes?: string;
+  /** Quando o organizador encerrou o jogo (ISO, hora do servidor). Abre a votação por 24 h. */
+  closedAt?: string | null;
+  /** Soma dos votos da galera por jogador (vem do servidor; nunca mostra quem votou em quem) */
+  votes?: Record<string, VoteTotals>;
+  /** Quantas pessoas já votaram neste jogo */
+  voters?: number;
+}
+
+export interface VoteTotals {
+  ownSum: number;
+  ownN: number;
+  oppSum: number;
+  oppN: number;
 }
 
 export interface Expense {

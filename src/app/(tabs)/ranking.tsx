@@ -6,12 +6,14 @@ import { useStore } from '@/store';
 import { colors, fonts, positionColors } from '@/theme';
 import { toLocalIso } from '@/utils/format';
 import { displayName } from '@/utils/names';
+import { seasonScores } from '@/utils/scoring';
 import { computeStats, confirmedIds } from '@/utils/stats';
 
 type Period = 'mes' | 'ano' | 'geral';
-type Category = 'gols' | 'assist' | 'presenca' | 'nota' | 'craque' | 'vitorias';
+type Category = 'pontos' | 'gols' | 'assist' | 'presenca' | 'nota' | 'craque' | 'vitorias';
 
 const CATEGORIES: { key: Category; label: string; unit: string }[] = [
+  { key: 'pontos', label: '🎯 Pontuação', unit: 'pts' },
   { key: 'gols', label: '⚽ Artilharia', unit: 'gols' },
   { key: 'assist', label: '🅰️ Assistências', unit: 'assist.' },
   { key: 'presenca', label: '📅 Presença', unit: '' },
@@ -22,11 +24,14 @@ const CATEGORIES: { key: Category; label: string; unit: string }[] = [
 
 const MEDALS = ['🥇', '🥈', '🥉'];
 
+/** Nota e pontuação: quem ainda não foi avaliado aparece no fim, como "Sem avaliação". */
+const SHOWS_UNRATED: Category[] = ['pontos', 'nota'];
+
 export default function RankingScreen() {
   const players = useStore((s) => s.players);
   const games = useStore((s) => s.games);
   const [period, setPeriod] = useState<Period>('ano');
-  const [cat, setCat] = useState<Category>('gols');
+  const [cat, setCat] = useState<Category>('pontos');
 
   const rows = useMemo(() => {
     const now = new Date();
@@ -35,19 +40,20 @@ export default function RankingScreen() {
     const played = games.filter((g) => g.date <= nowIso && g.date.startsWith(prefix));
     const stats = computeStats(played, nowIso);
 
-    // Nota média das partidas no período
-    const notes: Record<string, number[]> = {};
-    played.forEach((g) => Object.entries(g.ratings).forEach(([id, n]) => (notes[id] ??= []).push(n)));
+    // Pontuação estilo Cartola e nota da galera (utils/scoring)
+    const posOf = Object.fromEntries(players.map((p) => [p.id, p.position]));
+    const season = seasonScores(played, (id) => posOf[id]);
 
     return players
       .map((p) => {
         const s = stats[p.id];
-        const avg = notes[p.id]?.length ? notes[p.id].reduce((a, b) => a + b, 0) / notes[p.id].length : 0;
-        const value = {
+        const sc = season[p.id];
+        const value: number | null = {
+          pontos: sc?.total ?? null,
           gols: s?.goals ?? 0,
           assist: s?.assists ?? 0,
           presenca: played.length ? (played.filter((g) => confirmedIds(g).includes(p.id)).length / played.length) * 100 : 0,
-          nota: avg,
+          nota: sc?.nota ?? null,
           craque: s?.mvps ?? 0,
           vitorias: s?.wins ?? 0,
         }[cat];
@@ -56,17 +62,27 @@ export default function RankingScreen() {
             ? `${s?.games ?? 0}/${played.length} jogos`
             : cat === 'vitorias'
               ? `${s?.wins ?? 0}V ${s?.draws ?? 0}E ${s?.losses ?? 0}D`
-              : cat === 'nota'
-                ? `${notes[p.id]?.length ?? 0} avaliações`
+              : SHOWS_UNRATED.includes(cat)
+                ? sc
+                  ? `${sc.games} jogos · média ${sc.average.toFixed(1)}${sc.craques ? ` · 🏆${sc.craques}` : ''}`
+                  : 'Sem avaliações ainda'
                 : `${s?.games ?? 0} jogos`;
         return { p, value, detail };
       })
-      .filter((r) => r.value > 0)
-      .sort((a, b) => b.value - a.value);
+      .filter((r) => (r.value === null ? SHOWS_UNRATED.includes(cat) && r.p.active : r.value > 0))
+      .sort((a, b) => (b.value ?? -1) - (a.value ?? -1));
   }, [players, games, period, cat]);
 
-  const format = (v: number) =>
-    cat === 'presenca' ? `${Math.round(v)}%` : cat === 'nota' ? v.toFixed(1) : `${v} ${CATEGORIES.find((c) => c.key === cat)!.unit}`;
+  const rated = rows.filter((r) => r.value !== null);
+
+  const format = (v: number | null) =>
+    v === null
+      ? '—'
+      : cat === 'presenca'
+        ? `${Math.round(v)}%`
+        : cat === 'nota' || cat === 'pontos'
+          ? v.toFixed(1)
+          : `${v} ${CATEGORIES.find((c) => c.key === cat)!.unit}`;
 
   return (
     <Screen>
@@ -86,14 +102,14 @@ export default function RankingScreen() {
       </ScrollView>
 
       {rows.length === 0 && (
-        <Empty icon="trophy-outline" title="Sem dados ainda" text="Registre partidas, gols e notas nos jogos para o ranking aparecer." />
+        <Empty icon="trophy-outline" title="Sem dados ainda" text="Registre partidas e gols e encerre os jogos para a galera avaliar." />
       )}
 
       {/* Pódio */}
-      {rows.length >= 3 && (
+      {rated.length >= 3 && (
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: 8, marginBottom: 16 }}>
           {[1, 0, 2].map((i) => {
-            const r = rows[i];
+            const r = rated[i];
             const h = [110, 84, 64][i];
             return (
               <View key={r.p.id} style={{ alignItems: 'center', flex: 1 }}>
@@ -125,8 +141,8 @@ export default function RankingScreen() {
       {rows.map((r, i) => (
         <Card key={r.p.id} onPress={() => router.push(`/player/${r.p.id}`)}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <Text style={{ width: 28, textAlign: 'center', fontSize: i < 3 ? 20 : 15, color: colors.muted, fontFamily: fonts.display }}>
-              {i < 3 ? MEDALS[i] : `${i + 1}º`}
+            <Text style={{ width: 28, textAlign: 'center', fontSize: i < 3 && r.value !== null ? 20 : 15, color: colors.muted, fontFamily: fonts.display }}>
+              {r.value === null ? '–' : i < 3 ? MEDALS[i] : `${i + 1}º`}
             </Text>
             <Avatar name={r.p.name} photo={r.p.photo} size={36} color={positionColors[r.p.position]} />
             <View style={{ flex: 1 }}>
@@ -135,7 +151,9 @@ export default function RankingScreen() {
               </Text>
               <Text style={text.muted}>{r.detail}</Text>
             </View>
-            <Text style={{ color: colors.primary, fontFamily: fonts.display, fontSize: 16 }}>{format(r.value)}</Text>
+            <Text style={{ color: r.value === null ? colors.muted : colors.primary, fontFamily: fonts.display, fontSize: 16 }}>
+              {format(r.value)}
+            </Text>
           </View>
         </Card>
       ))}

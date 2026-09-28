@@ -1,6 +1,7 @@
 import type { Game, Player, Position } from '../types';
 import { formatGameDate } from './format';
 import { displayName, teamName } from './names';
+import { scoreGame } from './scoring';
 import { confirmedIds, matchScore } from './stats';
 
 export interface RoundScore {
@@ -10,8 +11,13 @@ export interface RoundScore {
   assists: number;
 }
 
-/** Pontuação do jogador no dia: nota + gols + assistências + bônus de craque. */
+/**
+ * Pontuação do jogador no dia. Com a pontuação estilo Cartola (utils/scoring) usa ela;
+ * sem nenhuma nota ainda, usa uma estimativa por gols e assistências.
+ * `score` fica na escala 0–5 (o campinho mostra ×2).
+ */
 export function roundScores(game: Game, byId: Record<string, Player>): RoundScore[] {
+  const cartola = scoreGame(game, (id) => byId[id]?.position);
   return confirmedIds(game)
     .map((id) => byId[id])
     .filter(Boolean)
@@ -24,8 +30,9 @@ export function roundScores(game: Game, byId: Record<string, Player>): RoundScor
           if (g.assistId === player.id) assists++;
         }
       }
-      const rating = (game.ratings[player.id] ?? 6) / 2;
-      const score = rating + goals * 0.6 + assists * 0.35 + (game.mvp === player.id ? 1 : 0);
+      const points = cartola[player.id]?.points;
+      const score =
+        points != null ? points / 2 : (game.ratings[player.id] ?? 6) / 2 + goals * 0.6 + assists * 0.35 + (game.mvp === player.id ? 1 : 0);
       return { player, score, goals, assists };
     })
     .sort((a, b) => b.score - a.score);

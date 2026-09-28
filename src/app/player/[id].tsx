@@ -2,6 +2,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
 import { Switch, Text, View } from 'react-native';
 import { Achievements } from '@/components/Achievements';
+import { LiveAttributes } from '@/components/LiveAttributes';
 import { PlayerCard, toOvr } from '@/components/PlayerCard';
 import { Button, Card, Chip, Input, Label, RatingBadge, Screen, SectionTitle, Stars, Stat, text } from '@/components/ui';
 import { achievementsFor } from '@/utils/achievements';
@@ -136,6 +137,8 @@ export default function PlayerFormScreen() {
               </View>
             </>
           )}
+
+          <LiveAttributes player={existing} games={games} />
 
           <Achievements list={achievements} />
 

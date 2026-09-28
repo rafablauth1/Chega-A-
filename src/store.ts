@@ -28,6 +28,9 @@ interface State extends Data {
   togglePaid: (gameId: string, playerId: string) => void;
   ratePlayer: (gameId: string, playerId: string, value: number) => void;
   setMvp: (gameId: string, playerId: string | null) => void;
+  /** Encerra o jogo: fecha as partidas e abre a avaliação da galera (24 h) */
+  closeGame: (gameId: string) => void;
+  reopenGame: (gameId: string) => void;
 
   addMatch: (gameId: string, teamA: number, teamB: number, durationMin: number) => string;
   removeMatch: (gameId: string, matchId: string) => void;
@@ -166,6 +169,12 @@ export const useStore = create<State>()(
         ratePlayer: (gameId, playerId, value) =>
           patchGame(gameId, (g) => ({ ratings: { ...g.ratings, [playerId]: value } })),
         setMvp: (gameId, playerId) => patchGame(gameId, () => ({ mvp: playerId })),
+        closeGame: (gameId) =>
+          patchGame(gameId, (g) => ({
+            closedAt: new Date().toISOString(),
+            matches: g.matches.map((m) => (m.finished ? m : { ...m, finished: true })),
+          })),
+        reopenGame: (gameId) => patchGame(gameId, () => ({ closedAt: null })),
 
         addMatch: (gameId, teamA, teamB, durationMin) => {
           const id = uid();
