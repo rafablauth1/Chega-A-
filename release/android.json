@@ -1,10 +1,11 @@
 {
-  "versionCode": 2,
-  "versionName": "1.1.0",
-  "url": "https://github.com/rafablauth1/Chega-A-/releases/download/v1.1.0/VaiaAi-1.1.0.apk",
+  "versionCode": 3,
+  "versionName": "1.2.0",
+  "url": "https://github.com/rafablauth1/Chega-A-/releases/download/v1.2.0/VaiaAi-1.2.0.apk",
   "notes": [
-    "Senha mais segura e recuperação com data de nascimento",
-    "Comunidades, Bora jogar e chat",
-    "Aviso automático de novas versões"
+    "Lembretes de jogo no celular",
+    "Marcador do placar: um admin por jogo",
+    "Salva mesmo com internet ruim",
+    "Relatório de erros para corrigir mais rápido (sem dados pessoais)"
   ]
 }
