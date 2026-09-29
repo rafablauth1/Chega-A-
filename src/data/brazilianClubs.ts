@@ -1,0 +1,77 @@
+/**
+ * Clubes tradicionais do futebol brasileiro pra escolher o "time do coração" (perfil do jogador).
+ * Sem escudo oficial de propósito (marca registrada, precisaria de licença) — o selo do app usa
+ * a cor principal do time + a sigla. Lista não pretende ser toda a Série D (muda todo ano); quem
+ * não achar o time usa "Outro" e digita o nome.
+ */
+export interface BrazilianClub {
+  name: string;
+  abbr: string;
+  color: string;
+}
+
+export const BRAZILIAN_CLUBS: BrazilianClub[] = [
+  { name: 'Flamengo', abbr: 'FLA', color: '#E30613' },
+  { name: 'Fluminense', abbr: 'FLU', color: '#7A1728' },
+  { name: 'Vasco da Gama', abbr: 'VAS', color: '#1B1B1B' },
+  { name: 'Botafogo', abbr: 'BOT', color: '#1B1B1B' },
+  { name: 'Corinthians', abbr: 'COR', color: '#1B1B1B' },
+  { name: 'Palmeiras', abbr: 'PAL', color: '#006437' },
+  { name: 'São Paulo', abbr: 'SAO', color: '#C1121F' },
+  { name: 'Santos', abbr: 'SAN', color: '#1B1B1B' },
+  { name: 'Grêmio', abbr: 'GRE', color: '#0C2340' },
+  { name: 'Internacional', abbr: 'INT', color: '#E4181C' },
+  { name: 'Atlético-MG', abbr: 'CAM', color: '#1B1B1B' },
+  { name: 'Cruzeiro', abbr: 'CRU', color: '#003DA5' },
+  { name: 'América-MG', abbr: 'AME', color: '#009739' },
+  { name: 'Bahia', abbr: 'BAH', color: '#0E4C92' },
+  { name: 'Vitória', abbr: 'VIT', color: '#A6192E' },
+  { name: 'Fortaleza', abbr: 'FOR', color: '#005CA9' },
+  { name: 'Ceará', abbr: 'CEA', color: '#1B1B1B' },
+  { name: 'Sport Recife', abbr: 'SPT', color: '#B0021B' },
+  { name: 'Náutico', abbr: 'NAU', color: '#C8102E' },
+  { name: 'Santa Cruz', abbr: 'SCR', color: '#C8102E' },
+  { name: 'Athletico-PR', abbr: 'CAP', color: '#D2122E' },
+  { name: 'Coritiba', abbr: 'CFC', color: '#00843D' },
+  { name: 'Paraná Clube', abbr: 'PARA', color: '#1B1B1B' },
+  { name: 'Chapecoense', abbr: 'CHA', color: '#00843D' },
+  { name: 'Criciúma', abbr: 'CRI', color: '#FFC72C' },
+  { name: 'Avaí', abbr: 'AVA', color: '#003DA5' },
+  { name: 'Figueirense', abbr: 'FIG', color: '#1B1B1B' },
+  { name: 'Goiás', abbr: 'GOI', color: '#00843D' },
+  { name: 'Atlético-GO', abbr: 'ACG', color: '#D2122E' },
+  { name: 'Vila Nova', abbr: 'VNO', color: '#C8102E' },
+  { name: 'Cuiabá', abbr: 'CUI', color: '#FFB612' },
+  { name: 'Paysandu', abbr: 'PAY', color: '#002F6C' },
+  { name: 'Remo', abbr: 'REM', color: '#0057B8' },
+  { name: 'Red Bull Bragantino', abbr: 'RBB', color: '#E4002B' },
+  { name: 'Juventude', abbr: 'JUV', color: '#00843D' },
+  { name: 'CSA', abbr: 'CSA', color: '#C8102E' },
+  { name: 'CRB', abbr: 'CRB', color: '#C8102E' },
+  { name: 'Botafogo-PB', abbr: 'BOT-PB', color: '#C8102E' },
+  { name: 'Sampaio Corrêa', abbr: 'SAM', color: '#C8102E' },
+  { name: 'ABC', abbr: 'ABC', color: '#C8102E' },
+  { name: 'América-RN', abbr: 'AME-RN', color: '#009739' },
+  { name: 'Ponte Preta', abbr: 'PON', color: '#1B1B1B' },
+  { name: 'Guarani', abbr: 'GUA', color: '#00843D' },
+  { name: 'Portuguesa', abbr: 'POR', color: '#009739' },
+  { name: 'Novorizontino', abbr: 'NOV', color: '#C8102E' },
+  { name: 'Mirassol', abbr: 'MIR', color: '#FFC72C' },
+  { name: 'Ituano', abbr: 'ITU', color: '#C8102E' },
+  { name: 'Operário-PR', abbr: 'OPE', color: '#00843D' },
+  { name: 'Londrina', abbr: 'LON', color: '#C8102E' },
+  { name: 'Tombense', abbr: 'TOM', color: '#003DA5' },
+  { name: 'Vitória-BA', abbr: 'EC-VIT', color: '#A6192E' },
+  { name: 'Confiança', abbr: 'CON', color: '#C8102E' },
+  { name: 'Sergipe', abbr: 'SER', color: '#1B1B1B' },
+  { name: 'Náutico-RR', abbr: 'NAU-RR', color: '#C8102E' },
+  { name: 'Brusque', abbr: 'BRU', color: '#FFC72C' },
+  { name: 'Aparecidense', abbr: 'APA', color: '#003DA5' },
+  { name: 'Volta Redonda', abbr: 'VOL', color: '#1B1B1B' },
+  { name: 'Nova Iguaçu', abbr: 'NOI', color: '#003DA5' },
+  { name: 'Boavista', abbr: 'BOA', color: '#0057B8' },
+  { name: 'Madureira', abbr: 'MAD', color: '#00843D' },
+  { name: 'Bangu', abbr: 'BAN', color: '#C8102E' },
+  { name: 'Americano', abbr: 'AMC', color: '#003DA5' },
+  { name: 'Resende', abbr: 'RES', color: '#C8102E' },
+];

@@ -1,10 +1,12 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, Platform, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { Button, Card, Chip, Input, Label, Screen, SectionTitle, Stars, text } from '@/components/ui';
 import { ageOf, authErrorMessage, useAuth } from '@/auth';
 import { AvailabilityGrid } from '@/components/AvailabilityGrid';
+import { ClubBadge, findClub } from '@/components/ClubBadge';
+import { BRAZILIAN_CLUBS } from '@/data/brazilianClubs';
 import { supabase } from '@/lib/supabase';
 import { colors, fonts, positionColors } from '@/theme';
 import { FEET, POSITIONS, SKILLS, type Foot, type Position, type Skills } from '@/types';
@@ -39,6 +41,7 @@ export default function ProfileEditScreen() {
   const [weight, setWeight] = useState('');
   const [shirt, setShirt] = useState('');
   const [team, setTeam] = useState('');
+  const [teamOpen, setTeamOpen] = useState(false);
   const [skills, setSkills] = useState<Skills>(DEFAULT_SKILLS);
   const [busy, setBusy] = useState(false);
   const [neighborhood, setNeighborhood] = useState('');
@@ -366,7 +369,48 @@ export default function ProfileEditScreen() {
           <Input label="Camisa" value={shirt} onChangeText={(v) => setShirt(digits(v, 2))} keyboardType="number-pad" placeholder="10" />
         </View>
       </View>
-      <Input label="Time do coração" value={team} onChangeText={setTeam} placeholder="Ex.: Inter" />
+      <Label>Time do coração</Label>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: teamOpen ? 8 : 16 }}>
+        {!!team && <ClubBadge name={team} size={32} />}
+        <View style={{ flex: 1 }}>
+          <Input
+            value={team}
+            onChangeText={(v) => {
+              setTeam(v);
+              setTeamOpen(true);
+            }}
+            onFocus={() => setTeamOpen(true)}
+            placeholder="Busque o nome do seu time"
+            style={{ marginBottom: 0 }}
+          />
+        </View>
+      </View>
+      {teamOpen && (
+        <Card style={{ padding: 0, marginBottom: 16, maxHeight: 240, overflow: 'hidden' }}>
+          <ScrollView keyboardShouldPersistTaps="handled">
+            {BRAZILIAN_CLUBS.filter((c) => !team.trim() || c.name.toLowerCase().includes(team.trim().toLowerCase()))
+              .slice(0, 12)
+              .map((c) => (
+                <Pressable
+                  key={c.name}
+                  onPress={() => {
+                    setTeam(c.name);
+                    setTeamOpen(false);
+                  }}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12 }}
+                >
+                  <ClubBadge name={c.name} size={26} />
+                  <Text style={text.body}>{c.name}</Text>
+                </Pressable>
+              ))}
+            <Pressable onPress={() => setTeamOpen(false)} style={{ padding: 12 }}>
+              <Text style={[text.muted, { textAlign: 'center' }]}>
+                {findClub(team) ? 'Fechar' : 'Não achou? Pode deixar assim, digitando o nome mesmo'}
+              </Text>
+            </Pressable>
+          </ScrollView>
+        </Card>
+      )}
 
       <Label>Como você se avalia</Label>
       <Card>

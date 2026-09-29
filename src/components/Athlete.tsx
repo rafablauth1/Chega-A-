@@ -5,6 +5,7 @@ import { ageOf, type Profile } from '../auth';
 import { colors, fonts, positionColors } from '../theme';
 import { FEET, POSITIONS } from '../types';
 import { initials } from '../utils/format';
+import { ClubBadge } from './ClubBadge';
 import { Tag, type IconName } from './ui';
 
 const positionLabel = (key: string | null) => POSITIONS.find((p) => p.key === key)?.label ?? '';
@@ -69,7 +70,6 @@ export function AthleteInfo({ profile, showContacts }: { profile: Profile; showC
   const facts: { icon: IconName; label: string }[] = [
     profile.height_cm ? { icon: 'resize-outline', label: `${(profile.height_cm / 100).toFixed(2).replace('.', ',')} m` } : null,
     profile.weight_kg ? { icon: 'barbell-outline', label: `${profile.weight_kg} kg` } : null,
-    profile.favorite_team ? { icon: 'heart-outline', label: profile.favorite_team } : null,
   ].filter((x): x is { icon: IconName; label: string } => !!x);
 
   const instagram = profile.instagram?.replace(/^@/, '');
@@ -89,6 +89,13 @@ export function AthleteInfo({ profile, showContacts }: { profile: Profile; showC
       </View>
 
       {!!profile.bio && <Text style={{ color: colors.text, fontSize: 15, lineHeight: 21 }}>{profile.bio}</Text>}
+
+      {!!profile.favorite_team && (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <ClubBadge name={profile.favorite_team} size={22} />
+          <Text style={{ color: colors.text, fontFamily: fonts.semibold }}>{profile.favorite_team}</Text>
+        </View>
+      )}
 
       {facts.length > 0 && (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
