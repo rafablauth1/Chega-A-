@@ -7,6 +7,7 @@ import { useSwipe } from '@/components/SwipeCard';
 import { Avatar, Button, Empty, Group, PositionTag, Row, Screen, SectionTitle, Segmented, Tag, text } from '@/components/ui';
 import {
   REPORT_REASONS,
+  acceptCallResponder,
   block,
   callResponders,
   callsNearby,
@@ -24,13 +25,14 @@ import {
   type OpenCall,
   type Responder,
 } from '@/discovery';
+import { fetchGamesOf } from '@/cloud';
 import { colors, fonts, positionColors } from '@/theme';
 import { POSITIONS } from '@/types';
 import { choose, confirm, notify } from '@/utils/confirm';
 import { chatTime } from '@/chat';
 import { clubError, inviteToClub, joinCallGame } from '@/clubs';
 import { describeSlots, overlap } from '@/utils/availability';
-import { initials, money, parseLocal, relativeDay } from '@/utils/format';
+import { formatGameDate, initials, money, parseLocal, relativeDay, toLocalIso } from '@/utils/format';
 
 type Tab = 'jogadores' | 'vagas' | 'matches';
 
@@ -449,6 +451,36 @@ function Calls({ userId }: { userId: string }) {
     }
   };
 
+  const acceptResponder = async (c: OpenCall, r: Responder) => {
+    if (!c.group_id) return;
+    try {
+      const nowIso = toLocalIso(new Date());
+      const games = (await fetchGamesOf([c.group_id])).filter((g) => g.date >= nowIso).sort((a, b) => a.date.localeCompare(b.date));
+      if (!games.length) return notify('Sem jogo marcado', 'Marque um próximo jogo no clube antes de aceitar.');
+      choose(
+        `Aceitar ${r.nickname || r.name} em qual jogo?`,
+        games.map((g) => ({
+          text: formatGameDate(g.date),
+          onPress: async () => {
+            try {
+              const result = await acceptCallResponder(c.id, r.id, g.id);
+              notify(
+                result === 'confirmed' ? 'Confirmado no jogo!' : 'Confirmado no jogo — pedido enviado',
+                result === 'requested'
+                  ? 'Como ainda não é do clube, virou um pedido de entrada. Aprove em "Pedidos" na tela do clube.'
+                  : undefined,
+              );
+            } catch (e: any) {
+              notify('Não deu certo', clubError(e?.message));
+            }
+          },
+        })),
+      );
+    } catch (e: any) {
+      notify('Não deu certo', discoveryError(e.message));
+    }
+  };
+
   const close = (c: OpenCall) =>
     confirm('Encerrar vaga', 'A vaga some da lista de quem está procurando jogo.', () => closeCall(c.id).then(load), 'Encerrar');
 
@@ -516,6 +548,11 @@ function Calls({ userId }: { userId: string }) {
                                 onPress={() => Linking.openURL(whatsappLink(r.phone!, `E aí! Vi que você topou a vaga "${c.title}" no Vaia Aí.`))}
                               >
                                 <Ionicons name="logo-whatsapp" size={22} color={colors.success} />
+                              </Pressable>
+                            )}
+                            {c.group_id && !c.joinable && (
+                              <Pressable hitSlop={8} onPress={() => acceptResponder(c, r)}>
+                                <Ionicons name="checkmark-circle" size={22} color={colors.success} />
                               </Pressable>
                             )}
                             <Pressable hitSlop={8} onPress={() => inviteToClub(groups, { id: r.id, name: r.nickname || r.name })}>
