@@ -8,7 +8,7 @@
 export const APP_NAME = 'Vaia Aí';
 export const OWNER = '[NOME COMPLETO OU EMPRESA RESPONSÁVEL]';
 export const CONTACT_EMAIL = '[E-MAIL DE CONTATO]';
-export const UPDATED_AT = '27 de setembro de 2026';
+export const UPDATED_AT = '28 de setembro de 2026';
 /** Onde as páginas ficam publicadas (GitHub Pages do repositório, pasta /docs). */
 export const SITE_URL = 'https://rafablauth1.github.io/Chega-A-';
 
@@ -113,7 +113,7 @@ export const PRIVACY: LegalDoc = {
     {
       heading: 'Segurança',
       paragraphs: [
-        'Senhas são guardadas só em forma cifrada (hash) pelo nosso provedor de login. Ao criar ou trocar a senha, o app confere se ela já apareceu em vazamentos públicos (serviço Have I Been Pwned) enviando só os 5 primeiros caracteres de um resumo (hash) da senha; a senha em si nunca sai do celular. Para redefinir a senha pedimos o código enviado ao seu e-mail e a sua data de nascimento, conferida no servidor. A sessão fica cifrada no seu celular. Os dados trafegam criptografados (HTTPS). No banco, regras de acesso garantem que cada pessoa só lê os dados dos grupos de que participa e que só organizadores alteram jogos e financeiro. Nenhum sistema é 100% seguro; se acontecer um incidente relevante, avisaremos os afetados e a ANPD como manda a lei.',
+        'Senhas são guardadas só em forma cifrada (hash) pelo nosso provedor de login; a senha em si nunca sai do celular. Para redefinir a senha pedimos o código enviado ao seu e-mail e a sua data de nascimento, conferida no servidor. A sessão fica cifrada no seu celular. Os dados trafegam criptografados (HTTPS). No banco, regras de acesso garantem que cada pessoa só lê os dados dos grupos de que participa e que só organizadores alteram jogos e financeiro. Nenhum sistema é 100% seguro; se acontecer um incidente relevante, avisaremos os afetados e a ANPD como manda a lei.',
       ],
     },
     {
