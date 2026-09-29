@@ -107,7 +107,7 @@ export default function GroupScreen() {
 
   const deleteGroup = () =>
     confirm(`Apagar ${noun}`, `Apagar "${group.name}" para todos? Não dá para desfazer.`, async () => {
-      const { error } = await supabase.from('groups').delete().eq('id', id);
+      const { error } = await supabase.rpc('delete_group', { gid: id });
       if (error) return notify('Não deu certo', authErrorMessage(error.message));
       await refresh();
       router.back();

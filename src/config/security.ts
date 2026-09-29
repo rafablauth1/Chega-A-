@@ -19,7 +19,7 @@ export const SECURITY = {
     requireNumber: true,
     requireSymbol: true,
     /** Recusa senhas que já vazaram em outros sites (base Have I Been Pwned; só 5 letras do hash saem do celular) */
-    blockLeaked: true,
+    blockLeaked: false,
     /** Recusa senha que contém o nome ou o e-mail da pessoa */
     blockPersonalInfo: true,
   },
