@@ -77,13 +77,26 @@ export default function GamesScreen() {
   return (
     <View style={{ flex: 1 }}>
       <Screen>
-        {/* Clube aberto (vale para Jogadores, Ranking e Caixa); troca com um toque */}
+        {/* Clube aberto (vale para Jogadores, Ranking e Caixa); troca com um toque, toca de novo pra abrir o clube */}
         {clubs.length > 1 ? (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }} contentContainerStyle={{ gap: 8 }}>
             {clubs.map((c) => (
-              <Chip key={c.id} label={c.name} selected={c.id === activeGroup?.id} onPress={() => setActiveGroup(c.id)} />
+              <Chip
+                key={c.id}
+                label={c.name}
+                selected={c.id === activeGroup?.id}
+                onPress={() =>
+                  c.id === activeGroup?.id
+                    ? router.push({ pathname: '/group/[id]', params: { id: c.id } })
+                    : setActiveGroup(c.id)
+                }
+              />
             ))}
           </ScrollView>
+        ) : activeGroup ? (
+          <Pressable onPress={() => router.push({ pathname: '/group/[id]', params: { id: activeGroup.id } })}>
+            <Text style={styles.group}>{groupName}</Text>
+          </Pressable>
         ) : (
           <Text style={styles.group}>{groupName}</Text>
         )}

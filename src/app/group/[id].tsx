@@ -1,16 +1,19 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Clipboard from 'expo-clipboard';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
-import { Pressable, Share, Text, View } from 'react-native';
-import { Avatar, Button, Card, Input, Screen, SectionTitle, Tag, text, type IconName } from '@/components/ui';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Pressable, ScrollView, Share, Text, TextInput, View } from 'react-native';
+import { Avatar, Button, Card, Chip, Input, RatingBadge, Screen, SectionTitle, Tag, text, type IconName } from '@/components/ui';
 import { authErrorMessage, ROLE_LABEL, useAuth, type Profile, type Role } from '@/auth';
 import { supabase } from '@/lib/supabase';
 import { clubError, convertToClub } from '@/clubs';
+import { fetchGamesOf } from '@/cloud';
 import { fetchPeople } from '@/people';
 import { colors, fonts, positionColors } from '@/theme';
+import { POSITIONS, type Game, type Player, type Position } from '@/types';
 import { choose, confirm, notify } from '@/utils/confirm';
 import { deletePhoto, pickPhoto, uploadGroupPhoto } from '@/utils/photos';
+import { buildRatingMap } from '@/utils/rating';
 
 interface Member {
   user_id: string;
@@ -37,17 +40,23 @@ export default function GroupScreen() {
   const { session, refresh, activeGroup, setActiveGroup } = useAuth();
   const [group, setGroup] = useState<Group | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
+  const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [clubName, setClubName] = useState('');
+  const [query, setQuery] = useState('');
+  const [posFilter, setPosFilter] = useState<Position | null>(null);
+  const [sort, setSort] = useState<'nome' | 'nota'>('nome');
 
   const load = useCallback(async () => {
-    const [g, m] = await Promise.all([
+    const [g, m, gm] = await Promise.all([
       supabase.from('groups').select('*').eq('id', id).single(),
       supabase.from('group_members').select('user_id, role, type').eq('group_id', id),
+      fetchGamesOf([id]).catch(() => []),
     ]);
     const rows = (m.data ?? []) as Member[];
     const profiles = await fetchPeople(rows.map((r) => r.user_id)).catch(() => []);
     setGroup(g.data);
+    setGames(gm);
     setMembers(
       rows
         .map((r) => ({ ...r, profile: profiles?.find((p) => p.id === r.user_id) as Profile | undefined }))
@@ -59,6 +68,21 @@ export default function GroupScreen() {
   useEffect(() => {
     load();
   }, [load]);
+
+  const ratingMap = useMemo(() => {
+    const asPlayers: Player[] = members
+      .filter((m) => m.profile)
+      .map((m) => ({
+        id: m.user_id,
+        name: m.profile!.name,
+        position: m.profile!.position,
+        type: m.type,
+        skills: m.profile!.skills,
+        active: true,
+        createdAt: '',
+      }));
+    return buildRatingMap(asPlayers, games);
+  }, [members, games]);
 
   if (loading) return <Screen>{null}</Screen>;
   if (!group) {
@@ -74,6 +98,20 @@ export default function GroupScreen() {
   const isSingle = group.kind === 'avulso';
   const withMonthly = !isSingle && group.settings?.monthlyEnabled !== false;
   const noun = isSingle ? 'jogo' : 'clube';
+
+  const visibleMembers = members
+    .filter((m) => {
+      const q = query.trim().toLowerCase();
+      const name = m.profile?.nickname || m.profile?.name || '';
+      const matches = !q || name.toLowerCase().includes(q);
+      return matches && (!posFilter || m.profile?.position === posFilter);
+    })
+    .sort((a, b) =>
+      sort === 'nota'
+        ? (ratingMap[b.user_id] ?? 0) - (ratingMap[a.user_id] ?? 0)
+        : ROLE_ORDER[a.role] - ROLE_ORDER[b.role] ||
+          (a.profile?.nickname || a.profile?.name || '').localeCompare(b.profile?.nickname || b.profile?.name || ''),
+    );
 
   const makeClub = async () => {
     if (!clubName.trim()) return notify('Dê um nome para o clube', 'Ex.: Pelada de quinta');
@@ -232,8 +270,48 @@ export default function GroupScreen() {
         </Card>
       )}
 
-      <SectionTitle right={<Text style={text.muted}>{members.length}</Text>}>{isSingle ? 'Quem está no jogo' : 'Membros'}</SectionTitle>
-      {members.map((m) => {
+      <SectionTitle right={<Text style={text.muted}>{members.length}</Text>}>{isSingle ? 'Quem está no jogo' : 'Jogadores'}</SectionTitle>
+
+      {members.length > 3 && (
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+            backgroundColor: colors.card,
+            borderRadius: 12,
+            paddingHorizontal: 12,
+            marginBottom: 10,
+          }}
+        >
+          <Ionicons name="search" size={18} color={colors.muted} />
+          <TextInput
+            placeholder="Buscar pelo nome ou apelido"
+            placeholderTextColor={colors.muted + '99'}
+            value={query}
+            onChangeText={setQuery}
+            style={{ flex: 1, color: colors.chalk, fontFamily: fonts.body, fontSize: 16, paddingVertical: 10 }}
+          />
+        </View>
+      )}
+      {members.length > 3 && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }} style={{ marginBottom: 14, flexGrow: 0 }}>
+          <Chip label={sort === 'nota' ? 'Maior nota' : 'A a Z'} selected color={colors.chalk} onPress={() => setSort(sort === 'nome' ? 'nota' : 'nome')} />
+          {POSITIONS.map((p) => (
+            <Chip
+              key={p.key}
+              label={p.label}
+              selected={posFilter === p.key}
+              color={positionColors[p.key]}
+              onPress={() => setPosFilter(posFilter === p.key ? null : p.key)}
+            />
+          ))}
+        </ScrollView>
+      )}
+
+      {visibleMembers.length === 0 && <Text style={[text.muted, { marginBottom: 8 }]}>Ninguém com esse nome ou filtro.</Text>}
+
+      {visibleMembers.map((m) => {
         const name = m.profile?.nickname || m.profile?.name || 'Jogador';
         const isMe = m.user_id === session?.user.id;
         // Dono mexe em todos (menos nele mesmo); admin só em jogador comum. Dar/tirar admin: só o dono.
@@ -253,6 +331,7 @@ export default function GroupScreen() {
                   {m.profile?.position ?? ''}{withMonthly ? (m.type === 'mensalista' ? ' · Mensalista' : ' · Avulso') : ''}
                 </Text>
               </View>
+              <RatingBadge value={ratingMap[m.user_id] ?? 0} />
               <Tag label={ROLE_LABEL[m.role]} color={m.role === 'player' ? colors.muted : colors.gold} />
             </View>
             {editable && (

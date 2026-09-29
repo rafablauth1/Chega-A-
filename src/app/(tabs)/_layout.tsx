@@ -74,13 +74,6 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="players"
-        options={{
-          title: 'Jogadores',
-          tabBarIcon: ({ color, size }) => <Ionicons name="people" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
         name="nearby"
         options={{
           title: 'Bora',
