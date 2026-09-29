@@ -601,7 +601,15 @@ function Scoreboard({ game, byId, goTeams }: { game: Game; byId: Record<string, 
 
       {game.matches.some((m) => m.finished) && (
         <>
-          <SectionTitle>Classificação do dia</SectionTitle>
+          <SectionTitle
+            right={
+              <Pressable onPress={() => router.push('/scoring-help')} hitSlop={8}>
+                <Ionicons name="help-circle-outline" size={20} color={colors.muted} />
+              </Pressable>
+            }
+          >
+            Classificação do dia
+          </SectionTitle>
           <Card>
             {sorted.map((r, pos) => (
               <View key={r.i} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 6, gap: 8 }}>

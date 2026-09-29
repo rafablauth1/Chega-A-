@@ -109,6 +109,7 @@ function App() {
           <Stack.Screen name="chat/[id]" options={{ title: 'Conversa' }} />
           <Stack.Screen name="account-security" options={{ title: 'Senha e segurança' }} />
           <Stack.Screen name="rate/[gameId]" options={{ title: 'Avaliar a galera' }} />
+          <Stack.Screen name="scoring-help" options={{ title: 'Como funciona a nota' }} />
         </Stack.Protected>
         <Stack.Protected guard={!signedIn}>
           <Stack.Screen name="login" options={{ headerShown: false }} />

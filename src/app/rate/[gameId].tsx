@@ -129,6 +129,9 @@ export default function RateScreen() {
           adversário ×{SCORING.votes.opponentWeight}.
         </Text>
         {sent && <Text style={[text.muted, { color: colors.success }]}>Você já votou. Pode corrigir até o prazo acabar.</Text>}
+        <Text style={{ color: colors.primary, fontFamily: fonts.semibold }} onPress={() => router.push('/scoring-help')}>
+          Como isso vira a nota final?
+        </Text>
       </Card>
 
       {loading ? null : (

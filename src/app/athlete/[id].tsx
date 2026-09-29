@@ -1,4 +1,4 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 import { Achievements } from '@/components/Achievements';
@@ -7,7 +7,7 @@ import { Empty, Screen, SectionTitle, Stat, text } from '@/components/ui';
 import { useAuth, type Profile } from '@/auth';
 import { fetchGamesOf } from '@/cloud';
 import { fetchPerson } from '@/people';
-import { colors } from '@/theme';
+import { colors, fonts } from '@/theme';
 import type { Game } from '@/types';
 import { achievementsFor } from '@/utils/achievements';
 import { toLocalIso } from '@/utils/format';
@@ -67,6 +67,12 @@ export default function AthleteScreen() {
         <Stat label="V / E / D" value={`${stats?.wins ?? 0}/${stats?.draws ?? 0}/${stats?.losses ?? 0}`} />
       </View>
       {!stats && <Text style={text.muted}>Ainda sem jogos registrados com você.</Text>}
+      <Text
+        style={{ color: colors.primary, fontFamily: fonts.semibold, marginBottom: 8 }}
+        onPress={() => router.push('/scoring-help')}
+      >
+        Como essa nota é calculada?
+      </Text>
 
       <Achievements list={career.achievements} />
     </Screen>

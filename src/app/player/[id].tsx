@@ -204,6 +204,9 @@ export default function PlayerFormScreen() {
             ? 'Depois dos jogos, as notas da partida também entram na média.'
             : `Nota média nas partidas: ${perf.toFixed(1)} · a nota geral junta habilidades (60%) e partidas (40%).`}
         </Text>
+        <Text style={{ color: colors.primary, fontFamily: fonts.semibold, marginTop: 6 }} onPress={() => router.push('/scoring-help')}>
+          Como essa nota é calculada?
+        </Text>
       </Card>
 
       {!isNew && (
