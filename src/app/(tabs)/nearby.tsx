@@ -332,7 +332,25 @@ function Matches({ userId }: { userId: string }) {
 
   const menu = (m: Match) =>
     choose(m.nickname || m.name, [
-      { text: 'Desfazer parceria', onPress: () => unmatch(m.id, userId).then(load).catch((e) => notify('Não deu certo', discoveryError(e.message))) },
+      {
+        text: 'Desfazer parceria',
+        onPress: () =>
+          choose('Desfazer parceria', [
+            {
+              text: 'Sim, pode aparecer de novo',
+              onPress: () => unmatch(m.id, userId).then(load).catch((e) => notify('Não deu certo', discoveryError(e.message))),
+            },
+            {
+              text: 'Não, não quero ver esse jogador',
+              destructive: true,
+              onPress: () =>
+                unmatch(m.id, userId)
+                  .then(() => block(m.id))
+                  .then(load)
+                  .catch((e) => notify('Não deu certo', discoveryError(e.message))),
+            },
+          ]),
+      },
       { text: 'Bloquear', destructive: true, onPress: () => block(m.id).then(load).catch((e) => notify('Não deu certo', discoveryError(e.message))) },
       { text: 'Denunciar', destructive: true, onPress: () => askReport({ user: m.id, name: m.nickname || m.name }, load) },
     ]);
