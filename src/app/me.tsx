@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Share, Text, View } from 'react-native';
+import { Share, Switch, Text, View } from 'react-native';
 import { Achievements } from '@/components/Achievements';
 import { profileCompletion } from '@/components/Athlete';
 import { PlayerCard, toOvr } from '@/components/PlayerCard';
@@ -14,6 +14,7 @@ import type { Game, Player } from '@/types';
 import { achievementsFor } from '@/utils/achievements';
 import { installedVersionCode, installedVersionName } from '@/utils/appUpdate';
 import { exportMyData } from '@/people';
+import { remindersEnabled, setRemindersEnabled } from '@/utils/reminders';
 import { deleteMyAccount } from '@/utils/account';
 import { confirm, notify } from '@/utils/confirm';
 import { toLocalIso } from '@/utils/format';
@@ -230,6 +231,9 @@ export default function MeScreen() {
 
       <Button title="Sair da conta" icon="log-out" variant="danger" onPress={signOut} style={{ marginTop: 24 }} />
 
+      <SectionTitle>Notificações</SectionTitle>
+      <RemindersToggle />
+
       <SectionTitle>Privacidade</SectionTitle>
       <Card onPress={() => router.push('/account-security')} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <Ionicons name="key-outline" size={20} color={colors.muted} />
@@ -269,5 +273,30 @@ export default function MeScreen() {
         Vaia Aí {installedVersionName()} ({installedVersionCode()})
       </Text>
     </Screen>
+  );
+}
+
+/** Liga/desliga os lembretes de jogo (agendados no próprio celular). */
+function RemindersToggle() {
+  const [on, setOn] = useState(true);
+  useEffect(() => {
+    remindersEnabled().then(setOn);
+  }, []);
+  return (
+    <Card style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      <Ionicons name="alarm-outline" size={20} color={colors.muted} />
+      <View style={{ flex: 1 }}>
+        <Text style={text.body}>Lembretes de jogo</Text>
+        <Text style={text.muted}>Aviso 24 h e 2 h antes dos jogos (e se ainda não confirmou)</Text>
+      </View>
+      <Switch
+        value={on}
+        onValueChange={(v) => {
+          setOn(v);
+          setRemindersEnabled(v);
+        }}
+        trackColor={{ true: colors.primary, false: colors.border }}
+      />
+    </Card>
   );
 }

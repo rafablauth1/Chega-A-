@@ -3,7 +3,7 @@
     "name": "Vaia Aí",
     "slug": "vaia-ai",
     "scheme": "vaiaai",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -27,7 +27,7 @@
     },
     "android": {
       "package": "com.vaiaai.app",
-      "versionCode": 2,
+      "versionCode": 3,
       "allowBackup": false,
       "adaptiveIcon": {
         "backgroundColor": "#0F2419",
@@ -67,7 +67,15 @@
         }
       ],
       "expo-secure-store",
-      "./plugins/withReleaseSigning"
+      "./plugins/withReleaseSigning",
+      [
+        "@sentry/react-native",
+        { "organization": "vaia-ai", "project": "react-native", "url": "https://de.sentry.io/" }
+      ],
+      [
+        "expo-notifications",
+        { "icon": "./assets/android-icon-monochrome.png", "color": "#FF7A1A" }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

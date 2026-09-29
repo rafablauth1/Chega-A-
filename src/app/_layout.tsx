@@ -6,14 +6,16 @@ import {
   useFonts,
 } from '@expo-google-fonts/barlow';
 import { BigShouldersDisplay_800ExtraBold, BigShouldersDisplay_900Black } from '@expo-google-fonts/big-shoulders-display';
-import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, router, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Platform, Pressable, Text, View } from 'react-native';
 import { AuthProvider, useAuth } from '@/auth';
 import { AppDialog } from '@/components/AppDialog';
 import { UpdatePrompt } from '@/components/UpdatePrompt';
+import { reportError } from '@/lib/sentry'; // relatório de erros: inicia ao carregar este módulo
 import { isCloudEnabled } from '@/lib/supabase';
+import { listenReminderTaps } from '@/utils/reminders';
 import { useStore } from '@/store';
 import { buildDemo } from '@/utils/demo';
 import { colors, fonts } from '@/theme';
@@ -35,6 +37,9 @@ const theme = {
  * O Expo Router usa este export automaticamente para todas as telas.
  */
 export function ErrorBoundary({ error, retry }: { error: Error; retry: () => Promise<void> }) {
+  useEffect(() => {
+    reportError(error, { where: 'ErrorBoundary' });
+  }, [error]);
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', padding: 28, gap: 14 }}>
       <Text style={{ fontSize: 48 }}>🤕</Text>
@@ -80,6 +85,12 @@ function App() {
     setHydrated(useStore.persist.hasHydrated());
     return unsub;
   }, []);
+
+  // Tocou num lembrete de jogo: abre o jogo (troca para o clube dele)
+  useEffect(() => {
+    if (!signedIn || !ready) return;
+    return listenReminderTaps((gameId, groupId) => router.push({ pathname: '/game/[id]', params: { id: gameId, group: groupId } }));
+  }, [signedIn, ready]);
 
   // Atalho de desenvolvimento na web: abrir com ?demo=1 carrega o grupo de exemplo
   useEffect(() => {

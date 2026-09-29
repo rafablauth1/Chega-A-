@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, Chip, Empty, Fab, Group, Row, Screen, SectionTitle, Tag, text } from '@/components/ui';
 import { useAuth, useCanManage } from '@/auth';
@@ -12,6 +12,7 @@ import type { Game, Player } from '@/types';
 import { buildDemo } from '@/utils/demo';
 import { MONTHS_SHORT, formatGameDate, gameEndTime, gameTimeRange, money, parseLocal, relativeDay, toLocalIso } from '@/utils/format';
 import { isMensalista } from '@/utils/monthly';
+import { syncReminders } from '@/utils/reminders';
 import { matchScore, confirmedIds, waitlistIds } from '@/utils/stats';
 
 /** Mesma hora e dia da semana, na próxima data futura. */
@@ -68,6 +69,10 @@ export default function GamesScreen() {
   const upcoming = [...mine.filter((g) => g.date >= now), ...others.filter((g) => g.date >= now)].sort((a, b) =>
     a.date.localeCompare(b.date),
   );
+  // Lembretes no celular (24 h e 2 h antes); só reagenda quando algo muda de verdade
+  useEffect(() => {
+    if (isCloudEnabled) syncReminders(upcoming, me, (g) => g.location);
+  });
   const past = games.filter((g) => g.date < now).sort((a, b) => b.date.localeCompare(a.date));
   const [next, ...later] = upcoming;
   const multi = groups.length > 1;
