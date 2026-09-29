@@ -24,6 +24,7 @@ Sem isso, excluir conta, comunidades, região e "Bora jogar?" dão erro no app.
    - [ ] `supabase/migrations/011_match_votes.sql`: **avaliação da galera** estilo Cartola (encerrar jogo, 24 h para votar, voto secreto)
    - [ ] `supabase/migrations/012_court_time_and_roles.sql`: **horário da quadra** (início/fim, duração da partida) e **só o dono mexe em admin**
    - [ ] `supabase/migrations/013_clubs_and_single_games.sql`: **clubes e jogos avulsos** (jogo sem clube, publicar no Bora e entrar direto)
+   - [ ] `supabase/migrations/020_privacy_hardening.sql`: **privacidade** (auditoria: match/bloqueio de terceiros, listagem de fotos, exportação LGPD completa)
 5. Se alguma der erro, **pare** e me mande a mensagem de erro (print serve).
 
 > Eu confiro a escrita de todos os arquivos com o verificador do próprio Postgres (`npm run check:sql`), mas só rodando no seu Supabase dá para ter certeza de que funcionam.

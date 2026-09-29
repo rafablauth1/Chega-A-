@@ -42,7 +42,7 @@ export default function GamesScreen() {
   useFocusEffect(
     useCallback(() => {
       if (!isCloudEnabled || !otherKey) return setOthers([]);
-      fetchGamesOf(otherKey.split(',')).then(setOthers).catch(() => {});
+      fetchGamesOf(otherKey.split(','), { from: toLocalIso(new Date(Date.now() - 3 * 60 * 60 * 1000)) }).then(setOthers).catch(() => {});
     }, [otherKey]),
   );
   const nameOf = (gid: string) => groups.find((g) => g.id === gid)?.name ?? '';

@@ -41,6 +41,8 @@
     "@expo/ngrok": "^4.1.0",
     "@types/aes-js": "^3.1.4",
     "@types/react": "~19.2.2",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "~57.0.2",
     "libpg-query": "^18.1.5",
     "typescript": "~6.0.3"
   },
@@ -53,6 +55,9 @@
     "legal": "node scripts/build-legal.ts",
     "check:sql": "node scripts/check-sql.mjs",
     "check:secrets": "node scripts/check-secrets.mjs",
+    "check:db": "node scripts/audit-db.mjs",
+    "lint": "eslint src",
+    "check": "tsc --noEmit && eslint src --max-warnings 0 && node scripts/check-sql.mjs && node scripts/audit-db.mjs && node scripts/check-secrets.mjs",
     "update:publish": "node scripts/publish-update.mjs",
     "prepare": "git config core.hooksPath .githooks || true"
   },

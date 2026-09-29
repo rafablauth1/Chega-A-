@@ -1,0 +1,27 @@
+name: Verificações
+
+# Roda em todo envio e pedido de alteração: se algo quebrar, aparece um ❌ no GitHub antes de chegar na galera.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Instalar dependências
+        run: npm ci
+      - name: Tipos, migrações, segurança do banco e segredos
+        run: npm run check
+      - name: O app monta (pacote Android)
+        run: npx expo export --platform android --output-dir /tmp/export

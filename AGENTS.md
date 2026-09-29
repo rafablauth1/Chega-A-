@@ -90,3 +90,8 @@ Converse com o dono em português, de forma simples (não é programador).
 4. Publicar no GitHub Releases com a tag `vX.Y.Z` e o arquivo `VaiaAi-X.Y.Z.apk`.
 5. Atualizar `release/android.json` (versionCode, versionName, url, notes; `minVersionCode` só para correção
    obrigatória). O app lê esse arquivo e mostra "Nova versão disponível" (`src/components/UpdatePrompt.tsx`).
+
+### Antes de todo commit
+- Rode `npm run check` (tipos, ESLint, migrações, auditoria de segurança do banco e segredos). O GitHub roda o mesmo
+  a cada envio (.github/workflows/ci.yml) e o robô de atualização não publica se falhar. Veja `AUDITORIA.md`.
+

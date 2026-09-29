@@ -9,7 +9,7 @@ import { BigShouldersDisplay_800ExtraBold, BigShouldersDisplay_900Black } from '
 import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, Platform, View } from 'react-native';
+import { ActivityIndicator, Image, Platform, Pressable, Text, View } from 'react-native';
 import { AuthProvider, useAuth } from '@/auth';
 import { AppDialog } from '@/components/AppDialog';
 import { UpdatePrompt } from '@/components/UpdatePrompt';
@@ -29,6 +29,29 @@ const theme = {
     border: colors.border,
   },
 };
+
+/**
+ * Se alguma tela quebrar (erro inesperado), mostra isto em vez de fechar o app.
+ * O Expo Router usa este export automaticamente para todas as telas.
+ */
+export function ErrorBoundary({ error, retry }: { error: Error; retry: () => Promise<void> }) {
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', padding: 28, gap: 14 }}>
+      <Text style={{ fontSize: 48 }}>🤕</Text>
+      <Text style={{ color: colors.text, fontSize: 24, textAlign: 'center', fontWeight: '800' }}>Deu uma lesão aqui</Text>
+      <Text style={{ color: colors.muted, fontSize: 15, textAlign: 'center' }}>
+        Algo deu errado nesta tela. Seus dados estão salvos. Tente de novo; se continuar, feche e abra o app.
+      </Text>
+      {__DEV__ && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'center' }}>{error?.message}</Text>}
+      <Pressable
+        onPress={() => retry()}
+        style={{ backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, marginTop: 6 }}
+      >
+        <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 16 }}>Tentar de novo</Text>
+      </Pressable>
+    </View>
+  );
+}
 
 export default function RootLayout() {
   return (

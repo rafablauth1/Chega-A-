@@ -455,7 +455,7 @@ function Calls({ userId }: { userId: string }) {
     if (!c.group_id) return;
     try {
       const nowIso = toLocalIso(new Date());
-      const games = (await fetchGamesOf([c.group_id])).filter((g) => g.date >= nowIso).sort((a, b) => a.date.localeCompare(b.date));
+      const games = await fetchGamesOf([c.group_id], { from: nowIso });
       if (!games.length) return notify('Sem jogo marcado', 'Marque um próximo jogo no clube antes de aceitar.');
       choose(
         `Aceitar ${r.nickname || r.name} em qual jogo?`,

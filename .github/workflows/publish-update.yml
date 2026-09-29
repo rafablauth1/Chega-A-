@@ -23,6 +23,10 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
+      # Não publica código quebrado: tipos, migrações, segurança do banco e segredos precisam passar
+      - name: Verificações antes de publicar
+        run: npm run check
+
       - name: Gravar a chave de assinatura num arquivo temporário
         run: printf '%s' "$VAIAAI_UPDATES_PRIVATE_KEY" > "$RUNNER_TEMP/private-key.pem"
         env:

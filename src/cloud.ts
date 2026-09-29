@@ -80,8 +80,24 @@ const attendeesByGame = (rows: { game_id: string; player_id: string }[] | null) 
 };
 
 /** Jogos de todos os grupos do usuário, para as estatísticas do perfil de atleta. */
-export async function fetchGamesOf(groupIds: string[]): Promise<(Game & { groupId: string })[]> {
+export async function fetchGamesOf(
+  groupIds: string[],
+  opts: { from?: string } = {},
+): Promise<(Game & { groupId: string })[]> {
   if (!groupIds.length) return [];
+  // Com "from" (ex.: tela inicial), só os jogos a partir daquela data e só a presença deles:
+  // não baixa o histórico inteiro de todos os clubes a cada vez que a tela abre.
+  if (opts.from) {
+    const games = await supabase.from('games').select('*').in('group_id', groupIds).gte('date', opts.from).order('date').limit(50);
+    if (games.error) throw games.error;
+    const ids = (games.data ?? []).map((g) => g.id);
+    const attendance = ids.length
+      ? await supabase.from('attendance').select('game_id, player_id').in('game_id', ids).order('created_at')
+      : { data: [], error: null };
+    if (attendance.error) throw attendance.error;
+    const byGame = attendeesByGame(attendance.data);
+    return (games.data ?? []).map((g) => ({ ...toGame(g, byGame[g.id] ?? []), groupId: g.group_id }));
+  }
   const [games, attendance] = await Promise.all([
     supabase.from('games').select('*').in('group_id', groupIds),
     supabase.from('attendance').select('game_id, player_id').in('group_id', groupIds).order('created_at'),
@@ -212,26 +228,43 @@ const guestRow = (p: Player, gid: string) => ({
 
 type Op = PromiseLike<{ error: { message: string } | null }>;
 
+/** Falha que vale a pena repetir (sinal ruim na quadra, servidor ocupado); permissão negada não. */
+const transient = (message = '') => /network|fetch|timeout|timed out|abort|socket|5\d\d|temporar|unavailable/i.test(message);
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const RETRY_DELAYS = [1000, 3000, 8000, 15000];
+
+/** Roda uma gravação; se a falha for de conexão, tenta de novo com espera crescente (~27 s no total). */
+async function runWithRetry(op: () => Op): Promise<{ error: { message: string } | null }> {
+  for (let attempt = 0; ; attempt++) {
+    let error: { message: string } | null;
+    try {
+      ({ error } = await op());
+    } catch (e: any) {
+      error = { message: String(e?.message ?? 'network error') };
+    }
+    if (!error || !transient(error.message) || attempt >= RETRY_DELAYS.length) return { error };
+    await wait(RETRY_DELAYS[attempt]);
+  }
+}
+
 function push(ops: (() => Op)[]) {
   if (!ops.length) return;
   const fail = (denied: boolean) => {
-    notify('Não foi possível salvar', denied ? 'Só os admins do grupo podem mudar isso.' : 'Verifique sua internet e tente de novo.');
+    notify(
+      'Não foi possível salvar',
+      denied ? 'Só os admins do grupo podem mudar isso.' : 'Sem conexão com o servidor por um tempo. Confira sua internet e faça de novo.',
+    );
     scheduleReload(); // volta a tela para o que está na nuvem
   };
   lastPush = queue.then(async () => {
-    try {
-      for (const op of ops) {
-        const { error } = await op();
-        if (error) {
-          fail(/row-level security|permission/i.test(error.message));
-          return false;
-        }
+    for (const op of ops) {
+      const { error } = await runWithRetry(op);
+      if (error) {
+        fail(/row-level security|permission|42501/i.test(error.message));
+        return false;
       }
-      return true;
-    } catch {
-      fail(false); // sem conexão; a fila segue funcionando para as próximas mudanças
-      return false;
     }
+    return true;
   });
   queue = lastPush;
 }

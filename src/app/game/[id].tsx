@@ -15,7 +15,6 @@ import {
   Screen,
   SectionTitle,
   Segmented,
-  ScorePicker,
   Stat,
   Tag,
   text,
@@ -30,7 +29,7 @@ import { isMensalista, useMonthlyOn } from '@/utils/monthly';
 import { isCloudEnabled } from '@/lib/supabase';
 import { PixCard } from '@/components/PixCard';
 import { displayName, nextPair, teamName } from '@/utils/names';
-import { buildRatingMap, scoreColor } from '@/utils/rating';
+import { buildRatingMap } from '@/utils/rating';
 import { confirmedIds, matchScore, waitlistIds } from '@/utils/stats';
 import { drawTeams, teamAverage, teamSizes } from '@/utils/teams';
 import { GameScores } from '@/components/GameScores';
