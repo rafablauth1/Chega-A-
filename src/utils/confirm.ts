@@ -1,4 +1,5 @@
-import { Alert, Platform } from 'react-native';
+import { Platform } from 'react-native';
+import { useDialog } from '@/components/AppDialog';
 
 /** Pede confirmação antes de uma ação destrutiva (funciona no app e na web). */
 export function confirm(title: string, message: string, onConfirm: () => void, confirmText = 'Excluir') {
@@ -6,15 +7,22 @@ export function confirm(title: string, message: string, onConfirm: () => void, c
     if (window.confirm(`${title}\n\n${message}`)) onConfirm();
     return;
   }
-  Alert.alert(title, message, [
-    { text: 'Cancelar', style: 'cancel' },
-    { text: confirmText, style: 'destructive', onPress: onConfirm },
-  ]);
+  useDialog.getState().open({
+    title,
+    message,
+    actions: [
+      { text: 'Cancelar', variant: 'ghost' },
+      { text: confirmText, variant: 'danger', onPress: onConfirm },
+    ],
+  });
 }
 
 export function notify(title: string, message?: string) {
-  if (Platform.OS === 'web') window.alert(message ? `${title}\n\n${message}` : title);
-  else Alert.alert(title, message);
+  if (Platform.OS === 'web') {
+    window.alert(message ? `${title}\n\n${message}` : title);
+    return;
+  }
+  useDialog.getState().open({ title, message, actions: [{ text: 'OK' }] });
 }
 
 /** Menu de opções (ex.: "Tirar foto" / "Escolher da galeria"). Na web vira uma lista numerada. */
@@ -25,8 +33,11 @@ export function choose(title: string, options: { text: string; onPress: () => vo
     picked?.onPress();
     return;
   }
-  Alert.alert(title, undefined, [
-    ...options.map((o) => ({ text: o.text, onPress: o.onPress, style: o.destructive ? ('destructive' as const) : ('default' as const) })),
-    { text: 'Cancelar', style: 'cancel' as const },
-  ]);
+  useDialog.getState().open({
+    title,
+    actions: [
+      ...options.map((o) => ({ text: o.text, onPress: o.onPress, variant: o.destructive ? ('danger' as const) : ('secondary' as const) })),
+      { text: 'Cancelar', variant: 'ghost' as const },
+    ],
+  });
 }

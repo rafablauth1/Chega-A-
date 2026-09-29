@@ -11,6 +11,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, View } from 'react-native';
 import { AuthProvider, useAuth } from '@/auth';
+import { AppDialog } from '@/components/AppDialog';
 import { UpdatePrompt } from '@/components/UpdatePrompt';
 import { isCloudEnabled } from '@/lib/supabase';
 import { useStore } from '@/store';
@@ -77,6 +78,7 @@ function App() {
     <ThemeProvider value={theme}>
       <StatusBar style="light" />
       <UpdatePrompt />
+      <AppDialog />
       <Stack
         screenOptions={{
           headerStyle: { backgroundColor: colors.bg },

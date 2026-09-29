@@ -81,8 +81,8 @@ export default function NearbyScreen() {
       <Screen>
         <Text style={styles.big}>Bora jogar?</Text>
         <Text style={[text.body, { color: colors.muted, lineHeight: 22, marginBottom: 16 }]}>
-          Ache gente perto de você para completar o time, ou vagas em peladas da região. Se vocês dois toparem, dá match e
-          vocês se chamam no WhatsApp.
+          Ache gente perto de você para completar o time, ou vagas em peladas da região. Se vocês dois toparem, viram
+          parceiros e podem se chamar no WhatsApp.
         </Text>
         <Group>
           {steps.map((s) => (
@@ -107,7 +107,7 @@ export default function NearbyScreen() {
         options={[
           { key: 'jogadores', label: 'Jogadores' },
           { key: 'vagas', label: 'Falta gente' },
-          { key: 'matches', label: 'Matches' },
+          { key: 'matches', label: 'Parceiros' },
         ]}
         value={tab}
         onChange={setTab}
@@ -161,7 +161,7 @@ function Deck({ onMatches, mine }: { onMatches: () => void; mine: string[] }) {
     return (
       <View style={styles.matchBox}>
         <Text style={{ fontSize: 56 }}>🤝</Text>
-        <Text style={styles.big}>Deu match!</Text>
+        <Text style={styles.big}>Toparam! ⚽</Text>
         <Text style={[text.body, { color: colors.muted, textAlign: 'center', marginBottom: 16 }]}>
           Você e {matched.nickname || matched.name} toparam jogar juntos.
         </Text>
@@ -175,7 +175,7 @@ function Deck({ onMatches, mine }: { onMatches: () => void; mine: string[] }) {
           }}
           style={{ alignSelf: 'stretch' }}
         />
-        <Button title="Ver meus matches" variant="secondary" icon="chatbubbles" onPress={() => { setMatched(null); onMatches(); }} style={{ alignSelf: 'stretch', marginTop: 8 }} />
+        <Button title="Ver meus parceiros" variant="secondary" icon="chatbubbles" onPress={() => { setMatched(null); onMatches(); }} style={{ alignSelf: 'stretch', marginTop: 8 }} />
         <Button title="Continuar procurando" variant="ghost" onPress={() => setMatched(null)} style={{ alignSelf: 'stretch', marginTop: 8 }} />
       </View>
     );
@@ -327,12 +327,12 @@ function Matches({ userId }: { userId: string }) {
 
   if (list === null) return null;
   if (!list.length) {
-    return <Empty icon="heart-outline" title="Nenhum match ainda" text="Quando você e outro jogador toparem jogar juntos, ele aparece aqui." />;
+    return <Empty icon="heart-outline" title="Nenhum parceiro ainda" text="Quando você e outro jogador toparem jogar juntos, ele aparece aqui." />;
   }
 
   const menu = (m: Match) =>
     choose(m.nickname || m.name, [
-      { text: 'Desfazer match', onPress: () => unmatch(m.id, userId).then(load).catch((e) => notify('Não deu certo', discoveryError(e.message))) },
+      { text: 'Desfazer parceria', onPress: () => unmatch(m.id, userId).then(load).catch((e) => notify('Não deu certo', discoveryError(e.message))) },
       { text: 'Bloquear', destructive: true, onPress: () => block(m.id).then(load).catch((e) => notify('Não deu certo', discoveryError(e.message))) },
       { text: 'Denunciar', destructive: true, onPress: () => askReport({ user: m.id, name: m.nickname || m.name }, load) },
     ]);
@@ -352,7 +352,7 @@ function Matches({ userId }: { userId: string }) {
             <Text style={[text.muted, m.unread > 0 && { color: colors.chalk, fontFamily: fonts.semibold }]} numberOfLines={1}>
               {m.last_message
                 ? `${m.last_from_me ? 'Você: ' : ''}${m.last_message}`
-                : `Deu match! Diga oi 👋 · ${posLabel(m.position)}${m.neighborhood ? `, ${m.neighborhood}` : ''}`}
+                : `Toparam! Diga oi 👋 · ${posLabel(m.position)}${m.neighborhood ? `, ${m.neighborhood}` : ''}`}
             </Text>
           </View>
           {m.unread > 0 && (
