@@ -1,13 +1,18 @@
 /**
  * Clubes tradicionais do futebol brasileiro pra escolher o "time do coração" (perfil do jogador).
  * Sem escudo oficial de propósito (marca registrada, precisaria de licença) — o selo do app usa
- * a cor principal do time + a sigla. Lista não pretende ser toda a Série D (muda todo ano); quem
- * não achar o time usa "Outro" e digita o nome.
+ * a cor principal do time + a sigla, num formato de escudo genérico. Lista não pretende ser toda
+ * a Série D (muda todo ano); quem não achar o time usa "Outro" e digita o nome.
+ *
+ * `logo` é opcional: se um dia alguém colar aqui a URL de um escudo de verdade (de uma fonte que
+ * tenha certeza que pode usar — isso é uma decisão de quem mantém o app, não da IA que escreveu
+ * este arquivo), o ClubBadge troca sozinho pra mostrar a imagem em vez do selo estilizado.
  */
 export interface BrazilianClub {
   name: string;
   abbr: string;
   color: string;
+  logo?: string;
 }
 
 export const BRAZILIAN_CLUBS: BrazilianClub[] = [

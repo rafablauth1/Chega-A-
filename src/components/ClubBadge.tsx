@@ -1,4 +1,4 @@
-import { Text, View } from 'react-native';
+import { Image, Text, View } from 'react-native';
 import { BRAZILIAN_CLUBS } from '@/data/brazilianClubs';
 import { colors, fonts } from '@/theme';
 
@@ -19,6 +19,10 @@ export function ClubBadge({ name, size = 28 }: { name?: string | null; size?: nu
   const color = club?.color ?? colors.muted;
   const topH = size * 0.62;
   const pointH = size * 0.42;
+
+  if (club?.logo) {
+    return <Image source={{ uri: club.logo }} style={{ width: size, height: size }} resizeMode="contain" />;
+  }
 
   return (
     <View style={{ width: size, alignItems: 'center' }}>
