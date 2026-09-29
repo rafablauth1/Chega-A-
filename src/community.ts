@@ -150,6 +150,27 @@ export async function createTeam(communityId: string, name: string) {
   return data.id as string;
 }
 
+/** Clubes (não avulsos) que eu sou dono e ainda não estão em nenhuma comunidade. */
+export async function myUnlinkedClubs(userId: string): Promise<{ id: string; name: string }[]> {
+  const { data, error } = await supabase
+    .from('groups')
+    .select('id, name')
+    .eq('owner_id', userId)
+    .eq('kind', 'clube')
+    .is('community_id', null);
+  if (error) throw error;
+  return data ?? [];
+}
+
+/**
+ * Vincula um clube já existente à comunidade (migração 017): todo mundo que já está no clube
+ * entra na comunidade (dono do clube vira admin da comunidade), e quem entrar depois também entra.
+ */
+export async function linkClubToCommunity(communityId: string, groupId: string) {
+  const { error } = await supabase.from('groups').update({ community_id: communityId }).eq('id', groupId);
+  if (error) throw error;
+}
+
 export async function joinTeam(groupId: string) {
   const { error } = await supabase.rpc('join_community_group', { gid: groupId });
   if (error) throw error;

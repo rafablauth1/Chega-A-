@@ -14,6 +14,8 @@ import {
   joinTeam,
   kindInfo,
   leaveCommunity,
+  linkClubToCommunity,
+  myUnlinkedClubs,
   type Community,
   type CommunityMember,
   type CommunityScorer,
@@ -101,6 +103,30 @@ export default function CommunityScreen() {
     Share.share({
       message: `⚽ Bora jogar no ${community.name}!\n\nBaixe o Vaia Aí, vá em Comunidades e entre com o código: ${community.invite_code}`,
     });
+
+  const linkExisting = async () => {
+    try {
+      const clubs = await myUnlinkedClubs(userId);
+      if (!clubs.length) return notify('Nenhum clube disponível', 'Você precisa ser dono de um clube que ainda não esteja em outra comunidade.');
+      choose(
+        'Vincular qual clube?',
+        clubs.map((c) => ({
+          text: c.name,
+          onPress: async () => {
+            try {
+              await linkClubToCommunity(community.id, c.id);
+              load();
+              notify('Clube vinculado!', 'Quem já está no clube agora também faz parte da comunidade.');
+            } catch (e: any) {
+              notify('Não deu certo', communityError(e.message));
+            }
+          },
+        })),
+      );
+    } catch (e: any) {
+      notify('Não deu certo', communityError(e.message));
+    }
+  };
 
   const setPhoto = async (source: 'camera' | 'library') => {
     const uri = await pickPhoto(source);
@@ -235,7 +261,13 @@ export default function CommunityScreen() {
           <SectionTitle>Novo time</SectionTitle>
           <Input value={teamName} onChangeText={setTeamName} placeholder={info.teamHint} maxLength={50} />
           <Button title={busy ? 'Criando...' : 'Criar time'} icon="add" variant="secondary" onPress={addTeam} disabled={busy} />
-          <Text style={[text.muted, { marginTop: 8 }]}>Quem cria vira o dono do time: marca os jogos, sorteia e cuida do caixa dele.</Text>
+          <Text style={[text.muted, { marginTop: 8, marginBottom: 12 }]}>
+            Quem cria vira o dono do time: marca os jogos, sorteia e cuida do caixa dele.
+          </Text>
+          <Button title="Já tenho um clube, só vincular" icon="link" variant="ghost" onPress={linkExisting} />
+          <Text style={[text.muted, { marginTop: 4 }]}>
+            Vale pra clube que você já é dono. Quem já está nele entra na comunidade; o dono vira admin daqui.
+          </Text>
         </>
       )}
 
