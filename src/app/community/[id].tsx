@@ -20,8 +20,10 @@ import {
   type CommunityTeam,
 } from '@/community';
 import { Avatar, Button, Empty, Group, Input, PositionTag, Row, Screen, SectionTitle, Segmented, Tag, text } from '@/components/ui';
+import { supabase } from '@/lib/supabase';
 import { colors, fonts, positionColors, teamColors } from '@/theme';
-import { confirm, notify } from '@/utils/confirm';
+import { choose, confirm, notify } from '@/utils/confirm';
+import { deletePhoto, pickPhoto, uploadCommunityPhoto } from '@/utils/photos';
 
 type Tab = 'times' | 'ranking' | 'membros';
 const MEDALS = ['🥇', '🥈', '🥉'];
@@ -100,6 +102,35 @@ export default function CommunityScreen() {
       message: `⚽ Bora jogar no ${community.name}!\n\nBaixe o Vaia Aí, vá em Comunidades e entre com o código: ${community.invite_code}`,
     });
 
+  const setPhoto = async (source: 'camera' | 'library') => {
+    const uri = await pickPhoto(source);
+    if (!uri) return;
+    try {
+      const url = await uploadCommunityPhoto(community.id, uri);
+      const { error } = await supabase.from('communities').update({ photo: url }).eq('id', community.id);
+      if (error) return notify('Não deu certo', communityError(error.message));
+      if (community.photo) await deletePhoto(community.photo).catch(() => {});
+      load();
+    } catch (e: any) {
+      notify('Não deu certo', e?.message ?? '');
+    }
+  };
+
+  const removePhoto = async () => {
+    const old = community.photo;
+    const { error } = await supabase.from('communities').update({ photo: null }).eq('id', community.id);
+    if (error) return notify('Não deu certo', communityError(error.message));
+    if (old) await deletePhoto(old).catch(() => {});
+    load();
+  };
+
+  const changePhoto = () =>
+    choose('Foto da comunidade', [
+      { text: 'Tirar foto', onPress: () => setPhoto('camera') },
+      { text: 'Escolher da galeria', onPress: () => setPhoto('library') },
+      ...(community.photo ? [{ text: 'Remover foto', destructive: true, onPress: removePhoto }] : []),
+    ]);
+
   const leave = () =>
     confirm('Sair da comunidade', `Você sai de ${community.name}. Os times em que você joga continuam normais.`, async () => {
       try {
@@ -120,7 +151,31 @@ export default function CommunityScreen() {
       <Stack.Screen options={{ title: info.label }} />
 
       <View style={styles.hero}>
-        <Text style={{ fontSize: 40 }}>{info.icon}</Text>
+        <Pressable onPress={isAdmin ? changePhoto : undefined} accessibilityLabel={isAdmin ? 'Trocar foto da comunidade' : undefined}>
+          <View>
+            {community.photo ? (
+              <Avatar name={community.name} photo={community.photo} size={72} color={colors.primary} />
+            ) : (
+              <Text style={{ fontSize: 40 }}>{info.icon}</Text>
+            )}
+            {isAdmin && (
+              <View
+                style={{
+                  position: 'absolute',
+                  right: -4,
+                  bottom: -4,
+                  backgroundColor: colors.primary,
+                  borderRadius: 12,
+                  padding: 4,
+                  borderWidth: 2,
+                  borderColor: colors.bg,
+                }}
+              >
+                <Ionicons name="camera" size={12} color={colors.onPrimary} />
+              </View>
+            )}
+          </View>
+        </Pressable>
         <Text style={styles.name}>{community.name}</Text>
         {!!community.description && <Text style={[text.body, { color: colors.muted, lineHeight: 21 }]}>{community.description}</Text>}
         <View style={styles.numbers}>

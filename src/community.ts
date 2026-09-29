@@ -26,6 +26,8 @@ export interface Community {
   description: string | null;
   invite_code: string;
   role: CommunityRole;
+  /** Migração 016; ausente em servidor antigo */
+  photo?: string | null;
 }
 
 export interface CommunityTeam {
@@ -67,7 +69,7 @@ export async function listMyCommunities(userId: string): Promise<Community[]> {
 
 export async function getCommunity(id: string, userId: string): Promise<Community | null> {
   const [c, m] = await Promise.all([
-    supabase.from('communities').select('id, name, kind, description, invite_code').eq('id', id).maybeSingle(),
+    supabase.from('communities').select('id, name, kind, description, invite_code, photo').eq('id', id).maybeSingle(),
     supabase.from('community_members').select('role').eq('community_id', id).eq('user_id', userId).maybeSingle(),
   ]);
   if (c.error) throw c.error;

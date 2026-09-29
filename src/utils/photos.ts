@@ -26,14 +26,23 @@ export async function pickPhoto(source: 'camera' | 'library'): Promise<string | 
   return saved.uri;
 }
 
-/** Envia para a pasta do usuário no Supabase e devolve a URL pública. */
-export async function uploadPhoto(userId: string, localUri: string): Promise<string> {
+/** Envia para uma pasta do bucket "avatars" e devolve a URL pública. */
+async function uploadPhotoTo(folder: string, localUri: string): Promise<string> {
   const body = await (await fetch(localUri)).arrayBuffer();
-  const path = `${userId}/${Date.now()}.jpg`;
+  const path = `${folder}/${Date.now()}.jpg`;
   const { error } = await supabase.storage.from(BUCKET).upload(path, body, { contentType: 'image/jpeg' });
   if (error) throw error;
   return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
 }
+
+/** Envia para a pasta do usuário no Supabase e devolve a URL pública. */
+export const uploadPhoto = (userId: string, localUri: string) => uploadPhotoTo(userId, localUri);
+
+/** Foto de capa do clube (migração 016; precisa ser dono ou admin do clube). */
+export const uploadGroupPhoto = (groupId: string, localUri: string) => uploadPhotoTo(`clubs/${groupId}`, localUri);
+
+/** Foto de capa da comunidade (migração 016; precisa ser dono ou admin da comunidade). */
+export const uploadCommunityPhoto = (communityId: string, localUri: string) => uploadPhotoTo(`communities/${communityId}`, localUri);
 
 /** Apaga do armazenamento a foto de uma URL pública (sem erro se já não existir). */
 export async function deletePhoto(url: string) {

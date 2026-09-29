@@ -9,7 +9,8 @@ import { supabase } from '@/lib/supabase';
 import { clubError, convertToClub } from '@/clubs';
 import { fetchPeople } from '@/people';
 import { colors, fonts, positionColors } from '@/theme';
-import { confirm, notify } from '@/utils/confirm';
+import { choose, confirm, notify } from '@/utils/confirm';
+import { deletePhoto, pickPhoto, uploadGroupPhoto } from '@/utils/photos';
 
 interface Member {
   user_id: string;
@@ -25,6 +26,8 @@ interface Group {
   /** Migração 013; ausente em servidor antigo */
   kind?: 'clube' | 'avulso';
   settings?: { monthlyEnabled?: boolean } | null;
+  /** Migração 016; ausente em servidor antigo */
+  photo?: string | null;
 }
 
 const ROLE_ORDER: Record<Role, number> = { owner: 0, admin: 1, player: 2 };
@@ -129,9 +132,66 @@ export default function GroupScreen() {
       message: `Bora pro ${group.name}! ⚽\nBaixe o app Vaia Aí, crie sua conta e entre com o código: ${group.invite_code}`,
     });
 
+  const setPhoto = async (source: 'camera' | 'library') => {
+    const uri = await pickPhoto(source);
+    if (!uri) return;
+    try {
+      const url = await uploadGroupPhoto(group.id, uri);
+      const { error } = await supabase.from('groups').update({ photo: url }).eq('id', id);
+      if (error) return notify('Não deu certo', authErrorMessage(error.message));
+      if (group.photo) await deletePhoto(group.photo).catch(() => {});
+      await load();
+    } catch (e: any) {
+      notify('Não deu certo', e?.message ?? '');
+    }
+  };
+
+  const removePhoto = async () => {
+    const old = group.photo;
+    const { error } = await supabase.from('groups').update({ photo: null }).eq('id', id);
+    if (error) return notify('Não deu certo', authErrorMessage(error.message));
+    if (old) await deletePhoto(old).catch(() => {});
+    await load();
+  };
+
+  const changePhoto = () =>
+    choose(`Foto do ${noun}`, [
+      { text: 'Tirar foto', onPress: () => setPhoto('camera') },
+      { text: 'Escolher da galeria', onPress: () => setPhoto('library') },
+      ...(group.photo ? [{ text: 'Remover foto', destructive: true, onPress: removePhoto }] : []),
+    ]);
+
   return (
     <Screen>
       <Stack.Screen options={{ title: group.name }} />
+
+      {(canManage || group.photo) && (
+        <Pressable
+          onPress={canManage ? changePhoto : undefined}
+          style={{ alignItems: 'center', marginBottom: 12 }}
+          accessibilityLabel={canManage ? `Trocar foto do ${noun}` : undefined}
+        >
+          <View>
+            <Avatar name={group.name} photo={group.photo} size={84} color={colors.primary} />
+            {canManage && (
+              <View
+                style={{
+                  position: 'absolute',
+                  right: -2,
+                  bottom: -2,
+                  backgroundColor: colors.primary,
+                  borderRadius: 12,
+                  padding: 4,
+                  borderWidth: 2,
+                  borderColor: colors.bg,
+                }}
+              >
+                <Ionicons name="camera" size={12} color={colors.onPrimary} />
+              </View>
+            )}
+          </View>
+        </Pressable>
+      )}
 
       {activeGroup?.id !== group.id && (
         <Button
