@@ -1,0 +1,47 @@
+name: Publicar atualização OTA
+
+# Roda só quando alguém clica em "Run workflow" na aba Actions do GitHub —
+# de propósito não é em todo push, pra ninguém sair atualizando o app de
+# todo mundo sem querer com um commit pequeno.
+on:
+  workflow_dispatch: {}
+
+concurrency:
+  group: publish-update
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Gravar a chave de assinatura num arquivo temporário
+        run: printf '%s' "$VAIAAI_UPDATES_PRIVATE_KEY" > "$RUNNER_TEMP/private-key.pem"
+        env:
+          VAIAAI_UPDATES_PRIVATE_KEY: ${{ secrets.VAIAAI_UPDATES_PRIVATE_KEY }}
+
+      - name: Publicar atualização (gera updates/)
+        run: npm run update:publish
+        env:
+          VAIAAI_UPDATES_KEY: ${{ runner.temp }}/private-key.pem
+
+      - name: Commitar e enviar os arquivos gerados
+        run: |
+          git config user.name "vaia-ai-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add updates
+          if git diff --cached --quiet; then
+            echo "Nada novo para publicar."
+          else
+            VERSION=$(node -p "require('./app.json').expo.version")
+            git commit -m "Atualização automática $VERSION"
+            git push
+          fi
