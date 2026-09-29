@@ -31,6 +31,8 @@ interface State extends Data {
   /** Encerra o jogo: fecha as partidas e abre a avaliação da galera (24 h) */
   closeGame: (gameId: string) => void;
   reopenGame: (gameId: string) => void;
+  /** Passa (ou assume) a marcação do placar do jogo */
+  setScorekeeper: (gameId: string, userId: string | null) => void;
 
   addMatch: (gameId: string, teamA: number, teamB: number, durationMin: number) => string;
   removeMatch: (gameId: string, matchId: string) => void;
@@ -175,6 +177,7 @@ export const useStore = create<State>()(
             matches: g.matches.map((m) => (m.finished ? m : { ...m, finished: true })),
           })),
         reopenGame: (gameId) => patchGame(gameId, () => ({ closedAt: null })),
+        setScorekeeper: (gameId, userId) => patchGame(gameId, () => ({ scorekeeper: userId })),
 
         addMatch: (gameId, teamA, teamB, durationMin) => {
           const id = uid();

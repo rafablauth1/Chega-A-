@@ -33,6 +33,8 @@ import { buildRatingMap } from '@/utils/rating';
 import { confirmedIds, matchScore, waitlistIds } from '@/utils/stats';
 import { drawTeams, teamAverage, teamSizes } from '@/utils/teams';
 import { GameScores } from '@/components/GameScores';
+import { ScorekeeperCard } from '@/components/ScorekeeperCard';
+import { useScoreControl } from '@/utils/scorekeeper';
 import { Pitch } from '@/components/Pitch';
 import { shareView } from '@/utils/share';
 import { roundSelection, summaryText } from '@/utils/selection';
@@ -515,6 +517,7 @@ function PlayerRow({ player, selected, onPress }: { player?: Player; selected: b
 function Scoreboard({ game, byId, goTeams }: { game: Game; byId: Record<string, Player>; goTeams: () => void }) {
   const addMatch = useStore((s) => s.addMatch);
   const canManage = useCanManage();
+  const sc = useScoreControl(game);
   const defaultMinutes = useStore((s) => s.settings.defaultMatchMinutes);
   const minutes = game.matchMinutes ?? defaultMinutes;
   const groupName = useStore((s) => s.settings.groupName);
@@ -538,6 +541,7 @@ function Scoreboard({ game, byId, goTeams }: { game: Game; byId: Record<string, 
 
   const start = () => {
     if (a === b) return notify('Escolha dois times diferentes');
+    sc.claimIfFree(); // primeiro admin a começar vira o marcador do placar
     const matchId = addMatch(game.id, a, b, minutes);
     router.push(`/match/${game.id}/${matchId}`);
   };
@@ -560,7 +564,8 @@ function Scoreboard({ game, byId, goTeams }: { game: Game; byId: Record<string, 
 
   return (
     <>
-      {canManage && (
+      <ScorekeeperCard game={game} byId={byId} />
+      {sc.canScore && (
       <Card>
         <Label>Nova partida</Label>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>

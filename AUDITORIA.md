@@ -47,8 +47,8 @@ também roda sozinho a cada envio e antes de publicar atualização).
 
 ## Riscos conhecidos (próximos passos, por prioridade)
 
-1. **Dois admins marcando gol ao mesmo tempo no mesmo jogo**: o jogo é gravado inteiro, então o último a salvar
-   pode apagar o gol do outro. Correção certa: gols e partidas numa tabela própria com gravação atômica no servidor.
+1. ~~Dois admins marcando gol ao mesmo tempo~~ **resolvido** (migração 021): um admin por jogo é o marcador do placar;
+   o servidor ignora mudança de placar vinda de outro celular. O marcador passa a vez; o dono pode assumir.
 2. **Sem monitoramento de erros em produção**: quando algo quebra no celular de alguém, ninguém fica sabendo.
    Recomendado: Sentry (grátis no começo), ligado no `ErrorBoundary`.
 3. **E-mail próprio (SMTP)**: sem ele, usuários de verdade não recebem "esqueci a senha" nem confirmação.

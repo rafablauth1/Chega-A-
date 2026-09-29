@@ -5,6 +5,7 @@ import { reloadGroup } from '@/cloud';
 import { Pressable, Text, View } from 'react-native';
 import { Avatar, Button, Card, SectionTitle, ScorePicker, Tag, text } from '@/components/ui';
 import { useAuth, useCanManage } from '@/auth';
+import { useScoreControl } from '@/utils/scorekeeper';
 import { SCORING } from '@/config/scoring';
 import { isCloudEnabled } from '@/lib/supabase';
 import { useStore } from '@/store';
@@ -25,6 +26,7 @@ const n2 = (n: number) => n.toFixed(2).replace('.', ',');
 export function GameScores({ game, byId }: { game: Game; byId: Record<string, Player> }) {
   const { session } = useAuth();
   const canManage = useCanManage();
+  const sc = useScoreControl(game);
   const closeGame = useStore((s) => s.closeGame);
   const ratePlayer = useStore((s) => s.ratePlayer);
   const setMvp = useStore((s) => s.setMvp);
@@ -72,11 +74,13 @@ export function GameScores({ game, byId }: { game: Game; byId: Record<string, Pl
             <>
               <Text style={text.title}>Avaliação da galera</Text>
               <Text style={text.muted}>
-                {canManage
+                {sc.canScore
                   ? `Terminou a pelada? Encerre o jogo para liberar a avaliação por ${SCORING.votes.windowHours} horas.`
-                  : 'A avaliação abre quando o organizador encerrar o jogo.'}
+                  : canManage
+                    ? 'Quem encerra o jogo é o marcador do placar (ele finaliza as partidas). O dono pode assumir na aba Placar.'
+                    : 'A avaliação abre quando o organizador encerrar o jogo.'}
               </Text>
-              {canManage && <Button title="Encerrar jogo e abrir avaliação" icon="flag" onPress={askClose} />}
+              {sc.canScore && <Button title="Encerrar jogo e abrir avaliação" icon="flag" onPress={askClose} />}
             </>
           )}
           {status.state === 'open' && (

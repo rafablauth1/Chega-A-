@@ -3,13 +3,13 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, Vibration, View } from 'react-native';
 import { Button, Card, Empty, Screen, SectionTitle, text } from '@/components/ui';
-import { useCanManage } from '@/auth';
 import { useStore } from '@/store';
 import { colors, fonts, teamColors } from '@/theme';
 import type { Player } from '@/types';
 import { confirm } from '@/utils/confirm';
 import { displayName, teamName } from '@/utils/names';
 import { matchScore } from '@/utils/stats';
+import { useScoreControl } from '@/utils/scorekeeper';
 
 /** Cronômetros vivem fora do componente para não zerar ao sair e voltar da tela. */
 const clocks: Record<string, { base: number; startedAt: number | null }> = {};
@@ -28,7 +28,9 @@ export default function MatchScreen() {
   const players = useStore((s) => s.players);
   const { addGoal, removeGoal, finishMatch, removeMatch } = useStore.getState();
   const match = game?.matches.find((m) => m.id === matchId);
-  const canManage = useCanManage();
+  // Só o marcador do placar mexe (migração 021); sem ele definido, qualquer admin
+  const sc = useScoreControl(game);
+  const canManage = sc.canScore;
 
   const clock = (clocks[matchId] ??= { base: 0, startedAt: null });
   const [, tick] = useState(0);
@@ -85,6 +87,7 @@ export default function MatchScreen() {
 
   const save = (assistId: string | null) => {
     if (!step || step.stage !== 'assist') return;
+    sc.claimIfFree();
     addGoal(game.id, match.id, {
       team: step.team,
       playerId: step.scorer,
@@ -169,7 +172,8 @@ export default function MatchScreen() {
                 )}
                 {roster(step.team === match.teamA ? match.teamB : match.teamA).map((p) => (
                   <PickChip key={'og' + p.id} label={displayName(p)} muted onPress={() => {
-                    addGoal(game.id, match.id, { team: step.team, playerId: p.id, ownGoal: true, minute: Math.round(elapsed) });
+                    sc.claimIfFree();
+    addGoal(game.id, match.id, { team: step.team, playerId: p.id, ownGoal: true, minute: Math.round(elapsed) });
                     setStep(null);
                   }} />
                 ))}

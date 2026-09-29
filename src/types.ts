@@ -83,6 +83,8 @@ export interface Game {
   votes?: Record<string, VoteTotals>;
   /** Quantas pessoas já votaram neste jogo */
   voters?: number;
+  /** Admin que marca o placar deste jogo (migração 021). Vazio = o primeiro admin que começar uma partida assume. */
+  scorekeeper?: string | null;
 }
 
 export interface VoteTotals {
