@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Text, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, Text, View } from 'react-native';
 import { birthToIso, PasswordChecklist, PasswordField } from '@/components/PasswordField';
 import { Button, Input, Screen, Segmented, text } from '@/components/ui';
 import { ageOf, authErrorMessage } from '@/auth';
@@ -90,9 +90,13 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Screen>
-        <View style={{ alignItems: 'center', marginTop: 48, marginBottom: 32 }}>
-          <Text style={{ fontSize: 56 }}>⚽</Text>
-          <Text style={{ color: colors.text, fontSize: 30, fontFamily: fonts.displayBlack, marginTop: 8 }}>Vaia Aí</Text>
+        <View style={{ alignItems: 'center', marginTop: 40, marginBottom: 28 }}>
+          <Image
+            source={require('../../assets/android-icon-foreground.png')}
+            style={{ width: 88, height: 88 }}
+            resizeMode="contain"
+          />
+          <Text style={{ color: colors.text, fontSize: 30, fontFamily: fonts.displayBlack, marginTop: 4 }}>Vaia Aí</Text>
           <Text style={[text.muted, { marginTop: 4 }]}>Sua pelada organizada</Text>
         </View>
 

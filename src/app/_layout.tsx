@@ -9,7 +9,7 @@ import { BigShouldersDisplay_800ExtraBold, BigShouldersDisplay_900Black } from '
 import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, View } from 'react-native';
+import { ActivityIndicator, Image, Platform, View } from 'react-native';
 import { AuthProvider, useAuth } from '@/auth';
 import { AppDialog } from '@/components/AppDialog';
 import { UpdatePrompt } from '@/components/UpdatePrompt';
@@ -68,7 +68,8 @@ function App() {
 
   if (!hydrated || !ready || !fontsLoaded) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', gap: 28 }}>
+        <Image source={require('../../assets/android-icon-foreground.png')} style={{ width: 120, height: 120 }} resizeMode="contain" />
         <ActivityIndicator color={colors.primary} />
       </View>
     );
