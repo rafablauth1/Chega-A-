@@ -99,11 +99,22 @@ export default function GroupScreen() {
     'Remover');
 
   const leave = () =>
-    confirm(`Sair do ${noun}`, `Você sai de "${group.name}". Para voltar, vai precisar do código de convite.`, async () => {
-      await supabase.from('group_members').delete().eq('group_id', id).eq('user_id', session!.user.id);
-      await refresh();
-      router.back();
-    }, 'Sair');
+    confirm(
+      `Sair do ${noun}`,
+      myRole === 'owner'
+        ? `Você sai de "${group.name}" e a administração passa para outro membro. Para voltar, vai precisar do código de convite.`
+        : `Você sai de "${group.name}". Para voltar, vai precisar do código de convite.`,
+      async () => {
+        const { error } =
+          myRole === 'owner'
+            ? await supabase.rpc('leave_group', { gid: id })
+            : await supabase.from('group_members').delete().eq('group_id', id).eq('user_id', session!.user.id);
+        if (error) return notify('Não deu certo', authErrorMessage(error.message));
+        await refresh();
+        router.back();
+      },
+      'Sair',
+    );
 
   const deleteGroup = () =>
     confirm(`Apagar ${noun}`, `Apagar "${group.name}" para todos? Não dá para desfazer.`, async () => {
@@ -207,11 +218,16 @@ export default function GroupScreen() {
         );
       })}
 
-      {myRole === 'owner' ? (
-        <Button title={`Apagar ${noun}`} icon="trash" variant="danger" onPress={deleteGroup} style={{ marginTop: 24 }} />
-      ) : (
-        <Button title={`Sair do ${noun}`} icon="exit" variant="danger" onPress={leave} style={{ marginTop: 24 }} />
+      {myRole === 'owner' && (
+        <Button title={`Sair do ${noun}`} icon="exit" variant="secondary" onPress={leave} style={{ marginTop: 24 }} />
       )}
+      <Button
+        title={myRole === 'owner' ? `Apagar ${noun}` : `Sair do ${noun}`}
+        icon={myRole === 'owner' ? 'trash' : 'exit'}
+        variant="danger"
+        onPress={myRole === 'owner' ? deleteGroup : leave}
+        style={{ marginTop: myRole === 'owner' ? 10 : 24 }}
+      />
     </Screen>
   );
 }
