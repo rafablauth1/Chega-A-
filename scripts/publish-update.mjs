@@ -14,7 +14,7 @@
  * forma que afete o Android? Aí é APK novo (subir "version" em app.json, o que também separa as atualizações).
  */
 import { execSync } from 'node:child_process';
-import { createHash, randomUUID, sign, verify, X509Certificate } from 'node:crypto';
+import { createHash, createPrivateKey, randomUUID, sign, verify, X509Certificate } from 'node:crypto';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { extname, join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -30,6 +30,37 @@ const run = (cmd) => execSync(cmd, { encoding: 'utf8', env, stdio: ['ignore', 'p
 if (!existsSync(KEY_PATH)) {
   console.error(`Chave de assinatura das atualizações não encontrada em ${KEY_PATH}. Sem ela não dá para publicar.`);
   process.exit(1);
+}
+
+/**
+ * Lê a chave aceitando os jeitos comuns de ela chegar estragada ao ser colada (ex.: no Secret do GitHub):
+ * quebras de linha perdidas ou viradas em espaço, "\n" literal, \r do Windows, espaços nas pontas, aspas,
+ * ou a chave inteira em base64. Confere já no começo, antes de gastar tempo gerando o pacote.
+ */
+function loadPrivateKey(path) {
+  let raw = readFileSync(path, 'utf8').replace(/^﻿/, '').trim().replace(/^["']|["']$/g, '').replace(/\\n/g, '\n').replace(/\r/g, '');
+  if (!raw.includes('-----BEGIN')) {
+    try {
+      const decoded = Buffer.from(raw, 'base64').toString('utf8');
+      if (decoded.includes('-----BEGIN')) raw = decoded.trim();
+    } catch {}
+  }
+  const m = /-----BEGIN ([A-Z ]+)-----([\s\S]*?)-----END \1-----/.exec(raw);
+  if (!m) throw new Error('A chave não tem as linhas "-----BEGIN ... KEY-----" e "-----END ... KEY-----". Copie o arquivo inteiro.');
+  const body = m[2].replace(/\s+/g, '');
+  const pem = `-----BEGIN ${m[1]}-----\n${body.match(/.{1,64}/g).join('\n')}\n-----END ${m[1]}-----\n`;
+  try {
+    return createPrivateKey(pem);
+  } catch {
+    throw new Error('A chave foi encontrada mas está incompleta ou é outra chave. Copie de novo o private-key.pem inteiro.');
+  }
+}
+const privateKey = loadPrivateKey(KEY_PATH);
+{
+  const probe = Buffer.from('teste');
+  const cert = new X509Certificate(readFileSync(CERT_PATH, 'utf8'));
+  if (!verify('sha256', probe, cert.publicKey, sign('sha256', probe, privateKey)))
+    throw new Error('Essa chave não é a par do certificado do app (certs/certificate.pem). Use o private-key.pem da pasta VaiaAi-chave/updates-keys.');
 }
 
 const appJson = JSON.parse(readFileSync('app.json', 'utf8')).expo;
@@ -84,7 +115,6 @@ const manifest = {
 const body = JSON.stringify(manifest);
 
 // 4. Assinatura (RSA-SHA256, o que o app espera: codeSigningMetadata alg rsa-v1_5-sha256, keyid main)
-const privateKey = readFileSync(KEY_PATH, 'utf8');
 const sig = sign('sha256', Buffer.from(body, 'utf8'), privateKey).toString('base64');
 const cert = new X509Certificate(readFileSync(CERT_PATH, 'utf8'));
 if (!verify('sha256', Buffer.from(body, 'utf8'), cert.publicKey, Buffer.from(sig, 'base64')))
