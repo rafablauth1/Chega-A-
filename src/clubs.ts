@@ -1,5 +1,8 @@
+import type { GroupSummary } from './auth';
+import { chatError, sendMessage } from './chat';
 import { probeGameColumns } from './cloud';
 import { supabase } from './lib/supabase';
+import { choose, notify } from './utils/confirm';
 import { formatShortDate, uid } from './utils/format';
 
 /**
@@ -131,4 +134,23 @@ export async function joinCallGame(callId: string): Promise<string> {
 export async function convertToClub(groupId: string, name: string) {
   const { error } = await supabase.from('groups').update({ kind: 'clube', name: name.trim() }).eq('id', groupId);
   if (error) throw error;
+}
+
+/**
+ * Convida alguém (achado por parceiro, vaga ou perfil) pra um clube/jogo seu: manda o código
+ * pelo chat do próprio app. Se a pessoa estiver em mais de um clube seu, pergunta qual.
+ */
+export function inviteToClub(groups: GroupSummary[], target: { id: string; name: string }) {
+  if (groups.length === 0) return notify('Sem clube', 'Você ainda não tem um clube ou jogo pra convidar alguém.');
+
+  const send = (g: GroupSummary) =>
+    sendMessage(target.id, `Bora pro ${g.name}! ⚽ Baixe o Vaia Aí e entre com o código: ${g.invite_code}`)
+      .then(() => notify('Convite enviado!', `Mandamos uma mensagem pra ${target.name} com o código do ${g.name}.`))
+      .catch((e: any) => notify('Não deu certo', chatError(e?.message)));
+
+  if (groups.length === 1) return send(groups[0]);
+  choose(
+    `Convidar ${target.name} para...`,
+    groups.map((g) => ({ text: g.kind === 'avulso' ? `${g.name} (jogo avulso)` : g.name, onPress: () => send(g) })),
+  );
 }

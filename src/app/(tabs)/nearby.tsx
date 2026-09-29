@@ -28,7 +28,7 @@ import { colors, fonts, positionColors } from '@/theme';
 import { POSITIONS } from '@/types';
 import { choose, confirm, notify } from '@/utils/confirm';
 import { chatTime } from '@/chat';
-import { clubError, joinCallGame } from '@/clubs';
+import { clubError, inviteToClub, joinCallGame } from '@/clubs';
 import { describeSlots, overlap } from '@/utils/availability';
 import { initials, money, parseLocal, relativeDay } from '@/utils/format';
 
@@ -314,6 +314,7 @@ function PlayerFace({ p, mine }: { p: NearbyPlayer; mine: string[] }) {
 /* ------------------------------ Matches ------------------------------ */
 
 function Matches({ userId }: { userId: string }) {
+  const { groups } = useAuth();
   const [list, setList] = useState<Match[] | null>(null);
   const load = useCallback(() => {
     myMatches()
@@ -332,6 +333,7 @@ function Matches({ userId }: { userId: string }) {
 
   const menu = (m: Match) =>
     choose(m.nickname || m.name, [
+      { text: 'Convidar pro clube', onPress: () => inviteToClub(groups, { id: m.id, name: m.nickname || m.name }) },
       {
         text: 'Desfazer parceria',
         onPress: () =>
@@ -398,7 +400,7 @@ function Matches({ userId }: { userId: string }) {
 /* ------------------------------ Falta gente ------------------------------ */
 
 function Calls({ userId }: { userId: string }) {
-  const { refresh } = useAuth();
+  const { refresh, groups } = useAuth();
   const [list, setList] = useState<OpenCall[] | null>(null);
   const [open, setOpen] = useState<string | null>(null);
   const [responders, setResponders] = useState<Record<string, Responder[]>>({});
@@ -516,6 +518,9 @@ function Calls({ userId }: { userId: string }) {
                                 <Ionicons name="logo-whatsapp" size={22} color={colors.success} />
                               </Pressable>
                             )}
+                            <Pressable hitSlop={8} onPress={() => inviteToClub(groups, { id: r.id, name: r.nickname || r.name })}>
+                              <Ionicons name="people" size={20} color={colors.primary} />
+                            </Pressable>
                             <Pressable
                               style={styles.whats}
                               onPress={() => router.push({ pathname: '/chat/[id]', params: { id: r.id, name: r.nickname || r.name } })}
