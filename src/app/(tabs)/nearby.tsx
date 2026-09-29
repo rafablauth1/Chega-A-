@@ -550,19 +550,20 @@ function Calls({ userId }: { userId: string }) {
                                 <Ionicons name="logo-whatsapp" size={22} color={colors.success} />
                               </Pressable>
                             )}
-                            {c.group_id && !c.joinable && (
-                              <Pressable hitSlop={8} onPress={() => acceptResponder(c, r)}>
-                                <Ionicons name="checkmark-circle" size={22} color={colors.success} />
-                              </Pressable>
-                            )}
-                            <Pressable hitSlop={8} onPress={() => inviteToClub(groups, { id: r.id, name: r.nickname || r.name })}>
-                              <Ionicons name="people" size={20} color={colors.primary} />
-                            </Pressable>
                             <Pressable
-                              style={styles.whats}
-                              onPress={() => router.push({ pathname: '/chat/[id]', params: { id: r.id, name: r.nickname || r.name } })}
+                              hitSlop={8}
+                              onPress={() =>
+                                choose(r.nickname || r.name, [
+                                  ...(c.group_id && !c.joinable ? [{ text: 'Aceitar num jogo', onPress: () => acceptResponder(c, r) }] : []),
+                                  { text: 'Convidar pro clube', onPress: () => inviteToClub(groups, { id: r.id, name: r.nickname || r.name }) },
+                                  {
+                                    text: 'Conversar',
+                                    onPress: () => router.push({ pathname: '/chat/[id]', params: { id: r.id, name: r.nickname || r.name } }),
+                                  },
+                                ])
+                              }
                             >
-                              <Ionicons name="chatbubble" size={18} color={colors.onPrimary} />
+                              <Ionicons name="ellipsis-vertical" size={20} color={colors.muted} />
                             </Pressable>
                           </Row>
                         ))}
