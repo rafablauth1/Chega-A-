@@ -185,10 +185,9 @@ export async function callResponders(callId: string): Promise<Responder[]> {
  * Aceita um interessado numa partida específica do clube/jogo (migração 018).
  * 'confirmed' = já entrou (jogo avulso, ou já era do clube); 'requested' = virou pedido de entrada.
  */
-export async function acceptCallResponder(callId: string, responder: string, gameId: string): Promise<'confirmed' | 'requested'> {
-  const { data, error } = await supabase.rpc('accept_call_responder', { call_id: callId, responder, gid: gameId });
+export async function acceptCallResponder(callId: string, responder: string, gameId: string) {
+  const { error } = await supabase.rpc('accept_call_responder', { call_id: callId, responder, gid: gameId });
   if (error) throw error;
-  return data as 'confirmed' | 'requested';
 }
 
 /** Link do WhatsApp a partir do telefone salvo no perfil (assume Brasil se vier sem DDI). */

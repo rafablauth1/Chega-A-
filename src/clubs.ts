@@ -155,32 +155,3 @@ export function inviteToClub(groups: GroupSummary[], target: { id: string; name:
   );
 }
 
-export interface JoinRequest {
-  user_id: string;
-  name: string;
-  nickname: string | null;
-  photo: string | null;
-}
-
-/** Pedidos de entrada pendentes de um clube (migração 018); só dono/admin enxerga. */
-export async function pendingJoinRequests(groupId: string): Promise<JoinRequest[]> {
-  const { data: rows, error } = await supabase
-    .from('group_join_requests')
-    .select('user_id')
-    .eq('group_id', groupId)
-    .eq('status', 'pending');
-  if (error) throw error;
-  const ids = (rows ?? []).map((r) => r.user_id);
-  if (!ids.length) return [];
-  const { data: profiles } = await supabase.from('profiles').select('id, name, nickname, photos').in('id', ids);
-  return ids.map((id) => {
-    const p = (profiles ?? []).find((x: any) => x.id === id);
-    return { user_id: id, name: p?.name ?? 'Jogador', nickname: p?.nickname ?? null, photo: p?.photos?.[0] ?? null };
-  });
-}
-
-/** Aprova ou recusa um pedido de entrada no clube. */
-export async function respondJoinRequest(groupId: string, userId: string, approve: boolean) {
-  const { error } = await supabase.rpc('respond_join_request', { gid: groupId, target: userId, approve });
-  if (error) throw error;
-}

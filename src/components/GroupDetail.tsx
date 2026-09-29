@@ -6,7 +6,8 @@ import { Pressable, ScrollView, Share, Text, TextInput, View } from 'react-nativ
 import { Avatar, Button, Card, Chip, Input, RatingBadge, Screen, SectionTitle, Tag, text, type IconName } from '@/components/ui';
 import { authErrorMessage, ROLE_LABEL, useAuth, type Profile, type Role } from '@/auth';
 import { supabase } from '@/lib/supabase';
-import { clubError, convertToClub, pendingJoinRequests, respondJoinRequest, type JoinRequest } from '@/clubs';
+import { clubError, convertToClub } from '@/clubs';
+import { ClubBadge } from '@/components/ClubBadge';
 import { fetchGamesOf } from '@/cloud';
 import { fetchPeople } from '@/people';
 import { colors, fonts, positionColors } from '@/theme';
@@ -45,7 +46,6 @@ export function GroupDetail({ id, embedded, topExtra }: { id: string; embedded?:
   const [group, setGroup] = useState<Group | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [games, setGames] = useState<Game[]>([]);
-  const [requests, setRequests] = useState<JoinRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [clubName, setClubName] = useState('');
   const [query, setQuery] = useState('');
@@ -53,17 +53,15 @@ export function GroupDetail({ id, embedded, topExtra }: { id: string; embedded?:
   const [sort, setSort] = useState<'nome' | 'nota'>('nome');
 
   const load = useCallback(async () => {
-    const [g, m, gm, reqs] = await Promise.all([
+    const [g, m, gm] = await Promise.all([
       supabase.from('groups').select('*').eq('id', id).single(),
       supabase.from('group_members').select('user_id, role, type').eq('group_id', id),
       fetchGamesOf([id]).catch(() => []),
-      pendingJoinRequests(id).catch(() => []),
     ]);
     const rows = (m.data ?? []) as Member[];
     const profiles = await fetchPeople(rows.map((r) => r.user_id)).catch(() => []);
     setGroup(g.data);
     setGames(gm);
-    setRequests(reqs);
     setMembers(
       rows
         .map((r) => ({ ...r, profile: profiles?.find((p) => p.id === r.user_id) as Profile | undefined }))
@@ -125,6 +123,14 @@ export function GroupDetail({ id, embedded, topExtra }: { id: string; embedded?:
           (a.profile?.nickname || a.profile?.name || '').localeCompare(b.profile?.nickname || b.profile?.name || ''),
     );
 
+  const favoriteTeams = Object.entries(
+    members.reduce<Record<string, number>>((acc, m) => {
+      const t = m.profile?.favorite_team;
+      if (t) acc[t] = (acc[t] ?? 0) + 1;
+      return acc;
+    }, {}),
+  ).sort((a, b) => b[1] - a[1]);
+
   const makeClub = async () => {
     if (!clubName.trim()) return notify('Dê um nome para o clube', 'Ex.: Pelada de quinta');
     try {
@@ -179,11 +185,6 @@ export function GroupDetail({ id, embedded, topExtra }: { id: string; embedded?:
     Share.share({
       message: `Bora pro ${group.name}! ⚽\nBaixe o app Vaia Aí, crie sua conta e entre com o código: ${group.invite_code}`,
     });
-
-  const respondRequest = (r: JoinRequest, approve: boolean) =>
-    respondJoinRequest(group.id, r.user_id, approve)
-      .then(load)
-      .catch((e: any) => notify('Não deu certo', authErrorMessage(e?.message)));
 
   const setPhoto = async (source: 'camera' | 'library') => {
     const uri = await pickPhoto(source);
@@ -282,6 +283,23 @@ export function GroupDetail({ id, embedded, topExtra }: { id: string; embedded?:
         <Button title="Convidar pelo WhatsApp" icon="share-social" onPress={invite} style={{ alignSelf: 'stretch' }} />
       </Card>
 
+      {favoriteTeams.length > 0 && (
+        <>
+          <SectionTitle>Clubes do coração da galera</SectionTitle>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }} style={{ marginBottom: 4 }}>
+            {favoriteTeams.map(([teamName, count]) => (
+              <View key={teamName} style={{ alignItems: 'center', gap: 4, width: 64 }}>
+                <ClubBadge name={teamName} size={40} />
+                <Text style={[text.muted, { fontSize: 11, textAlign: 'center' }]} numberOfLines={1}>
+                  {teamName}
+                </Text>
+                <Text style={{ color: colors.gold, fontFamily: fonts.bold, fontSize: 12 }}>{count}</Text>
+              </View>
+            ))}
+          </ScrollView>
+        </>
+      )}
+
       {isSingle && canManage && (
         <Card style={{ gap: 8, marginTop: 12, borderColor: colors.primary }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -292,26 +310,6 @@ export function GroupDetail({ id, embedded, topExtra }: { id: string; embedded?:
           <Input value={clubName} onChangeText={setClubName} placeholder="Nome do clube (ex.: Pelada de quinta)" />
           <Button title="Transformar em clube" icon="people" onPress={makeClub} />
         </Card>
-      )}
-
-      {canManage && requests.length > 0 && (
-        <>
-          <SectionTitle right={<Text style={text.muted}>{requests.length}</Text>}>Pedidos de entrada</SectionTitle>
-          {requests.map((r) => (
-            <Card key={r.user_id}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <Avatar name={r.name} photo={r.photo} color={colors.primary} />
-                <Text style={[text.title, { flex: 1 }]}>{r.nickname || r.name}</Text>
-                <Pressable hitSlop={8} onPress={() => respondRequest(r, false)} style={{ marginRight: 16 }}>
-                  <Ionicons name="close-circle-outline" size={26} color={colors.danger} />
-                </Pressable>
-                <Pressable hitSlop={8} onPress={() => respondRequest(r, true)}>
-                  <Ionicons name="checkmark-circle" size={26} color={colors.success} />
-                </Pressable>
-              </View>
-            </Card>
-          ))}
-        </>
       )}
 
       <SectionTitle right={<Text style={text.muted}>{members.length}</Text>}>{isSingle ? 'Quem está no jogo' : 'Jogadores'}</SectionTitle>

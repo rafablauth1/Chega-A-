@@ -463,13 +463,8 @@ function Calls({ userId }: { userId: string }) {
           text: formatGameDate(g.date),
           onPress: async () => {
             try {
-              const result = await acceptCallResponder(c.id, r.id, g.id);
-              notify(
-                result === 'confirmed' ? 'Confirmado no jogo!' : 'Confirmado no jogo — pedido enviado',
-                result === 'requested'
-                  ? 'Como ainda não é do clube, virou um pedido de entrada. Aprove em "Pedidos" na tela do clube.'
-                  : undefined,
-              );
+              await acceptCallResponder(c.id, r.id, g.id);
+              notify('Confirmado no jogo!');
             } catch (e: any) {
               notify('Não deu certo', clubError(e?.message));
             }
