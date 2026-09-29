@@ -90,14 +90,6 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size }) => <Ionicons name="trophy" size={size} color={color} />,
         }}
       />
-      <Tabs.Screen
-        name="finance"
-        options={{
-          title: 'Caixa',
-          href: canManage ? undefined : null,
-          tabBarIcon: ({ color, size }) => <Ionicons name="wallet" size={size} color={color} />,
-        }}
-      />
     </Tabs>
   );
 }

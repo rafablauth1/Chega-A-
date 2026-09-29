@@ -96,6 +96,7 @@ function App() {
           <Stack.Screen name="game-form/[id]" options={{ title: 'Jogo' }} />
           <Stack.Screen name="match/[gameId]/[matchId]" options={{ title: 'Partida' }} />
           <Stack.Screen name="settings" options={{ title: 'Ajustes do grupo' }} />
+          <Stack.Screen name="finance" options={{ title: 'Caixa' }} />
           <Stack.Screen name="me" options={{ title: 'Meu perfil' }} />
           <Stack.Screen name="group-join" options={{ title: 'Clubes' }} />
           <Stack.Screen name="single-game" options={{ title: 'Jogo avulso' }} />

@@ -243,6 +243,10 @@ export default function GroupScreen() {
         />
       )}
 
+      {canManage && activeGroup?.id === group.id && (
+        <Button title="Abrir Caixa" icon="wallet" variant="secondary" style={{ marginBottom: 12 }} onPress={() => router.push('/finance')} />
+      )}
+
       <Card style={{ alignItems: 'center' }}>
         <Text style={text.muted}>Código de convite</Text>
         <Pressable
