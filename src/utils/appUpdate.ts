@@ -1,10 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import { clearDownloadedApks } from './apkInstaller';
 
 /**
  * Aviso de "Nova versão disponível" para quem instalou o APK fora da Play Store.
- * A versão mais nova fica descrita em release/android.json no GitHub (eu atualizo a cada APK novo).
+ * A versão mais nova fica descrita em release/android.json no GitHub (eu atualizo a cada APK novo,
+ * com tamanho e MD5 para o app conferir o download; ver apkInstaller.ts).
  * Quando o app estiver na Play Store, a loja atualiza sozinha e este aviso só aparece para quem instalou por fora.
  */
 
@@ -20,6 +22,10 @@ export interface AppRelease {
   notes?: string[];
   /** Versões abaixo desta são obrigadas a atualizar (ex.: correção de segurança) */
   minVersionCode?: number;
+  /** Tamanho exato do APK em bytes: mostra "52 MB" e confere o download */
+  sizeBytes?: number;
+  /** MD5 do APK: confere se o arquivo baixado é exatamente o publicado */
+  md5?: string;
 }
 
 export const installedVersionCode = (): number => Number(Constants.expoConfig?.android?.versionCode ?? 0);
@@ -37,7 +43,11 @@ export async function checkForUpdate(): Promise<(AppRelease & { mandatory: boole
     const r = (await res.json()) as AppRelease;
     if (typeof r.versionCode !== 'number' || typeof r.url !== 'string' || !r.url.startsWith(TRUSTED_PREFIX)) return null;
     const mine = installedVersionCode();
-    if (!mine || r.versionCode <= mine) return null;
+    if (!mine) return null;
+    if (r.versionCode <= mine) {
+      clearDownloadedApks(); // já atualizou: libera o espaço do APK baixado
+      return null;
+    }
     const mandatory = !!r.minVersionCode && mine < r.minVersionCode;
     if (!mandatory) {
       const dismissed = Number(await AsyncStorage.getItem(DISMISS_KEY).catch(() => null));
