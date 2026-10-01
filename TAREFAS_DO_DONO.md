@@ -7,7 +7,7 @@ Marque `[x]` quando terminar e me avise. Ordem = prioridade.
 
 ## 🔴 Agora (para o que já está pronto funcionar)
 
-### 1. Rodar as migrações no Supabase (004 a 009 feitas em 28/09 ✅; falta a 010)
+### 1. Rodar as migrações no Supabase ✅ (todas até a 021 rodadas e conferidas em 29/09)
 Sem isso, excluir conta, comunidades, região e "Bora jogar?" dão erro no app.
 
 1. Entre em https://supabase.com/dashboard e abra o projeto **ycgaprsgshtfveajjkby**.
@@ -21,11 +21,12 @@ Sem isso, excluir conta, comunidades, região e "Bora jogar?" dão erro no app.
    - [x] `supabase/migrations/008_chat.sql`: chat dentro do app
    - [x] `supabase/migrations/009_security.sql`: **segurança** (telefone e dados pessoais só para quem pode, limites anti-spam, baixar meus dados)
    - [x] `supabase/migrations/010_password_security.sql`: **senha** (data de nascimento na redefinição conferida pelo servidor, trava de troca de senha)
-   - [ ] `supabase/migrations/011_match_votes.sql`: **avaliação da galera** estilo Cartola (encerrar jogo, 24 h para votar, voto secreto)
-   - [ ] `supabase/migrations/012_court_time_and_roles.sql`: **horário da quadra** (início/fim, duração da partida) e **só o dono mexe em admin**
-   - [ ] `supabase/migrations/013_clubs_and_single_games.sql`: **clubes e jogos avulsos** (jogo sem clube, publicar no Bora e entrar direto)
+   - [x] `supabase/migrations/011_match_votes.sql`: **avaliação da galera** estilo Cartola (encerrar jogo, 24 h para votar, voto secreto)
+   - [x] `supabase/migrations/012_court_time_and_roles.sql`: **horário da quadra** (início/fim, duração da partida) e **só o dono mexe em admin**
+   - [x] `supabase/migrations/013_clubs_and_single_games.sql`: **clubes e jogos avulsos** (jogo sem clube, publicar no Bora e entrar direto)
+   - [x] `supabase/migrations/014` a `019` (feitas pela sessão do celular)
    - [x] `supabase/migrations/020_privacy_hardening.sql`: **privacidade** (auditoria: match/bloqueio de terceiros, listagem de fotos, exportação LGPD completa)
-   - [ ] `supabase/migrations/021_scorekeeper.sql`: **marcador do placar** (um admin por jogo; passa a vez; dono assume)
+   - [x] `supabase/migrations/021_scorekeeper.sql`: **marcador do placar** (um admin por jogo; passa a vez; dono assume)
 5. Se alguma der erro, **pare** e me mande a mensagem de erro (print serve).
 
 > Eu confiro a escrita de todos os arquivos com o verificador do próprio Postgres (`npm run check:sql`), mas só rodando no seu Supabase dá para ter certeza de que funcionam.
@@ -41,15 +42,14 @@ O app 1.1.0 em diante se atualiza sozinho pelo GitHub. Falta publicar a "ponte" 
 - [x] Função publicada: ficou com o nome **rapid-endpoint** (é ela a ponte; não apagar nem renomear)
 - [x] Na função rapid-endpoint → Settings → desligar "Verify JWT" → Save (feito e testado em 28/09)
 
-### 1.2 Guardar as chaves do app (MUITO importante)
-- [ ] Copie a pasta **C:\Users\10088132\VaiaAi-chave** inteira para o seu Google Drive pessoal ou um pendrive.
+### 1.2 Guardar as chaves do app (MUITO importante) ✅
+- [x] Copie a pasta **C:\Users\10088132\VaiaAi-chave** inteira para o seu Google Drive pessoal ou um pendrive.
   Ela tem a chave que assina o APK e a que assina as atualizações. **Perdeu = nunca mais atualiza o app.**
   Leia o `LEIA-ME.txt` que está dentro.
 
 ### 2. Instalar o APK novo e testar
-O APK que você tem é antigo: não tem visual novo, localização, comunidades nem "Bora".
-- [ ] Me peça **"gera o APK"**. Eu compilo aqui no PC (demora uns 15 min) e deixo em `Desktop\Vaia Aí\`.
-- [ ] Passe pro celular pelo cabo (pasta Download) e instale por cima do antigo.
+- [x] APK 1.2.0 gerado e publicado: https://github.com/rafablauth1/Chega-A-/releases/tag/v1.2.0
+- [ ] Instale no celular (link acima ou pelo cabo) por cima do antigo. Daqui pra frente ele se atualiza sozinho.
 - [ ] Roteiro de teste (anote o que der errado):
   - [ ] Criar conta, entrar e sair
   - [ ] Editar perfil: foto, data de nascimento, **Usar minha localização**, horários, WhatsApp
@@ -87,7 +87,7 @@ Detalhes e o porquê em `SEGURANCA.md`. **Quem invadir uma dessas contas control
   - **Email OTP Expiration: 900** (15 minutos) e **Email OTP Length: 6**
 - [ ] Supabase → **Authentication → URL Configuration → Redirect URLs** → **Add URL**: `vaiaai://**` → Save.
   - **Sem isso, o link do e-mail de "esqueci a senha" não abre o app.**
-- [ ] (Depois, quando tiver e-mail próprio/SMTP; no servidor padrão o Supabase não deixa editar)
+- [ ] (O SMTP próprio já está feito, então agora dá)
   **Authentication → Emails → Reset Password**: assunto `Seu código do Vaia Aí: {{ .Token }}` e corpo
   `supabase/templates/recovery.html`. Aí o e-mail passa a ter também um código de 6 números (o link continua valendo).
 - [ ] Supabase → **Authentication → Attack Protection**: ligar **CAPTCHA** com Cloudflare Turnstile (grátis) e me avisar, que eu ligo no app.
@@ -129,10 +129,10 @@ Detalhes e o porquê em `SEGURANCA.md`. **Quem invadir uma dessas contas control
 O e-mail padrão do Supabase é só para teste: **só entrega para os e-mails da sua equipe no Supabase**, manda poucos
 por hora e não deixa mudar o texto. Sem SMTP próprio, **nenhum usuário recebe o e-mail de "esqueci a senha"**
 nem o de confirmação de cadastro.
-- [ ] Criar um Gmail só do app (ex.: vaiaai.app@gmail.com).
-- [ ] Criar conta grátis no https://www.brevo.com com esse Gmail (300 e-mails por dia).
-- [ ] Me avisar: eu passo os 5 campos para colar em Supabase → Authentication → SMTP Settings.
-- [ ] Depois: colar o modelo `supabase/templates/recovery.html` em Authentication → Emails → Reset Password (código de 6 números).
+- [x] Criar um Gmail só do app (ex.: vaiaai.app@gmail.com).
+- [x] Criar conta grátis no https://www.brevo.com com esse Gmail (300 e-mails por dia).
+- [x] Colar os campos em Supabase → Authentication → SMTP Settings.
+- [ ] Agora dá: colar o modelo `supabase/templates/recovery.html` em Authentication → Emails → Reset Password (código de 6 números).
 - Alternativa quando tiver domínio (ex.: vaiaai.com.br): https://resend.com (3 mil por mês, e-mail @vaiaai.com.br).
 
 ---
