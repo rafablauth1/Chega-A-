@@ -88,8 +88,15 @@ Converse com o dono em português, de forma simples (não é programador).
    **fora do repositório**. Nunca commitar a chave nem as senhas (o check:secrets bloqueia). Sem a chave, não há
    como atualizar o app instalado: nunca gerar outra.
 4. Publicar no GitHub Releases com a tag `vX.Y.Z` e o arquivo `VaiaAi-X.Y.Z.apk`.
-5. Atualizar `release/android.json` (versionCode, versionName, url, notes; `minVersionCode` só para correção
-   obrigatória). O app lê esse arquivo e mostra "Nova versão disponível" (`src/components/UpdatePrompt.tsx`).
+5. **Só depois que o dono testar o APK no celular**, atualizar `release/android.json` (versionCode, versionName,
+   url, notes, `sizeBytes` e `md5` do arquivo exato publicado; `minVersionCode` só para correção obrigatória).
+   O app lê esse arquivo e mostra "Nova versão disponível" (`src/components/UpdatePrompt.tsx`). A partir da 1.3.0
+   ele baixa o APK dentro do app, confere tamanho e MD5 e abre o "Instalar" do Android (`src/utils/apkInstaller.ts`).
+   MD5 no PowerShell: `(Get-FileHash arquivo.apk -Algorithm MD5).Hash.ToLower()`.
+6. Build da **Play Store**: tirar `./plugins/withApkInstaller` de `app.json` (a Google proíbe a permissão
+   `REQUEST_INSTALL_PACKAGES` para se atualizar sozinho).
+- O build usa R8 (minify + shrinkResources) e bibliotecas nativas compactadas (`expo-build-properties`). Se uma
+  biblioteca nova quebrar só no release, falta regra em `extraProguardRules` desse plugin.
 
 ### Antes de todo commit
 - Rode `npm run check` (tipos, ESLint, migrações, auditoria de segurança do banco e segredos). O GitHub roda o mesmo
