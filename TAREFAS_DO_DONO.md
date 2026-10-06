@@ -46,6 +46,14 @@ O app 1.1.0 em diante se atualiza sozinho pelo GitHub. Falta publicar a "ponte" 
 - [x] Copie a pasta **C:\Users\10088132\VaiaAi-chave** inteira para o seu Google Drive pessoal ou um pendrive.
   Ela tem a chave que assina o APK e a que assina as atualizações. **Perdeu = nunca mais atualiza o app.**
   Leia o `LEIA-ME.txt` que está dentro.
+- **O PC do trabalho não é mais usado (06/10).** A cópia do Drive passou a ser a principal: não apague. Faça uma
+  segunda cópia num pendrive quando puder. Atualização automática não precisa de PC (GitHub → Actions);
+  APK novo precisa da pasta num PC novo ou subida no Expo (instruções no `AGENTS.md`).
+
+### 1.3 Testar a 1.3.0 e me dizer "libera"
+- [ ] Instalar: https://github.com/rafablauth1/Chega-A-/releases/download/v1.3.0/VaiaAi-1.3.0.apk
+- [ ] Abre logado? Jogo, presença, ranking, placar (marcar gol), trocar foto, versão 1.3.0 em Meu perfil.
+- [ ] Tudo certo: me diga **"libera"** (qualquer sessão minha faz: está anotado no `AGENTS.md`).
 
 ### 2. Instalar o APK novo e testar
 - [x] APK 1.2.0 gerado e publicado: https://github.com/rafablauth1/Chega-A-/releases/tag/v1.2.0

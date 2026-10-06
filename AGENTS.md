@@ -64,10 +64,27 @@ Converse com o dono em português, de forma simples (não é programador).
 - Jogadores com conta têm `account: true` e id = id do usuário; convidados (sem conta) ficam na tabela `guests`.
 - Notas pós-jogo são de 0 a 10; a força interna do sorteio (habilidades em estrelas) é de 1 a 5 e aparece ×2 (`toTen`).
 
+### Estado atual (06/10/2026) — leia primeiro
+- Em produção: **1.2.0** (versionCode 3). Migrações rodadas no Supabase até a **021**.
+- **1.3.0 em teste**: APK no GitHub como pré-lançamento (`v1.3.0`), esperando o dono testar no celular.
+  Quando ele disser **"libera"**: copiar `release/android.next.json` por cima de `release/android.json`, apagar o
+  `android.next.json`, commit e push (é só isso que faz o aviso aparecer para todos). Se houver login do GitHub,
+  também `node scripts/github-release.mjs 1.3.0 --oficial`.
+- O PC antigo do dono (onde estavam o build local e esta memória) **não é mais usado**. Pendências e decisões do
+  dono: `TAREFAS_DO_DONO.md`.
+
 ### Gerar o APK
-- No PC do dono existe build local (Android SDK em `~/tools`), mas em sessão remota use o **EAS Build**:
-  `npx eas-cli@latest build -p android --profile preview` (gera APK e devolve um link). Precisa estar logado na conta
-  Expo do dono (`EXPO_TOKEN`); se não houver, peça para ele gerar o token em expo.dev > Account settings > Access tokens.
+- **Atualização automática (só JS/telas) não precisa de PC**: GitHub → Actions → "Publicar atualização OTA" → Run.
+- APK novo (mudança nativa) precisa ser assinado com a **mesma chave** (`vaiaai-release.keystore`, na pasta
+  `VaiaAi-chave` que o dono guardou no Google Drive; senhas no `LEIA-ME.txt` de lá). Chave diferente = o APK não
+  instala por cima e todo mundo teria que desinstalar. Duas formas:
+  - **PC novo**: Node 24, JDK 17, Android SDK (platform 36, build-tools 36, NDK que o Gradle pedir). Copiar a pasta
+    `VaiaAi-chave` do Drive e criar `%USERPROFILE%\.gradle\gradle.properties` com `VAIAAI_UPLOAD_STORE_FILE`
+    (caminho do .keystore), `VAIAAI_UPLOAD_KEY_ALIAS`, `VAIAAI_UPLOAD_STORE_PASSWORD`, `VAIAAI_UPLOAD_KEY_PASSWORD` e
+    `org.gradle.jvmargs=-Xmx3072m -XX:MaxMetaspaceSize=1024m`. Compilar numa pasta **sem acento nem espaço** (ex.: `C:\va`).
+  - **Nuvem (EAS Build)**: `npx eas-cli@latest build -p android --profile preview`. Antes, subir a MESMA chave em
+    `eas credentials` (Android → Keystore → upload); nunca deixar o EAS gerar uma chave nova. Precisa da conta Expo
+    do dono (`EXPO_TOKEN`).
 
 ### Segurança (leia `SEGURANCA.md` antes de mexer em dados)
 - Toda tabela nova: **RLS ligado** + políticas. Tabela de grupo entra na publicação `supabase_realtime`.
@@ -81,13 +98,15 @@ Converse com o dono em português, de forma simples (não é programador).
 
 ### Lançar versão nova do APK (fora da Play Store)
 1. Subir `version` (ex.: 1.2.0) e `android.versionCode` (+1, sempre) em `app.json`.
-2. Build local: copiar o projeto para `C:\Users\10088132\va` (robocopy sem `.git`, `.expo` e a pasta `android`),
-   `npx expo prebuild --platform android --clean` e `android\gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a`.
+2. Build local: copiar o projeto para uma pasta sem acento (ex.: `C:\va`; robocopy sem `.git`, `.expo`, `updates` e a
+   pasta `android`), `npx expo prebuild --platform android --clean --no-install` e, com `SENTRY_DISABLE_AUTO_UPLOAD=true`,
+   `android\gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a` (~30 min).
 3. A assinatura usa a **chave própria** (plugin `plugins/withReleaseSigning.js`), lida de
    `%USERPROFILE%\.gradle\gradle.properties` (`VAIAAI_UPLOAD_*`). A chave fica em `C:\Users\10088132\VaiaAi-chave`,
    **fora do repositório**. Nunca commitar a chave nem as senhas (o check:secrets bloqueia). Sem a chave, não há
    como atualizar o app instalado: nunca gerar outra.
-4. Publicar no GitHub Releases com a tag `vX.Y.Z` e o arquivo `VaiaAi-X.Y.Z.apk`.
+4. Publicar no GitHub Releases como teste: `node scripts/github-release.mjs X.Y.Z caminho\VaiaAi-X.Y.Z.apk`
+   (mostra url, `sizeBytes` e `md5`). Depois do OK do dono: `node scripts/github-release.mjs X.Y.Z --oficial`.
 5. **Só depois que o dono testar o APK no celular**, atualizar `release/android.json` (versionCode, versionName,
    url, notes, `sizeBytes` e `md5` do arquivo exato publicado; `minVersionCode` só para correção obrigatória).
    O app lê esse arquivo e mostra "Nova versão disponível" (`src/components/UpdatePrompt.tsx`). A partir da 1.3.0

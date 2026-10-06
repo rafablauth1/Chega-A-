@@ -8,7 +8,8 @@
  *     VAIAAI_UPLOAD_STORE_PASSWORD=...
  *     VAIAAI_UPLOAD_KEY_PASSWORD=...
  * Sem essas linhas, o build de release cai na chave de teste (só para desenvolvimento).
- * Na nuvem (EAS Build) a assinatura é gerenciada pelo Expo e este plugin não interfere.
+ * Na nuvem (EAS Build) a assinatura é gerenciada pelo Expo e este plugin não interfere: suba ESTA MESMA chave em
+ * `eas credentials` antes do primeiro build, senão o APK sai com outra chave e não instala por cima.
  */
 const { withAppBuildGradle } = require('expo/config-plugins');
 
