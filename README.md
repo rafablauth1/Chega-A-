@@ -60,7 +60,7 @@ flowchart LR
 
 ## Requisitos
 
-- Node.js 22 ou superior
+- Node.js 24 (o `package-lock.json` é gerado pelo npm 11)
 - Expo Go (para testar no celular) ou um development build
 - Projeto Supabase (opcional, para o modo nuvem)
 
@@ -139,3 +139,8 @@ updates/            pacotes OTA gerados pelo workflow
 | Atualizações | expo-updates com assinatura própria, GitHub Releases |
 | Observabilidade | Sentry |
 | CI | GitHub Actions |
+
+## Licença
+
+Copyright © 2026 rafablauth1. Todos os direitos reservados. O código está visível para consulta; não é permitido
+copiar, redistribuir ou reutilizar sem autorização.
